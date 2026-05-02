@@ -1,0 +1,342 @@
+import React, { useState, useMemo, useCallback } from "react";
+import { Link } from "react-router-dom";
+import PolicyListEmptyState from "./PolicyListEmptyState";
+import UnwantedPoliciesEmptyView from "./UnwantedPoliciesEmptyView";
+import RequiredPolicyListRow from "./RequiredPolicyListRow";
+import MatchedPolicyListRow from "./MatchedPolicyListRow";
+
+const FILTER_TABS = [
+  { key: "all", label: "All" },
+  { key: "unwanted", label: "Unwanted", icon: "isax-close-circle", iconClass: "text-danger" },
+  { key: "required", label: "Required", icon: "isax-danger", iconClass: "text-primary" },
+  { key: "matches", label: "Matches", icon: "isax-search-normal-1", iconClass: "text-primary" },
+];
+
+const SAMPLE_POLICIES = [
+  {
+    id: "1",
+    title: "Text",
+    searchScope: "Everything",
+    status: "hits",
+    compliancePercent: 0.2,
+    policyHits: 499,
+    category: "matches",
+  },
+  {
+    id: "2",
+    title: "Text that starts with Lorem ipsum",
+    searchScope: "Only HTML pages",
+    status: "compliant",
+    compliancePercent: 100,
+    policyHits: null,
+    category: "matches",
+  },
+  {
+    id: "3",
+    title: "Text that starts with FD",
+    searchScope: "Only HTML pages",
+    status: "compliant",
+    compliancePercent: 100,
+    policyHits: null,
+    category: "required",
+  },
+];
+
+const PolicyListView = ({ onAddNewPolicy }) => {
+  const [activeTab, setActiveTab] = useState("all");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
+
+  const filteredBySearch = useMemo(() => {
+    let rows = SAMPLE_POLICIES;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      rows = rows.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) || r.searchScope.toLowerCase().includes(q)
+      );
+    }
+    return rows;
+  }, [search]);
+
+  const filteredRows = useMemo(() => {
+    if (activeTab === "all") return filteredBySearch;
+    return filteredBySearch.filter((r) => r.category === activeTab);
+  }, [filteredBySearch, activeTab]);
+
+  const sortedRows = useMemo(() => {
+    if (!sortBy) return filteredRows;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filteredRows].sort((a, b) => {
+      if (sortBy === "title") {
+        return dir * a.title.localeCompare(b.title);
+      }
+      return dir * (a.compliancePercent - b.compliancePercent);
+    });
+  }, [filteredRows, sortBy, sortDir]);
+
+  const handleSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(key);
+      setSortDir(key === "title" ? "asc" : "desc");
+    }
+  };
+
+  const reportName = "Policy-List";
+
+  const exportCSV = useCallback(() => {
+    const header = "Title,Search Scope,Compliance %,Policy Hits\n";
+    const body = sortedRows
+      .map((r) =>
+        [
+          `"${(r.title || "").replace(/"/g, '""')}"`,
+          `"${(r.searchScope || "").replace(/"/g, '""')}"`,
+          r.compliancePercent,
+          r.policyHits ?? "",
+        ].join(",")
+      )
+      .join("\n");
+    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${reportName}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [sortedRows]);
+
+  const exportExcel = useCallback(() => {
+    alert("Excel export functionality will be implemented soon.");
+  }, []);
+
+  const exportPDF = useCallback(() => {
+    alert("PDF export functionality will be implemented soon.");
+  }, []);
+
+  return (
+    <div className="d-flex flex-column h-100">
+      {/* Header */}
+      <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
+            <i className="isax isax-hammer fs-20 text-primary" aria-hidden="true" />
+            Policy List
+          </h5>
+          <p className="text-muted fs-13 mb-0">{sortedRows.length} policies found</p>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <Link
+            to="/policies?view=global"
+            className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2 text-decoration-none"
+          >
+            <i className="isax isax-hammer" aria-hidden="true" />
+            Global Policy List
+          </Link>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center"
+            onClick={onAddNewPolicy}
+          >
+            <i className="isax isax-add-circle fs-18 me-1" aria-hidden="true" />
+            Add new policy
+          </button>
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <ul className="nav nav-tabs border-0 border-bottom border-secondary border-opacity-25 mb-3">
+        {FILTER_TABS.map((tab) => (
+          <li key={tab.key} className="nav-item">
+            <button
+              type="button"
+              className={`nav-link border-0 rounded-0 pb-2 px-3 d-flex align-items-center gap-2 ${activeTab === tab.key ? "text-primary border-bottom border-2 border-primary bg-transparent" : "text-body"}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.icon && (
+                <i className={`isax ${tab.icon} fs-16 ${tab.iconClass ?? ""}`} aria-hidden="true" />
+              )}
+              {tab.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {/* Action bar */}
+      <div className="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3">
+        <div className="dropdown">
+          <button
+            className="btn btn-primary btn-sm rounded-2 d-flex align-items-center gap-2 dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="isax isax-export" />
+            Export
+          </button>
+          <ul className="dropdown-menu dropdown-menu-end">
+            <li>
+              <button className="dropdown-item" onClick={exportCSV}>
+                Export as CSV
+              </button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={exportExcel}>
+                Export as Excel
+              </button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={exportPDF}>
+                Export as PDF
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div className="position-relative" style={{ width: 280 }}>
+          <i
+            className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+            style={{ fontSize: "1rem" }}
+            aria-hidden="true"
+          />
+          <input
+            type="text"
+            className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search"
+            style={{ paddingLeft: "2.75rem" }}
+          />
+        </div>
+      </div>
+
+      {/* Table or empty state */}
+      <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
+        {sortedRows.length === 0 ? (
+          activeTab === "unwanted" ? (
+            <UnwantedPoliciesEmptyView />
+          ) : (
+            <PolicyListEmptyState />
+          )
+        ) : (
+          <div className="table-responsive flex-grow-1">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="py-3 ps-4 text-body fs-13 fw-semibold" style={{ minWidth: 280 }}>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
+                      onClick={() => handleSort("title")}
+                      aria-label={sortBy === "title" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Title"}
+                    >
+                      Title
+                      {sortBy === "title" ? (
+                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                      ) : (
+                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="py-3 text-body fs-13 fw-semibold">Actions</th>
+                  <th className="py-3 text-body fs-13 fw-semibold" style={{ minWidth: 140 }}>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
+                      onClick={() => handleSort("compliance")}
+                      aria-label={sortBy === "compliance" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Compliance"}
+                    >
+                      Compliance
+                      {sortBy === "compliance" ? (
+                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                      ) : (
+                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="py-3 pe-4 text-body fs-13 fw-semibold">Policy Hits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.map((row) =>
+                  activeTab === "required" ? (
+                    <RequiredPolicyListRow key={row.id} row={row} />
+                  ) : activeTab === "matches" ? (
+                    <MatchedPolicyListRow key={row.id} row={row} />
+                  ) : (
+                    <tr key={row.id}>
+                      <td className="py-3 ps-4">
+                        <div className="d-flex align-items-start gap-2">
+                          <span
+                            className={`d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle ${row.status === "hits" ? "bg-secondary bg-opacity-25" : "bg-success bg-opacity-25"}`}
+                            style={{ width: 32, height: 32 }}
+                          >
+                            {row.status === "hits" ? (
+                              <i className="isax isax-search-normal-1 text-secondary fs-16" aria-hidden="true" />
+                            ) : (
+                              <i className="isax isax-tick-circle text-success fs-16" aria-hidden="true" />
+                            )}
+                          </span>
+                          <div className="min-w-0">
+                            <span className="fw-semibold text-body d-block fs-13">{row.title}</span>
+                            <span className="text-muted fs-12 d-block">Search in: {row.searchScope}</span>
+                            <div className="d-flex align-items-center gap-2 mt-1">
+                              <i className="isax isax-information text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
+                              <i className="isax isax-timer-1 text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
+                              <i className="isax isax-refresh-2 text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <div className="dropdown">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-1 dropdown-toggle"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-label="Policy actions"
+                          >
+                            Action
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button type="button" className="dropdown-item">Edit policy</button></li>
+                            <li><button type="button" className="dropdown-item">View details</button></li>
+                            <li><button type="button" className="dropdown-item">Duplicate</button></li>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button type="button" className="dropdown-item text-danger">Delete</button></li>
+                          </ul>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <span className="text-primary fw-medium fs-13">
+                          {row.compliancePercent}% COMPLIANCE
+                        </span>
+                        <span
+                          className="rounded-circle d-inline-block ms-1 bg-secondary bg-opacity-25"
+                          style={{ width: 8, height: 8 }}
+                          aria-hidden="true"
+                        />
+                      </td>
+                      <td className="py-3 pe-4">
+                        {row.policyHits != null ? (
+                          <span className="text-primary fw-medium fs-13">{row.policyHits} HITS</span>
+                        ) : (
+                          <span className="text-success fs-13">No hits found</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PolicyListView;

@@ -1,0 +1,1122 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tailwind with preflight disabled - template uses Bootstrap for base styles */
+
+/* Card dropdown: Export submenu opens to the right, slight overlap so no dead zone */
+.dropdown .dropdown-menu .dropend > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: 0;
+  margin-left: -2px;
+}
+
+/* Export submenu opens on hover so cursor can move to CSV/PDF/Excel */
+.dropdown .dropdown-menu .dropend:hover > .dropdown-menu {
+  display: block !important;
+}
+
+/* Forms view: Download Report button – no caret, no blue hover fill */
+.forms-download-report-btn .btn.dropdown-toggle::after {
+  display: none;
+}
+.forms-download-report-btn .btn.btn-outline-primary:hover {
+  background-color: transparent;
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* Account page subnav: Dashboard, User management */
+.account-subnav-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.account-subnav-item-active {
+  font-weight: 600;
+}
+
+/* Sidebar: mini column (add + icons) removed – main sidebar starts at left edge */
+#two-col-sidebar {
+  width: 270px;
+}
+#two-col-sidebar .sidebar {
+  left: 0;
+  width: 270px;
+  /* Theme may hide generic sidebars; keep app sidebar visible */
+  display: block !important;
+  visibility: visible !important;
+}
+/* Align header and page content with single-column sidebar */
+.main-wrapper .header {
+  left: 270px;
+}
+.main-wrapper .page-wrapper {
+  margin-left: 270px;
+}
+
+/* Landing page sidebar: same single-column layout */
+#two-col-sidebar.landing-sidebar .sidebar {
+  left: 0;
+  width: 270px;
+}
+.rotate-n90 {
+  transform: rotate(-90deg);
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li a span,
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li button span {
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+}
+/* Landing sidebar: gap between icon and text for all menu links */
+#two-col-sidebar.landing-sidebar .sidebar-menu > ul > li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  padding-left: 12px;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu > ul > li > a.active {
+  color: #2366FF;
+  background-color: rgba(35, 102, 255, 0.08);
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu > ul > li > a.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #2366FF;
+  border-radius: 0 3px 3px 0;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu > ul > li > a.active i {
+  color: #2366FF;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li.menu-title span {
+  white-space: normal;
+}
+/* Landing Select Domain: same UI as Dashboard (submenu with purple bar, sub-items with vertical line) */
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > a.subdrop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > a.subdrop.landing-select-domain-trigger span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Select Domain UI: label + field with blue bar + blue text/caret + domain list (#2366FF) */
+#two-col-sidebar.landing-sidebar .landing-select-domain-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0 12px;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-submenu > a.landing-select-domain-trigger {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  min-height: 40px;
+  border-radius: 6px;
+  margin: 0 8px 0 0;
+  border: none;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-submenu > a.landing-select-domain-trigger::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #2366FF;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-submenu > a.landing-select-domain-trigger.subdrop::before {
+  opacity: 1;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-trigger .landing-select-domain-trigger-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 14px;
+  flex: 1;
+  min-width: 0;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-trigger .landing-select-domain-icon {
+  flex-shrink: 0;
+  font-size: 1.125rem;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-submenu > a.landing-select-domain-trigger.subdrop .landing-select-domain-icon {
+  color: #2366FF;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-trigger .landing-select-domain-trigger-text {
+  flex: 1;
+  min-width: 0;
+  color: #2366FF;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-trigger .landing-select-domain-caret {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: #2366FF;
+  transition: transform 0.2s;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-submenu > a.landing-select-domain-trigger.subdrop .landing-select-domain-caret {
+  transform: rotate(180deg);
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list {
+  margin-top: 0.5rem;
+  padding-left: 0;
+  list-style: none;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list li {
+  margin-bottom: 2px;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item {
+  padding: 8px 12px 8px 14px;
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 6px;
+  margin: 0 8px 0 4px;
+  border: none;
+  background: transparent;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item:hover {
+  background-color: rgba(35, 102, 255, 0.06);
+  color: #2366FF;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item .landing-domain-item-icon {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item.active .landing-domain-item-icon,
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item.active {
+  color: #2366FF;
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item.active {
+  background-color: rgba(35, 102, 255, 0.08);
+}
+#two-col-sidebar.landing-sidebar .landing-select-domain-list .landing-domain-item::before {
+  display: none;
+}
+
+/* Select Domain dropdown items: same ul li styling as Dashboard dropdown */
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a {
+  padding: 8px 4px 8px 32px;
+  font-size: 13px;
+  position: relative;
+  color: var(--menu-item-color, #6b7280);
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+/* Domain list: icon + domain name on one line (override any theme column layout) */
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-domain-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-width: 0;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-domain-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-domain-item i {
+  flex-shrink: 0;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a::before {
+  content: "";
+  position: absolute;
+  background: var(--gray-100, #f3f4f6);
+  width: 1.5px;
+  height: 100%;
+  left: 20px;
+  top: 0;
+  opacity: 0.8;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a:hover {
+  color: var(--bs-primary);
+}
+/* Selected domain: active state like Dashboard (primary color, vertical line visible) */
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-domain-item.active {
+  color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+  border-radius: 5px;
+  margin: 2px 4px 2px 0;
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-domain-item.active::before {
+  background: var(--bs-primary);
+  opacity: 1;
+}
+/* Add new domain: same sub-item styling */
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-add-domain {
+  color: var(--menu-item-color, #6b7280);
+}
+#two-col-sidebar.landing-sidebar .sidebar-menu ul li .submenu > ul li a.landing-add-domain:hover {
+  color: var(--bs-primary);
+}
+
+/* Dashboard sidebar: selected domain below logo */
+.sidebar-selected-domain {
+  color: var(--bs-body-color);
+}
+.sidebar-selected-domain .sidebar-selected-domain-label {
+  font-size: 1.0625rem; /* ~17px — larger than .small */
+  line-height: 1.35;
+}
+
+/* Nested submenu items (e.g. under Quality Assurance): icon - text - dropdown on one line */
+#two-col-sidebar .sidebar-menu ul li .submenu > ul li.submenu > a.subdrop {
+  display: flex !important;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+#two-col-sidebar .sidebar-menu ul li .submenu > ul li.submenu > a.subdrop .menu-arrow {
+  margin-left: auto;
+}
+
+/* ---------- Dashboard sidebar: revamped (clean layout, section headers, vertical connector, active bar) ---------- */
+#two-col-sidebar:not(.landing-sidebar) .sidebar {
+  background: #fafafa;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul {
+  padding: 12px 10px 20px;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li {
+  margin-bottom: 2px;
+}
+/* Section headers – smaller, lighter, spacing */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li.menu-title {
+  margin-top: 20px;
+  margin-bottom: 8px;
+  padding: 0 14px;
+  border: none;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li.menu-title:first-child {
+  margin-top: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li.menu-title span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+/* Top-level: icon + text + dropdown on one line, compact height */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 0;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  min-height: 36px;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a span,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a i,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop i {
+  color: #4b5563;
+  font-size: 1.125rem;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a:hover,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a:hover i,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop:hover i {
+  color: #374151;
+}
+/* Active dropdown: pill container, light grey bg, border, purple left bar */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a.active,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop.active {
+  background-color: #f3f4f6;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-left: none;
+  padding-left: 11px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a.active::before,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--bs-primary, #7539ff);
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a.active i,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop.active i {
+  color: var(--bs-primary, #7539ff);
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a .menu-arrow,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop .menu-arrow {
+  margin-left: auto;
+  opacity: 0.6;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a.active .menu-arrow,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop.active .menu-arrow {
+  opacity: 1;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > a.active .menu-arrow::before,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > .submenu > a.subdrop.active .menu-arrow::before {
+  border-color: #6b7280;
+}
+/* Submenu container + single vertical connector line; no bottom border */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li.submenu > ul {
+  margin-top: 2px;
+  margin-bottom: 8px;
+  margin-left: 0;
+  padding-left: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  position: relative;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li.submenu > ul::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb;
+}
+/* Sub-items: one line, no hover bg, no bottom border, minimal padding/margin */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > a,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > .submenu > a.subdrop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 28px;
+  margin: 0;
+  border-radius: 4px;
+  border-bottom: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li {
+  border-bottom: none;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > a span,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > .submenu > a.subdrop span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > a i,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > .submenu > a.subdrop i {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > a.active,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > .submenu > a.subdrop.active {
+  color: var(--bs-primary, #7539ff);
+  border-left: 3px solid var(--bs-primary, #7539ff);
+  padding-left: 25px;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > a.active i,
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > .submenu > a.subdrop.active i {
+  color: var(--bs-primary, #7539ff);
+}
+/* Nested submenu (e.g. QA > Links) – no bottom border */
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li.submenu > ul {
+  margin-top: 0;
+  margin-bottom: 4px;
+  padding-bottom: 0;
+  border-bottom: none;
+  position: relative;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li.submenu > ul::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > ul > li > a {
+  padding: 5px 8px 5px 36px;
+  margin: 0;
+  border-radius: 4px;
+  border-bottom: none;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > ul > li {
+  border-bottom: none;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > ul > li > a span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+#two-col-sidebar:not(.landing-sidebar) .sidebar-menu > ul > li > ul > li > ul > li > a.active {
+  color: var(--bs-primary, #7539ff);
+  border-left: 3px solid var(--bs-primary, #7539ff);
+  padding-left: 33px;
+}
+
+/* ---------- Landing: Header ---------- */
+.landing-main-header .header-left {
+  min-width: 0;
+}
+.landing-header .main-header {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  min-height: 3.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+@media (max-width: 991.98px) {
+  .landing-header .main-header {
+    padding-left: 4.5rem;
+    padding-right: 4rem;
+  }
+}
+@media (max-width: 575.98px) {
+  .landing-header .main-header {
+    padding-left: 4rem;
+    padding-right: 3.5rem;
+  }
+  .landing-header .header-user .input-icon-end,
+  .landing-header .header-user .notification_item {
+    display: none;
+  }
+}
+.landing-home-link {
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+.landing-home-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--bs-body-color);
+}
+.landing-home-link .isax {
+  font-size: 1.25rem;
+}
+.landing-header-search {
+  min-width: 180px;
+}
+.landing-header-search .form-control {
+  border-radius: 0.5rem;
+  border-color: rgba(0, 0, 0, 0.08);
+  font-size: 0.875rem;
+}
+.landing-header-search .form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.12);
+}
+
+/* ---------- Landing: Content area ---------- */
+.landing-content {
+  background-color: #f8f9fb;
+  min-height: calc(100vh - 56px);
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
+}
+@media (max-width: 767.98px) {
+  .landing-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
+  }
+}
+@media (max-width: 575.98px) {
+  .landing-content {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* ---------- Landing: Nav tabs (pills) ---------- */
+.landing-nav-tabs {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.landing-nav-tabs-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+@media (max-width: 575.98px) {
+  .landing-nav-tabs {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+  .landing-pill {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .landing-pill span:not(.landing-pill-icon) {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.landing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.landing-pill-icon {
+  font-size: 1.1rem;
+}
+.landing-pill-inactive {
+  background-color: #f1f3f5;
+  color: #6c757d;
+}
+.landing-pill-inactive:hover {
+  background-color: #e9ecef;
+  color: var(--bs-body-color);
+}
+.landing-pill-inactive .landing-pill-icon {
+  color: inherit;
+}
+.landing-pill-active {
+  background-color: rgba(var(--bs-primary-rgb), 0.12);
+  color: var(--bs-primary);
+}
+.landing-pill-active .landing-pill-icon {
+  color: var(--bs-primary);
+}
+/* Domain Overview: row click selects workspace domain (opens full sidebar) */
+.domain-overview-row-selectable:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.landing-pill-active:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.16);
+  color: var(--bs-primary);
+}
+
+/* Account: User management dropdown */
+.account-usermgmt-dropdown {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 100;
+  background: var(--bs-body-bg);
+  min-width: 11.25rem;
+}
+.account-usermgmt-dropdown-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+  color: var(--bs-primary);
+}
+
+/* Audit log calendar pop-up */
+.audit-log-calendar-day:not(.bg-primary):hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+}
+
+/* ---------- Landing: Central card ---------- */
+.landing-select-card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem 0;
+}
+.landing-select-card {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  max-width: 480px;
+  width: 100%;
+  overflow: hidden;
+  transition: box-shadow 0.25s;
+}
+.landing-select-card:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.landing-select-card-body {
+  text-align: center;
+  padding: 2.5rem 2rem !important;
+}
+@media (min-width: 576px) {
+  .landing-select-card-body {
+    padding: 3rem 2.5rem !important;
+  }
+}
+.landing-globe-icon {
+  font-size: 4rem !important;
+  display: block;
+  margin-bottom: 1.25rem;
+  opacity: 0.95;
+}
+.landing-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 0.5rem;
+}
+.landing-card-desc {
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1.5rem !important;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+.landing-cta-btn {
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.landing-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+/* ---------- Landing: Sidebar ---------- */
+#two-col-sidebar.landing-sidebar .sidebar {
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.06);
+}
+#two-col-sidebar.landing-sidebar .sidebar-logo .text-primary {
+  color: #2366FF !important;
+}
+/* Prevent logo and Select Domain from overlapping */
+#two-col-sidebar.landing-sidebar .sidebar .sidebar-logo {
+  padding-bottom: 1rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+#two-col-sidebar.landing-sidebar .sidebar .sidebar-menu {
+  margin-top: 0.5rem;
+}
+#two-col-sidebar.landing-sidebar .sidebar .sidebar-menu > ul > li > ul {
+  margin-top: 0.5rem;
+}
+@media (max-width: 991.98px) {
+  #two-col-sidebar.landing-sidebar .sidebar {
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+  }
+  /* Select Domain label above the dropdown on mobile */
+  #two-col-sidebar.landing-sidebar .sidebar-menu > ul {
+    display: flex;
+    flex-direction: column;
+  }
+  #two-col-sidebar.landing-sidebar .sidebar-menu > ul > li.landing-menu-title:first-of-type {
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+  #two-col-sidebar.landing-sidebar .sidebar-menu > ul > li.landing-menu-title:first-of-type + li {
+    order: 0;
+  }
+}
+.landing-sidebar-logo {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.landing-logo-link {
+  transition: opacity 0.2s;
+}
+.landing-logo-link:hover {
+  opacity: 0.85;
+}
+.landing-logo-icon {
+  font-size: 1.5rem !important;
+}
+.landing-sidebar-toggle {
+  padding: 0.35rem;
+  border-radius: 0.375rem;
+  color: var(--bs-body-color);
+  transition: background-color 0.2s;
+}
+.landing-sidebar-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: var(--bs-body-color);
+}
+#two-col-sidebar.landing-sidebar .landing-menu-title {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+.landing-select-domain-btn {
+  font-size: 0.9375rem !important;
+}
+.landing-add-domain {
+  color: #6c757d !important;
+  font-size: 0.875rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+.landing-add-domain:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--bs-body-color) !important;
+}
+
+/* ---------- Domain Overview page ---------- */
+.domain-overview-section {
+  max-width: 100%;
+}
+.domain-overview-header {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+@media (max-width: 767.98px) {
+  .domain-overview-title {
+    font-size: 1.25rem;
+  }
+  .domain-overview-header .d-flex.align-items-center.gap-2 {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 575.98px) {
+  .domain-overview-title {
+    font-size: 1.125rem;
+  }
+  .domain-overview-subtitle {
+    font-size: 0.875rem;
+  }
+  .domain-overview-summary {
+    font-size: 0.8125rem;
+  }
+}
+.domain-overview-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 0.25rem;
+}
+.domain-overview-subtitle {
+  font-size: 0.9375rem;
+}
+.domain-overview-summary {
+  font-size: 0.875rem;
+}
+.domain-overview-card {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.domain-overview-table thead th {
+  font-size: 0.8125rem;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #f8f9fb;
+}
+.domain-overview-table tbody td {
+  padding: 1rem;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.domain-overview-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.domain-overview-date {
+  min-width: 3rem;
+}
+.domain-overview-date .display-6 {
+  font-size: 1.25rem;
+}
+.domain-overview-metrics i.isax {
+  font-size: 1rem;
+}
+
+/* ---------- Add New Domain page ---------- */
+.add-domain-content {
+  background-color: #f8f9fb;
+  min-height: calc(100vh - 56px);
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
+}
+.add-domain-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+.add-domain-subtitle {
+  font-size: 0.9375rem;
+}
+.add-domain-card {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.add-domain-card .card-header {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.add-domain-card .card-header:hover {
+  background-color: #f8f9fb !important;
+}
+.add-domain-actions {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+.add-domain-input-with-icon .form-control {
+  border-right: 0;
+}
+.add-domain-input-with-icon .input-group-text {
+  border-left: 0;
+  border-color: var(--bs-border-color);
+}
+.add-domain-input-with-icon .form-control:focus + .input-group-text,
+.add-domain-input-with-icon .form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: none;
+}
+.add-domain-input-with-icon .form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Add User: Permissions & Notes – two-column Visible modules, purple toggles */
+.add-user-permission-section .row.g-0 .col-6.border-start {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+.add-user-permission-section .form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+.add-user-permission-section .form-check-input:focus {
+  border-color: rgba(var(--bs-primary-rgb), 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Prioritized Content: filter bar (All, Pages, PDF Documents, Other Documents) */
+.prioritized-content-filters .prioritized-content-filter-link {
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s, opacity 0.2s;
+}
+.prioritized-content-filters .prioritized-content-filter-link:hover {
+  opacity: 0.9;
+}
+.prioritized-content-filters .prioritized-content-filter-link.active {
+  border-bottom-color: var(--bs-primary);
+}
+
+/* Page Details Drawer: dashboard cards – smaller rings and spacing so layout is not messy */
+.page-details-drawer-dashboard .dashboard-metric-card .position-relative.d-inline-flex svg {
+  width: 120px !important;
+  height: 120px !important;
+}
+.page-details-drawer-dashboard .dashboard-metric-card .card-body {
+  min-height: auto;
+}
+
+/* Page Details Drawer: Policy filter tabs (All, Unwanted, Required, Matches) – same UI for all */
+.policy-filters-row .policy-filter-btn {
+  min-height: 1.75rem;
+  min-width: 4.5rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.policy-filters-row .policy-filter-btn.btn-light {
+  background-color: var(--bs-light);
+  color: var(--bs-body-color);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+.policy-filters-row .policy-filter-btn.btn-primary {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+  border-color: var(--bs-primary);
+}
+
+/* Dashboard metric cards: faded purple header icons, consistent footer, equal size */
+.dashboard-metric-card .card-body {
+  min-height: 280px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-metric-card .card-body > .row.align-items-center {
+  flex: 1;
+}
+.dashboard-metric-card .card-body > .d-flex:first-child h6 .dashboard-metric-icon {
+  color: #8b7a9e !important;
+}
+.dashboard-metric-card .card-body > .d-flex:first-child a[href="#"] {
+  color: #9ca3af !important;
+}
+.dashboard-metric-card .show-history-link {
+  color: var(--bs-primary) !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.dashboard-metric-card .show-history-link:hover {
+  color: var(--bs-primary) !important;
+}
+.dashboard-metric-card .show-history-link .isax {
+  font-size: 0.75rem;
+  margin-left: 0.15rem;
+}
+/* Slightly larger progress ring for all metric cards */
+.dashboard-metric-card .position-relative.d-inline-flex svg {
+  width: 160px !important;
+  height: 160px !important;
+}
+/* Larger inner text to use available space inside the ring */
+.dashboard-metric-card .position-relative.d-inline-flex .position-absolute .fs-5 {
+  font-size: 1.5rem !important;
+  line-height: 1.2;
+}
+.dashboard-metric-card .position-relative.d-inline-flex .position-absolute span[style*="0.7rem"] {
+  font-size: 0.875rem !important;
+  line-height: 1.3;
+}
+.dashboard-metric-card .position-relative.d-inline-flex .position-absolute.px-1 {
+  max-width: 100px !important;
+}
+
+/* Sidebar: dark icons for module items (Prioritized Content, Policies, etc.) */
+.sidebar-module-icon {
+  color: #374151 !important;
+}
+#two-col-sidebar .sidebar-module-icon {
+  color: #374151 !important;
+}
+
+/* Inventory section sidebar: all items on same line as Spreadsheets (no indent) */
+nav[aria-label="Inventory navigation"] .inventory-nav-btn {
+  margin-left: 0;
+  padding-left: 0;
+}
+.inventory-nav-icon {
+  width: 24px;
+  min-width: 24px;
+}
+.inventory-nav-btn {
+  min-height: 2rem;
+  white-space: nowrap;
+  padding-left: 0;
+}
+.inventory-nav-row {
+  line-height: 1.25;
+}
+
+/* Views column tooltip: dark theme (black bg, white text) */
+.tooltip-views .tooltip-inner {
+  background-color: #000;
+  color: #fff;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  max-width: 220px;
+}
+.tooltip-views .tooltip-arrow::before {
+  border-top-color: #000;
+}
+
+/* Breadcrumb: use visible " > " separator so divider doesn't show as missing icon/square */
+.breadcrumb-divide.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: " > ";
+  font-weight: 400;
+  color: inherit;
+  opacity: 0.7;
+}
+
+/* Page links drawer (Links summary → click total → drawer open) */
+@keyframes links-drawer-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes links-drawer-panel-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.links-drawer-backdrop {
+  z-index: 1050;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  animation: links-drawer-backdrop-in 0.2s ease-out;
+}
+.links-drawer-panel {
+  z-index: 1055;
+  width: min(100%, 1200px);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  animation: links-drawer-panel-in 0.25s ease-out;
+}
+/* When Page links drawer is open, lock body scroll */
+body.links-drawer-open {
+  overflow: hidden;
+}
+
+/* Drawer header dropdown: overflow over table so menu appears above thead */
+.drawer-header-with-dropdown {
+  overflow: visible;
+  position: relative;
+  z-index: 10;
+}
+.drawer-header-with-dropdown .dropdown .dropdown-menu {
+  z-index: 9999;
+}

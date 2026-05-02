@@ -1,0 +1,37 @@
+{
+  "name": "sitemonitor",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "pull": "git pull origin main",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
+    "axios": "^1.13.6",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-hot-toast": "^2.6.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.13.1",
+    "sweetalert2": "^11.26.24",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "vite": "^8.0.1"
+  }
+}

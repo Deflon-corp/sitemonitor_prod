@@ -1,0 +1,132 @@
+import React, { useState, useEffect } from "react";
+
+const COMPARISON_OPTIONS = [
+  "Greater than",
+  "Greater than or Equal",
+  "Less than",
+  "Less than or equal",
+  "Equal",
+];
+
+const SIZE_UNITS = ["Bytes", "KB", "MB", "GB"];
+
+const NewRuleFileSizeDrawer = ({ open, onClose, onSave }) => {
+  const [ruleName, setRuleName] = useState("");
+  const [comparison, setComparison] = useState("Greater than");
+  const [value, setValue] = useState("");
+  const [unit, setUnit] = useState("KB");
+
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, onClose]);
+
+  const handleSave = () => {
+    onSave?.({
+      ruleName,
+      comparison,
+      value,
+      unit,
+    });
+    onClose();
+  };
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div
+        className="position-fixed top-0 start-0 end-0 bottom-0 bg-dark bg-opacity-25"
+        style={{ zIndex: 1070 }}
+        aria-hidden="true"
+        onClick={onClose}
+      />
+      <div
+        className="bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column overflow-hidden"
+        style={{ zIndex: 1075, width: "min(100%, 720px)" }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-rule-file-size-title"
+      >
+        <div className="border-bottom border-secondary border-opacity-25 px-4 py-3 flex-shrink-0">
+          <div className="d-flex align-items-center gap-2">
+            <button
+              type="button"
+              className="btn btn-icon btn-sm btn-light"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <i className="isax isax-close-circle fs-20" aria-hidden="true" />
+            </button>
+            <div>
+              <h5 id="new-rule-file-size-title" className="mb-0 fw-semibold text-body">New rule - File size</h5>
+              <p className="text-muted fs-13 mb-0 mt-1">Search files across selected domains</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-grow-1 overflow-auto p-4">
+          <div className="mb-4">
+            <label className="form-label text-body fs-13">
+              Rule name <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              value={ruleName}
+              onChange={(e) => setRuleName(e.target.value)}
+              placeholder="Enter rule name"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="form-label text-body fs-13">Search for file size that is:</label>
+            <div className="d-flex gap-2 align-items-center flex-wrap">
+              <select
+                className="form-select flex-shrink-0"
+                style={{ width: "auto", minWidth: 180 }}
+                value={comparison}
+                onChange={(e) => setComparison(e.target.value)}
+              >
+                {COMPARISON_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                className="form-control flex-shrink-0"
+                style={{ width: 120 }}
+                placeholder="Value"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                min={0}
+              />
+              <select
+                className="form-select flex-shrink-0"
+                style={{ width: "auto", minWidth: 100 }}
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+              >
+                {SIZE_UNITS.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
+          <div className="d-flex justify-content-end">
+            <button type="button" className="btn btn-primary" onClick={handleSave}>Save</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default NewRuleFileSizeDrawer;
