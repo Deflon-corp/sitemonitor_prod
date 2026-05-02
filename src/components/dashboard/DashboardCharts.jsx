@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function DashboardCharts() {
+export default function DashboardCharts({ historyData = [] }) {
   const lineChartRef = useRef(null);
   const donutChartRef = useRef(null);
   const scanHistoryChartRef = useRef(null);
@@ -94,36 +94,59 @@ export default function DashboardCharts() {
 
     // Scan History - grouped bar chart with custom tooltip (bar pop)
     const scanHistoryEl = document.querySelector("#scan_history_chart");
-    if (scanHistoryEl && !scanHistoryChartRef.current) {
-      const scanTooltipItems = [
-        { color: "#F38BBB", label: "Policies", value: "0 pages" },
-        { color: "#5297FE", label: "QA", value: "500 pages" },
-        { color: "#7539FF", label: "Accessibility", value: "500 pages" },
-        { color: "#c4956a", label: "SEO", value: "500 pages" },
-        { color: "#00D4FF", label: "Pages crawled", value: "500 pages" },
-        { color: "#94a3b8", label: "Documents crawled", value: "0 documents" },
-        { color: "#67e8f9", label: "Total crawled", value: "500 pages" },
-      ];
-      const scanTooltipHtml = (category) => {
-        const items = scanTooltipItems
+    if (scanHistoryEl) {
+      // Destroy existing chart if it exists to redraw with new data
+      if (scanHistoryChartRef.current) {
+        scanHistoryChartRef.current.destroy();
+      }
+
+      const history = [...historyData].reverse(); // Show oldest to newest
+      const categories = history.map(h => {
+          const d = new Date(h.lastScanDate);
+          return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + 
+                 d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      });
+
+      const fullDates = history.map(h => {
+          const d = new Date(h.lastScanDate);
+          return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                 d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      });
+
+      const scanTooltipHtml = (index) => {
+        const h = history[index];
+        if (!h) return '';
+        
+        const items = [
+            { color: "#F38BBB", label: "Policies", value: (h.complianceSummary?.termsFound ? "100%" : "0%") },
+            { color: "#5297FE", label: "QA", value: (h.issueBreakdown?.high || 0) + " issues" },
+            { color: "#7539FF", label: "Accessibility", value: (h.performanceMetrics?.avgAccessibilityScore || 0) + "%" },
+            { color: "#c4956a", label: "SEO", value: (h.finalSeoScore || 0) + "%" },
+            { color: "#00D4FF", label: "Pages crawled", value: (h.totalPages || 0) + " pages" },
+            { color: "#94a3b8", label: "Documents crawled", value: "0 documents" },
+            { color: "#67e8f9", label: "Total crawled", value: (h.totalPages || 0) + " pages" },
+        ];
+
+        const itemHtml = items
           .map(
             (item) =>
               `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;color:#f3f4f6">
-                <span style="width:8px;height:8px;border-radius:2px;background:${item.color};flex-shrink:0"></span>
-                <span>${item.label}: ${item.value}</span>
+                <span style="width:10px;height:10px;border-radius:2px;background:${item.color};flex-shrink:0"></span>
+                <span style="flex:1">${item.label}: <span style="font-weight:600">${item.value}</span></span>
               </div>`
           )
           .join("");
-        return `<div style="background:#374151;color:#f3f4f6;padding:10px 12px;border-radius:8px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-          <div style="font-weight:600;color:#d1d5db;font-size:12px;margin-bottom:8px">${category}</div>
-          ${items}
+
+        return `<div style="background:#2d3748;color:#f3f4f6;padding:12px 16px;border-radius:12px;min-width:240px;box-shadow:0 10px 15px -3px rgba(0, 0, 0, 0.1)">
+          <div style="font-weight:700;color:#fff;font-size:14px;margin-bottom:12px;border-bottom:1px solid #4a5568;padding-bottom:8px">${fullDates[index]}</div>
+          ${itemHtml}
         </div>`;
       };
 
       const scanHistoryOptions = {
         chart: {
           height: 280,
-          type: "bar",
+          type: "line", // Use line as base for mixed charts
           stacked: false,
           toolbar: { show: false },
         },
@@ -131,32 +154,26 @@ export default function DashboardCharts() {
           bar: {
             horizontal: false,
             borderRadius: 4,
-            columnWidth: "60%",
-            endingShape: "rounded",
+            columnWidth: "50%",
           },
         },
         legend: { show: false },
         dataLabels: { enabled: false },
-        colors: ["#5297FE", "#7539FF", "#E8A838"],
+        colors: ["#5297FE", "#7539FF", "#c4956a", "#00D4FF"],
         series: [
-          { name: "Pages", data: [500, 500] },
-          { name: "Docs", data: [500, 500] },
-          { name: "Other", data: [500, 500] },
-          {
-            name: "Target",
-            type: "line",
-            data: [500, 500],
-          },
+          { name: "QA Issues", type: "column", data: history.map(h => h.issueBreakdown?.high || 0) },
+          { name: "Accessibility", type: "column", data: history.map(h => h.performanceMetrics?.avgAccessibilityScore || 0) },
+          { name: "SEO", type: "column", data: history.map(h => h.finalSeoScore || 0) },
+          { name: "Total Crawled", type: "line", data: history.map(h => h.totalPages || 0) },
         ],
         stroke: {
-          width: [0, 0, 0, 2],
-          colors: ["#00D4FF"],
+          width: [0, 0, 0, 3],
+          curve: "smooth",
         },
         tooltip: {
           theme: "dark",
-          custom: function (opts) {
-            const category = opts.w.globals.labels[opts.dataPointIndex] || "Dec 09";
-            return scanTooltipHtml(category);
+          custom: function ({ dataPointIndex }) {
+            return scanTooltipHtml(dataPointIndex);
           },
         },
         grid: {
@@ -165,22 +182,34 @@ export default function DashboardCharts() {
           padding: { right: 8, left: 8, bottom: 0 },
         },
         xaxis: {
-          categories: ["Dec 09", "Dec 09"],
+          categories: categories.length > 0 ? categories : ["No Data"],
           axisBorder: { show: true, color: "#E2E4E6" },
+          labels: {
+            rotate: -45,
+            style: { fontSize: "10px" }
+          }
         },
         yaxis: {
           min: 0,
-          max: 600,
           tickAmount: 3,
           labels: {
             style: { colors: "#6c757d", fontSize: "12px" },
-            formatter: (val) => String(val),
+            formatter: (val) => Math.round(val),
           },
-          axisBorder: { show: false },
-          axisTicks: { show: false },
         },
-        fill: { opacity: 1 },
-      } ;
+        fill: { 
+            opacity: [1, 1, 1, 0.3],
+            type: ['solid', 'solid', 'solid', 'solid']
+        },
+        markers: {
+            size: [0, 0, 0, 4],
+            colors: ["#00D4FF"],
+            strokeColors: "#fff",
+            strokeWidth: 2,
+            hover: { size: 6 }
+        }
+      };
+
       scanHistoryChartRef.current = new ApexCharts(scanHistoryEl, scanHistoryOptions);
       scanHistoryChartRef.current.render();
     }
@@ -228,7 +257,7 @@ export default function DashboardCharts() {
         scanHistoryChartRef.current = null;
       }
     };
-  }, []);
+  }, [historyData]);
 
   return null;
 }

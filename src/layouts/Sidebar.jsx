@@ -316,8 +316,8 @@ export default function Sidebar() {
                                                     <span className="menu-arrow flex-shrink-0 ms-auto" />
                                                 </a>
                                                 <ul>
-                                                    <li><Link to="/quality-assurance?view=readability-summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
-                                                    <li><Link to="/quality-assurance?view=readability-checker" className="d-flex align-items-center"><i className="isax isax-discovery me-2" aria-hidden />Readability Checker</Link></li>
+                                                    <li><Link to="/domain/quality-assurance?view=readability-summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
+                                                    <li><Link to="/domain/quality-assurance?view=readability-checker" className="d-flex align-items-center"><i className="isax isax-discovery me-2" aria-hidden />Readability Checker</Link></li>
                                                 </ul>
                                             </li>
                                             <li className="submenu">
@@ -327,8 +327,8 @@ export default function Sidebar() {
                                                     <span className="menu-arrow flex-shrink-0 ms-auto" />
                                                 </a>
                                                 <ul>
-                                                    <li><Link to="/quality-assurance?view=language-summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
-                                                    <li><Link to="/quality-assurance?view=language-issues" className="d-flex align-items-center"><i className="isax isax-document-text me-2" aria-hidden />Issues by page</Link></li>
+                                                    <li><Link to="/domain/quality-assurance?view=language-summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
+                                                    <li><Link to="/domain/quality-assurance?view=language-issues" className="d-flex align-items-center"><i className="isax isax-document-text me-2" aria-hidden />Issues by page</Link></li>
                                                 </ul>
                                             </li>
                                         </ul>
@@ -372,22 +372,22 @@ export default function Sidebar() {
                                         </ul>
                                     </li>
                                     <li>
-                                        <Link to="/heartbeat" className={isLinkActive("/heartbeat") ? "active" : ""}>
+                                        <Link to="/domain/heartbeat" className={isLinkActive("/domain/heartbeat") ? "active" : ""}>
                                             <i className="isax isax-heart5" aria-hidden /><span className="text-truncate">Heartbeat</span>
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/performance" className={isLinkActive("/performance") ? "active" : ""}>
+                                        <Link to="/domain/performance" className={isLinkActive("/domain/performance") ? "active" : ""}>
                                             <i className="isax isax-shield-tick5 sidebar-module-icon" aria-hidden /><span className="text-truncate">Performance</span>
                                         </Link>
                                     </li>
                                     <li className="submenu">
-                                        <a href="#" className={`subdrop ${isSectionActive(["/inventory"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
+                                        <a href="#" className={`subdrop ${isSectionActive(["/domain/inventory"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
                                             <i className="isax isax-book5 sidebar-module-icon" aria-hidden /><span className="text-truncate">Inventory</span>
                                             <span className="menu-arrow" />
                                         </a>
                                         <ul>
-                                            <li><Link to="/inventory?view=summary" className={`d-flex align-items-center ${isLinkActive("/inventory?view=summary") ? "active" : ""}`}><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
+                                            <li><Link to="/domain/inventory?view=summary" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=summary") ? "active" : ""}`}><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
                                             <li className="submenu">
                                                 <a href="#" className="subdrop d-flex align-items-center flex-nowrap gap-2" onClick={handleSubmenuClick}>
                                                     <i className="isax isax-document-copy sidebar-module-icon flex-shrink-0" aria-hidden />
@@ -395,11 +395,11 @@ export default function Sidebar() {
                                                     <span className="menu-arrow flex-shrink-0 ms-auto" />
                                                 </a>
                                                 <ul>
-                                                    <li><Link to="/inventory?view=html-pages" className={`d-flex align-items-center ${isLinkActive("/inventory?view=html-pages") ? "active" : ""}`}><i className="isax isax-document-copy me-2" aria-hidden />HTML Pages</Link></li>
-                                                    <li><Link to="/inventory?view=documents" className={`d-flex align-items-center ${isLinkActive("/inventory?view=documents") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Documents</Link></li>
-                                                    <li><Link to="/inventory?view=images" className={`d-flex align-items-center ${isLinkActive("/inventory?view=images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Images</Link></li>
-                                                    <li><Link to="/inventory?view=inline-images" className={`d-flex align-items-center ${isLinkActive("/inventory?view=inline-images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Inline Images</Link></li>
-                                                    <li><Link to="/inventory?view=links" className={`d-flex align-items-center ${isLinkActive("/inventory?view=links") ? "active" : ""}`}><i className="isax isax-link-2 me-2" aria-hidden />Links</Link></li>
+                                                    <li><Link to="/domain/inventory?view=html-pages" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=html-pages") ? "active" : ""}`}><i className="isax isax-document-copy me-2" aria-hidden />HTML Pages</Link></li>
+                                                    <li><Link to="/domain/inventory?view=documents" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=documents") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Documents</Link></li>
+                                                    <li><Link to="/domain/inventory?view=images" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Images</Link></li>
+                                                    <li><Link to="/domain/inventory?view=inline-images" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=inline-images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Inline Images</Link></li>
+                                                    <li><Link to="/domain/inventory?view=links" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=links") ? "active" : ""}`}><i className="isax isax-link-2 me-2" aria-hidden />Links</Link></li>
                                                 </ul>
                                             </li>
                                             <li className="submenu">
@@ -409,12 +409,12 @@ export default function Sidebar() {
                                                     <span className="menu-arrow flex-shrink-0 ms-auto" />
                                                 </a>
                                                 <ul>
-                                                    <li><Link to="/inventory?view=forms" className={`d-flex align-items-center ${isLinkActive("/inventory?view=forms") ? "active" : ""}`}><i className="isax isax-element-3 me-2" aria-hidden />Forms</Link></li>
-                                                    <li><Link to="/inventory?view=headlinks" className={`d-flex align-items-center ${isLinkActive("/inventory?view=headlinks") ? "active" : ""}`}><i className="isax isax-link-2 me-2" aria-hidden />Headlinks</Link></li>
-                                                    <li><Link to="/inventory?view=iframes" className={`d-flex align-items-center ${isLinkActive("/inventory?view=iframes") ? "active" : ""}`}><i className="isax isax-code-circle me-2" aria-hidden />IFrames</Link></li>
-                                                    <li><Link to="/inventory?view=frames" className={`d-flex align-items-center ${isLinkActive("/inventory?view=frames") ? "active" : ""}`}><i className="isax isax-code-circle me-2" aria-hidden />Frames</Link></li>
-                                                    <li><Link to="/inventory?view=css" className={`d-flex align-items-center ${isLinkActive("/inventory?view=css") ? "active" : ""}`}><i className="isax isax-code me-2" aria-hidden />CSS</Link></li>
-                                                    <li><Link to="/inventory?view=js" className={`d-flex align-items-center ${isLinkActive("/inventory?view=js") ? "active" : ""}`}><i className="isax isax-code-1 me-2" aria-hidden />JavaScript</Link></li>
+                                                    <li><Link to="/domain/inventory?view=forms" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=forms") ? "active" : ""}`}><i className="isax isax-element-3 me-2" aria-hidden />Forms</Link></li>
+                                                    <li><Link to="/domain/inventory?view=headlinks" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=headlinks") ? "active" : ""}`}><i className="isax isax-link-2 me-2" aria-hidden />Headlinks</Link></li>
+                                                    <li><Link to="/domain/inventory?view=iframes" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=iframes") ? "active" : ""}`}><i className="isax isax-code-circle me-2" aria-hidden />IFrames</Link></li>
+                                                    <li><Link to="/domain/inventory?view=frames" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=frames") ? "active" : ""}`}><i className="isax isax-code-circle me-2" aria-hidden />Frames</Link></li>
+                                                    <li><Link to="/domain/inventory?view=css" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=css") ? "active" : ""}`}><i className="isax isax-code me-2" aria-hidden />CSS</Link></li>
+                                                    <li><Link to="/domain/inventory?view=js" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=js") ? "active" : ""}`}><i className="isax isax-code-1 me-2" aria-hidden />JavaScript</Link></li>
                                                 </ul>
                                             </li>
                                             <li className="submenu">
@@ -424,7 +424,7 @@ export default function Sidebar() {
                                                     <span className="menu-arrow flex-shrink-0 ms-auto" />
                                                 </a>
                                                 <ul>
-                                                    <li><Link to="/inventory?view=email-addresses" className={`d-flex align-items-center ${isLinkActive("/inventory?view=email-addresses") ? "active" : ""}`}><i className="isax isax-sms me-2" aria-hidden />Email addresses</Link></li>
+                                                    <li><Link to="/domain/inventory?view=email-addresses" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=email-addresses") ? "active" : ""}`}><i className="isax isax-sms me-2" aria-hidden />Email addresses</Link></li>
                                                 </ul>
                                             </li>
                                         </ul>

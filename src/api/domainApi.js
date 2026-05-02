@@ -54,3 +54,33 @@ export const hardDeleteDomainApi = async (id) => {
     throw error;
   }
 };
+
+// GET /domains/:id/scan-history
+export const getDomainScanHistoryApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}/scan-history`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /domains/:id/latest-summary
+export const getDomainLatestSummaryApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}/latest-summary`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// POST /domains/:id/scan
+export const triggerDomainScanApi = async (id) => {
+  try {
+    const response = await axiosInstance.post(`/domains/${id}/scan`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

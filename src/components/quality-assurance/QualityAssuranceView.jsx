@@ -29,38 +29,38 @@ const READABILITY_VIEW_KEYS = ["readability", "readability-summary", "readabilit
 const LANGUAGE_VIEW_KEYS = ["language", "language-summary", "language-issues"];
 
 const LINKS_SUB_NAV = [
-  { key: "content-broken-links", label: "Content with Broken Links", icon: "isax-document-text", href: "/quality-assurance?view=content-broken-links" },
-  { key: "broken-links", label: "Broken Links", icon: "isax-link-2", href: "/quality-assurance?view=broken-links" },
-  { key: "broken-images", label: "Broken Images", icon: "isax-image", href: "/quality-assurance?view=broken-images" },
-  { key: "broken-links-sitemap", label: "Broken Links on Sitemap", icon: "isax-menu", href: "/quality-assurance?view=broken-links-sitemap" },
+  { key: "content-broken-links", label: "Content with Broken Links", icon: "isax-document-text", href: "/domain/quality-assurance?view=content-broken-links" },
+  { key: "broken-links", label: "Broken Links", icon: "isax-link-2", href: "/domain/quality-assurance?view=broken-links" },
+  { key: "broken-images", label: "Broken Images", icon: "isax-image", href: "/domain/quality-assurance?view=broken-images" },
+  { key: "broken-links-sitemap", label: "Broken Links on Sitemap", icon: "isax-menu", href: "/domain/quality-assurance?view=broken-links-sitemap" },
 ];
 
 const SPELLCHECK_SUB_NAV = [
-  { key: "spellcheck-summary", label: "Spellcheck Summary", icon: "isax-home-2", href: "/quality-assurance?view=spellcheck-summary" },
-  { key: "spellcheck-pages", label: "Pages with Misspellings", icon: "isax-document-text", href: "/quality-assurance?view=spellcheck-pages" },
-  { key: "spellcheck-misspellings", label: "Misspellings", icon: "isax-edit-2", href: "/quality-assurance?view=spellcheck-misspellings" },
-  { key: "spellcheck-potential", label: "Potential Misspellings", icon: "isax-edit-2", href: "/quality-assurance?view=spellcheck-potential" },
-  { key: "spellcheck-dictionary", label: "Dictionary", icon: "isax-book-1", href: "/quality-assurance?view=spellcheck-dictionary" },
-  { key: "spellcheck-ignored", label: "Ignored Misspellings", icon: "isax-eye-slash", href: "/quality-assurance?view=spellcheck-ignored" },
+  { key: "spellcheck-summary", label: "Spellcheck Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=spellcheck-summary" },
+  { key: "spellcheck-pages", label: "Pages with Misspellings", icon: "isax-document-text", href: "/domain/quality-assurance?view=spellcheck-pages" },
+  { key: "spellcheck-misspellings", label: "Misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-misspellings" },
+  { key: "spellcheck-potential", label: "Potential Misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-potential" },
+  { key: "spellcheck-dictionary", label: "Dictionary", icon: "isax-book-1", href: "/domain/quality-assurance?view=spellcheck-dictionary" },
+  { key: "spellcheck-ignored", label: "Ignored Misspellings", icon: "isax-eye-slash", href: "/domain/quality-assurance?view=spellcheck-ignored" },
 ];
 
 const READABILITY_SUB_NAV = [
-  { key: "readability-summary", label: "Summary", icon: "isax-home-2", href: "/quality-assurance?view=readability-summary" },
-  { key: "readability-checker", label: "Readability Checker", icon: "isax-discovery", href: "/quality-assurance?view=readability-checker" },
+  { key: "readability-summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=readability-summary" },
+  { key: "readability-checker", label: "Readability Checker", icon: "isax-discovery", href: "/domain/quality-assurance?view=readability-checker" },
 ];
 
 const LANGUAGE_SUB_NAV = [
-  { key: "language-summary", label: "Summary", icon: "isax-home-2", href: "/quality-assurance?view=language-summary" },
-  { key: "language-issues", label: "Issues by page", icon: "isax-document-text", href: "/quality-assurance?view=language-issues" },
+  { key: "language-summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=language-summary" },
+  { key: "language-issues", label: "Issues by page", icon: "isax-document-text", href: "/domain/quality-assurance?view=language-issues" },
 ];
 
 const QA_NAV = [
-  { key: "summary", label: "Summary", icon: "isax-home-2", href: "/quality-assurance?view=summary" },
-  { key: "qa-errors", label: "Content with QA Errors", icon: "isax-document-copy", href: "/quality-assurance?view=qa-errors" },
-  { key: "links", label: "Links", icon: "isax-link-2", href: "/quality-assurance?view=content-broken-links", children: LINKS_SUB_NAV },
-  { key: "spellcheck", label: "Spellcheck", icon: "isax-edit-2", href: "/quality-assurance?view=spellcheck-summary", children: SPELLCHECK_SUB_NAV },
-  { key: "readability", label: "Readability", icon: "isax-book-1", href: "/quality-assurance?view=readability-summary", children: READABILITY_SUB_NAV },
-  { key: "language", label: "Language Validation", icon: "isax-tick-circle", href: "/quality-assurance?view=language-summary", children: LANGUAGE_SUB_NAV },
+  { key: "summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=summary" },
+  { key: "qa-errors", label: "Content with QA Errors", icon: "isax-document-copy", href: "/domain/quality-assurance?view=qa-errors" },
+  { key: "links", label: "Links", icon: "isax-link-2", href: "/domain/quality-assurance?view=content-broken-links", children: LINKS_SUB_NAV },
+  { key: "spellcheck", label: "Spellcheck", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-summary", children: SPELLCHECK_SUB_NAV },
+  { key: "readability", label: "Readability", icon: "isax-book-1", href: "/domain/quality-assurance?view=readability-summary", children: READABILITY_SUB_NAV },
+  { key: "language", label: "Language Validation", icon: "isax-tick-circle", href: "/domain/quality-assurance?view=language-summary", children: LANGUAGE_SUB_NAV },
 ];
 
 /** Sample data – replace with API */
@@ -325,7 +325,7 @@ export default function QualityAssuranceView() {
                     <h6 className="fw-semibold text-body mb-3">Quality Assurance Check</h6>
                     <div className="row g-3">
                       <div className="col-6">
-                        <Link to="/quality-assurance?view=broken-links" className="text-decoration-none text-body d-block h-100">
+                        <Link to="/domain/quality-assurance?view=broken-links" className="text-decoration-none text-body d-block h-100">
                           <div className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-3 h-100">
                             <div className="d-flex align-items-center gap-2 mb-2">
                               <span className="d-inline-flex align-items-center justify-content-center rounded-2 bg-primary bg-opacity-10 text-primary" style={{ width: 32, height: 32 }}>
@@ -339,7 +339,7 @@ export default function QualityAssuranceView() {
                         </Link>
                       </div>
                       <div className="col-6">
-                        <Link to="/quality-assurance?view=summary-potential-misspellings" className="text-decoration-none text-body d-block h-100">
+                        <Link to="/domain/quality-assurance?view=summary-potential-misspellings" className="text-decoration-none text-body d-block h-100">
                           <div className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-3 h-100">
                             <div className="d-flex align-items-center gap-2 mb-2">
                               <span className="d-inline-flex align-items-center justify-content-center rounded-2 bg-warning bg-opacity-10 text-warning" style={{ width: 32, height: 32 }}>
@@ -353,7 +353,7 @@ export default function QualityAssuranceView() {
                         </Link>
                       </div>
                       <div className="col-6">
-                        <Link to="/quality-assurance?view=broken-images" className="text-decoration-none text-body d-block h-100">
+                        <Link to="/domain/quality-assurance?view=broken-images" className="text-decoration-none text-body d-block h-100">
                           <div className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-3 h-100">
                             <div className="d-flex align-items-center gap-2 mb-2">
                               <span className="d-inline-flex align-items-center justify-content-center rounded-2 bg-info bg-opacity-10 text-info" style={{ width: 32, height: 32 }}>
@@ -367,7 +367,7 @@ export default function QualityAssuranceView() {
                         </Link>
                       </div>
                       <div className="col-6">
-                        <Link to="/quality-assurance?view=summary-misspellings" className="text-decoration-none text-body d-block h-100">
+                        <Link to="/domain/quality-assurance?view=summary-misspellings" className="text-decoration-none text-body d-block h-100">
                           <div className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-3 h-100">
                             <div className="d-flex align-items-center gap-2 mb-2">
                               <span className="d-inline-flex align-items-center justify-content-center rounded-2 bg-danger bg-opacity-10 text-danger" style={{ width: 32, height: 32 }}>

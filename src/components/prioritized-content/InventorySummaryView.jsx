@@ -20,26 +20,6 @@ const CRAWLED_FILL = "rgba(59, 130, 246, 0.12)";
 const IMAGES_COLOR = "#22c55e";
 const IMAGES_FILL = "rgba(34, 197, 94, 0.1)";
 
-const TECHNICAL_ITEMS = [
-  { label: "CSS", value: 17, icon: "isax-code", active: true },
-  { label: "Javascript", value: 569, icon: "isax-code-1", active: true },
-  { label: "Frames", value: 0, icon: "isax-code-circle", active: false },
-  { label: "IFrames", value: 500, icon: "isax-code-circle", active: true },
-];
-
-const LINKS_ITEMS = [
-  { label: "Image Links", value: 2233, icon: "isax-image", active: true },
-  { label: "Content Links", value: 624, icon: "isax-link-2", active: true },
-  { label: "Spreadsheet links", value: 0, icon: "isax-document-copy", active: false },
-  { label: "Word links", value: 0, icon: "isax-document-text", active: false },
-  { label: "Slide links", value: 0, icon: "isax-presention-chart", active: false },
-];
-
-const CONTENT_ITEMS = [
-  { label: "HTML Pages", value: 500, icon: "isax-folder", active: true },
-  { label: "Documents", value: 0, icon: "isax-document-text", active: false },
-];
-
 const DOCUMENTS_COLOR = "#9ca3af";
 
 const smoothPath = (points) => {
@@ -61,8 +41,27 @@ const smoothPath = (points) => {
   return d;
 };
 
-const InventorySummaryView = () => {
+const InventorySummaryView = ({ data }) => {
   const [selectedYear, setSelectedYear] = useState(2026);
+
+  const technicalItems = [
+    { label: "CSS", value: data?.css || 0, icon: "isax-code", active: (data?.css || 0) > 0 },
+    { label: "Javascript", value: data?.js || 0, icon: "isax-code-1", active: (data?.js || 0) > 0 },
+    { label: "Frames", value: data?.frames || 0, icon: "isax-code-circle", active: (data?.frames || 0) > 0 },
+    { label: "IFrames", value: data?.iframes || 0, icon: "isax-code-circle", active: (data?.iframes || 0) > 0 },
+  ];
+
+  const linksItems = [
+    { label: "Links", value: data?.links || 0, icon: "isax-link-2", active: (data?.links || 0) > 0 },
+    { label: "Emails", value: data?.emails || 0, icon: "isax-sms", active: (data?.emails || 0) > 0 },
+    { label: "Headlinks", value: data?.headlinks || 0, icon: "isax-link-2", active: (data?.headlinks || 0) > 0 },
+  ];
+
+  const contentItems = [
+    { label: "HTML Pages", value: data?.htmlPages || 0, icon: "isax-folder", active: (data?.htmlPages || 0) > 0 },
+    { label: "Documents", value: data?.documents || 0, icon: "isax-document-text", active: (data?.documents || 0) > 0 },
+    { label: "Images", value: data?.images || 0, icon: "isax-image", active: (data?.images || 0) > 0 },
+  ];
   const n = X_LABELS.length;
   const xScale = (i) => PADDING.left + (i / Math.max(1, n - 1)) * PLOT_WIDTH;
   const yScale = (v) => PADDING.top + PLOT_HEIGHT - (v / Y_MAX) * PLOT_HEIGHT;
@@ -154,12 +153,12 @@ const InventorySummaryView = () => {
               >
                 <p className="text-muted small mb-1">Total Crawled pages this year</p>
                 <div className="d-flex flex-wrap align-items-baseline gap-2">
-                  <span className="fw-bold fs-4 text-body">200</span>
+                  <span className="fw-bold fs-4 text-body">{data?.htmlPages || 0}</span>
                   <span className="small text-success d-inline-flex align-items-center gap-1 fw-medium">
                     <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-15" style={{ width: 20, height: 20 }}>
                       <i className="isax isax-arrow-up-1" style={{ fontSize: "0.65rem" }} aria-hidden="true" />
                     </span>
-                    12% From Last Year
+                    Latest Scan
                   </span>
                 </div>
               </div>
@@ -176,12 +175,12 @@ const InventorySummaryView = () => {
               >
                 <p className="text-muted small mb-1">Total Images this year</p>
                 <div className="d-flex flex-wrap align-items-baseline gap-2">
-                  <span className="fw-bold fs-4 text-body">400</span>
-                  <span className="small text-danger d-inline-flex align-items-center gap-1 fw-medium">
-                    <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-15" style={{ width: 20, height: 20 }}>
-                      <i className="isax isax-arrow-down-1" style={{ fontSize: "0.65rem" }} aria-hidden="true" />
+                  <span className="fw-bold fs-4 text-body">{data?.images || 0}</span>
+                  <span className="small text-success d-inline-flex align-items-center gap-1 fw-medium">
+                    <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-15" style={{ width: 20, height: 20 }}>
+                      <i className="isax isax-arrow-up-1" style={{ fontSize: "0.65rem" }} aria-hidden="true" />
                     </span>
-                    12% From Last Year
+                    Latest Scan
                   </span>
                 </div>
               </div>
@@ -197,7 +196,7 @@ const InventorySummaryView = () => {
             <div className="card-body p-4">
               <h6 className="fw-semibold text-body mb-3">Technical</h6>
               <div className="row g-0">
-                {TECHNICAL_ITEMS.map((item, idx) => (
+                {technicalItems.map((item, idx) => (
                   <div key={item.label} className="col-6">
                     <div className={`d-flex align-items-center gap-3 p-3 ${idx % 2 === 0 ? "border-end border-secondary border-opacity-25" : ""} ${idx < 2 ? "border-bottom border-secondary border-opacity-25" : ""}`}>
                       <span className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${item.active ? "bg-primary bg-opacity-10 text-primary" : "bg-secondary bg-opacity-10 text-secondary"}`}>
@@ -219,7 +218,7 @@ const InventorySummaryView = () => {
             <div className="card-body p-4">
               <h6 className="fw-semibold text-body mb-3">Links</h6>
               <div className="row g-0">
-                {LINKS_ITEMS.map((item, idx) => (
+                {linksItems.map((item, idx) => (
                   <div key={item.label} className="col-6 col-md-4">
                     <div className={`d-flex align-items-center gap-3 p-3 border-end border-secondary border-opacity-25 ${idx < 3 ? "border-bottom border-secondary border-opacity-25" : ""}`}>
                       <span className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${item.active ? "bg-primary bg-opacity-10 text-primary" : "bg-secondary bg-opacity-10 text-secondary"}`}>
@@ -248,8 +247,8 @@ const InventorySummaryView = () => {
             <div className="card-body p-4">
               <h6 className="fw-semibold text-body mb-3">Content</h6>
               <div className="d-flex flex-column gap-0">
-                {CONTENT_ITEMS.map((item, idx) => (
-                  <div key={item.label} className={`d-flex align-items-center gap-3 p-3 ${idx < CONTENT_ITEMS.length - 1 ? "border-bottom border-secondary border-opacity-25" : ""}`}>
+                {contentItems.map((item, idx) => (
+                  <div key={item.label} className={`d-flex align-items-center gap-3 p-3 ${idx < contentItems.length - 1 ? "border-bottom border-secondary border-opacity-25" : ""}`}>
                     <span className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${item.active ? "bg-primary bg-opacity-10 text-primary" : "bg-secondary bg-opacity-10 text-secondary"}`}>
                       <i className={`isax ${item.icon} fs-20`} aria-hidden="true" />
                     </span>

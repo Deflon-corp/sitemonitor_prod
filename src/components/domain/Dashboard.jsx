@@ -4,14 +4,18 @@ import { useSelector } from "react-redux";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ScanHistoryPopover from "@/components/dashboard/ScanHistoryPopover";
 import CountdownTimer from "@/components/dashboard/CountdownTimer";
-import { getDomainsApi } from "@/api/domainApi";
+import { getDomainsApi, getDomainScanHistoryApi, getDomainLatestSummaryApi, triggerDomainScanApi } from "@/api/domainApi";
+import toast from "react-hot-toast";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const Dashboard = () => {
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
     const [domainData, setDomainData] = useState(null);
+    const [scanHistory, setScanHistory] = useState([]);
+    const [latestSummary, setLatestSummary] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isScanning, setIsScanning] = useState(false);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -39,36 +43,130 @@ const Dashboard = () => {
         });
     };
 
-    useEffect(() => {
-        const fetchDomainDetails = async () => {
-            let selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+    const calculateDashArray = (percentage) => {
+        const radius = 62;
+        const circumference = 389; // Approx 2 * PI * 62
+        const value = (Math.min(100, Math.max(0, percentage || 0)) / 100) * circumference;
+        return `${value} ${circumference}`;
+    };
 
-            try {
-                setIsLoading(true);
-                const response = await getDomainsApi(1, 100);
-                
-                if (response && response.success && response.data?.domains) {
-                    const domains = response.data.domains;
-                    
-                    // If no ID is selected, fallback to the first domain (same as Sidebar)
-                    if (!selectedId && domains.length > 0) {
-                        selectedId = domains[0]._id;
-                    }
-
-                    if (selectedId) {
-                        const domain = domains.find((d) => d._id === selectedId);
-                        setDomainData(domain);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching domain details:", error);
-            } finally {
-                setIsLoading(false);
-            }
+    const getUptimeStatus = () => {
+        if (!latestSummary) return {
+            text: domainData?.dm_status === 'active' ? 'OK' : 'Down',
+            className: domainData?.dm_status === 'active' ? 'text-success' : 'text-danger',
+            icon: domainData?.dm_status === 'active' ? 'isax-tick-circle' : 'isax-close-circle'
         };
 
+        const isUp = latestSummary.rootHttpStatus >= 200 && latestSummary.rootHttpStatus < 400;
+        return {
+            text: isUp ? 'OK' : 'Down',
+            className: isUp ? 'text-success' : 'text-danger',
+            icon: isUp ? 'isax-tick-circle' : 'isax-close-circle'
+        };
+    };
+
+    const uptimeStatus = getUptimeStatus();
+
+    const getLastDowntime = () => {
+        if (!scanHistory || scanHistory.length === 0) return "Never";
+        const failures = scanHistory.filter(h => h.rootHttpStatus < 200 || h.rootHttpStatus >= 400);
+        if (failures.length === 0) return "None";
+        
+        // Get the most recent failure
+        const lastFailure = failures[0];
+        const date = new Date(lastFailure.lastScanDate);
+        return date.toLocaleDateString("en-GB", {
+            weekday: 'long',
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    };
+
+    const lastDowntime = getLastDowntime();
+
+    const calculateUptime = () => {
+        if (!scanHistory || scanHistory.length === 0) return 100;
+        const successfulScans = scanHistory.filter(h => h.rootHttpStatus >= 200 && h.rootHttpStatus < 400).length;
+        return Math.round((successfulScans / scanHistory.length) * 100);
+    };
+
+    const uptimePercentage = calculateUptime();
+
+    const fetchScanData = async (dmId) => {
+        try {
+            const [historyRes, summaryRes] = await Promise.all([
+                getDomainScanHistoryApi(dmId),
+                getDomainLatestSummaryApi(dmId)
+            ]);
+
+            if (historyRes.success) setScanHistory(historyRes.data || []);
+            if (summaryRes.success) setLatestSummary(summaryRes.data);
+        } catch (error) {
+            console.error("Error fetching scan data:", error);
+        }
+    };
+
+    const fetchDomainDetails = async (isRefresh = false) => {
+        let selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+        try {
+            if (!isRefresh) setIsLoading(true);
+            const response = await getDomainsApi(1, 100);
+            
+            if (response && response.success && response.data?.domains) {
+                const domains = response.data.domains;
+                
+                if (!selectedId && domains.length > 0) {
+                    selectedId = domains[0]._id;
+                }
+
+                if (selectedId) {
+                    const domain = domains.find((d) => d._id === selectedId);
+                    setDomainData(domain);
+                    if (domain) {
+                        fetchScanData(domain.dm_id);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching domain details:", error);
+        } finally {
+            if (!isRefresh) setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchDomainDetails();
     }, []);
+
+    // Polling for scan completion
+    useEffect(() => {
+        let interval;
+        if (domainData?.dm_seo_status === 'pending' || domainData?.dm_seo_status === 'scanning') {
+            interval = setInterval(() => {
+                fetchDomainDetails(true);
+            }, 10000); // Poll every 10 seconds
+        }
+        return () => clearInterval(interval);
+    }, [domainData?.dm_seo_status]);
+
+    const handleStartScan = async () => {
+        if (!domainData) return;
+        try {
+            setIsScanning(true);
+            const response = await triggerDomainScanApi(domainData.dm_id);
+            if (response.success) {
+                toast.success("Scan triggered successfully!");
+                setDomainData({ ...domainData, dm_seo_status: 'pending' });
+            }
+        } catch (error) {
+            console.error("Error triggering scan:", error);
+            toast.error("Failed to trigger scan");
+        } finally {
+            setIsScanning(false);
+        }
+    };
 
     return (
         <div className="content">
@@ -81,7 +179,7 @@ const Dashboard = () => {
                     {/* Report Range Picker */}
                     <div className="reportrange-picker d-flex align-items-center" id="reportrange">
                         <i className="isax isax-calendar text-gray-5 fs-14 me-1"></i>
-                        <span className="reportrange-picker-field">16 Apr 25 - 16 Apr 25</span>
+                        <span className="reportrange-picker-field">{formatDate(new Date())}</span>
                     </div>
 
                     {/* Create New Dropdown */}
@@ -191,6 +289,16 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {domainData?.dm_seo_status === 'failed' && (
+                <div className="alert alert-danger d-flex align-items-center gap-3 mb-4 border-0 shadow-sm" role="alert">
+                    <i className="isax isax-danger fs-22"></i>
+                    <div>
+                        <h6 className="alert-heading mb-1">Last Scan Failed</h6>
+                        <p className="mb-0 fs-13">The domain <strong>{domainData.dm_url}</strong> could not be reached during the last scan. Please check if the domain is live and accessible.</p>
+                    </div>
+                </div>
+            )}
+
 
 
             <div className="row g-4 mb-4">
@@ -200,10 +308,16 @@ const Dashboard = () => {
                             <div className="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
                                 <div>
                                     <h6 className="mb-1">Scan History</h6>
-                                    <ScanHistoryPopover />
+                                    <ScanHistoryPopover latestSummary={latestSummary} />
                                 </div>
-                                <button type="button" className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2">
-                                    <i className="isax isax-refresh-2"></i> Start new scan
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
+                                    onClick={handleStartScan}
+                                    disabled={isScanning || domainData?.dm_seo_status === 'scanning' || domainData?.dm_seo_status === 'pending'}
+                                >
+                                    <i className={`isax isax-refresh-2 ${isScanning ? 'fa-spin' : ''}`}></i> 
+                                    {domainData?.dm_seo_status === 'scanning' || domainData?.dm_seo_status === 'pending' ? 'Scanning...' : 'Start new scan'}
                                 </button>
                             </div>
                             <div id="scan_history_chart" style={{ minHeight: "200px" }}></div>
@@ -221,7 +335,7 @@ const Dashboard = () => {
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
                                     <i className="isax isax-heart5 dashboard-metric-icon fs-18 text-primary"></i> Heartbeat
                                 </h6>
-                                <Link to="#" className="text-primary">
+                                <Link to="/domain/heartbeat" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
                                 </Link>
                             </div>
@@ -230,29 +344,32 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray="385 389" transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(uptimePercentage)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">98.76 %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{uptimePercentage} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>Uptime last 30 days</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <p className="fs-13 text-muted mb-1">
-                                        <span className="text-body fw-medium">Checkpoint:</span> <Link to="#" className="text-primary text-decoration-none">https://example.com</Link>
+                                        <span className="text-body fw-medium">Checkpoint:</span> <a href={domainData?.dm_url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none">{domainData?.dm_url}</a>
                                     </p>
-                                    <p className="fs-13 text-muted mb-0 d-flex align-items-center gap-2">
+                                    <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-2">
                                         <span className="text-body fw-medium">Current status:</span>
-                                        <span className="d-inline-flex align-items-center gap-1 text-success">
-                                            <i className="isax isax-tick-circle fs-16"></i>
-                                            <span>Active</span>
+                                        <span className={`d-inline-flex align-items-center gap-1 ${uptimeStatus.className}`}>
+                                            <i className={`isax ${uptimeStatus.icon} fs-16`}></i>
+                                            <span className="text-capitalize fw-bold">{uptimeStatus.text}</span>
                                         </span>
+                                    </p>
+                                    <p className="fs-13 text-muted mb-0">
+                                        <span className="text-body fw-medium">Last downtime:</span> {lastDowntime}
                                     </p>
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                                <Link to="#" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
+                                <Link to="/domain/heartbeat" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
                                     Show history <i className="isax isax-arrow-right-1 ms-1"></i>
                                 </Link>
                             </div>
@@ -270,7 +387,7 @@ const Dashboard = () => {
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
                                     <i className="isax isax-tick-circle5 dashboard-metric-icon fs-18 text-primary"></i> Content Policies
                                 </h6>
-                                <Link to="#" className="text-primary">
+                                <Link to="/domain/policies" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
                                 </Link>
                             </div>
@@ -279,17 +396,17 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg className="content-policies-ring" width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray="384 389" transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(latestSummary?.complianceSummary?.termsFound ? 100 : 0)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">98.6 %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{latestSummary?.complianceSummary?.termsFound ? '100' : '0'} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>overall compliance</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <h6 className="fs-13 fw-semibold text-body mb-1">Policies with violations</h6>
-                                    <p className="fs-2 fw-bold text-body mb-2">1</p>
+                                    <p className="fs-2 fw-bold text-body mb-2">{latestSummary?.complianceSummary?.keywordsMissing?.length || 0}</p>
                                     <div className="d-flex flex-wrap gap-3">
                                         <div className="d-flex align-items-center gap-2 text-muted fs-13">
                                             <i className="isax isax-close-circle fs-18"></i>
@@ -301,13 +418,13 @@ const Dashboard = () => {
                                         </div>
                                         <div className="d-flex align-items-center gap-2 text-muted fs-13">
                                             <i className="isax isax-search-normal-1 fs-18"></i>
-                                            <span>1</span>
+                                            <span>{latestSummary?.complianceSummary?.keywordsMissing?.length || 0}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                                <Link to="#" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
+                                <Link to="/domain/policies" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
                                     Show history <i className="isax isax-arrow-right-1 ms-1"></i>
                                 </Link>
                             </div>
@@ -322,7 +439,7 @@ const Dashboard = () => {
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
                                     <i className="isax isax-document-text5 dashboard-metric-icon fs-18 text-primary"></i> Quality Assurance
                                 </h6>
-                                <Link to="#" className="text-primary">
+                                <Link to="/domain/quality-assurance" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
                                 </Link>
                             </div>
@@ -331,36 +448,36 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray="1 389" transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(latestSummary?.performanceMetrics?.avgPerformanceScore)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">0 %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{latestSummary?.performanceMetrics?.avgPerformanceScore || 0} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>overall compliance</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <h6 className="fs-13 fw-semibold text-body mb-1">QA Issues</h6>
-                                    <p className="fs-2 fw-bold text-body mb-1">45</p>
-                                    <p className="fs-13 text-muted mb-2">Affects <strong className="text-body">500</strong> pages and <strong className="text-body">0</strong> documents</p>
+                                    <p className="fs-2 fw-bold text-body mb-1">{ (latestSummary?.issueBreakdown?.high || 0) + (latestSummary?.issueBreakdown?.medium || 0) + (latestSummary?.issueBreakdown?.low || 0) }</p>
+                                    <p className="fs-13 text-muted mb-2">Affects <strong className="text-body">{latestSummary?.totalPages || 0}</strong> pages</p>
                                     <div className="d-flex flex-wrap gap-3">
                                         <div className="d-flex align-items-center gap-2 text-danger fs-13">
                                             <i className="isax isax-danger fs-18"></i>
-                                            <span>37</span>
+                                            <span>{latestSummary?.issueBreakdown?.high || 0}</span>
                                         </div>
                                         <div className="d-flex align-items-center gap-2 text-muted fs-13">
                                             <i className="isax isax-document-text fs-18"></i>
-                                            <span>8</span>
+                                            <span>{latestSummary?.issueBreakdown?.medium || 0}</span>
                                         </div>
                                         <div className="d-flex align-items-center gap-2 text-danger fs-13">
                                             <i className="isax isax-text fs-18"></i>
-                                            <span>0</span>
+                                            <span>{latestSummary?.issueBreakdown?.low || 0}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                                <Link to="#" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
+                                <Link to="/domain/quality-assurance" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
                                     Show history <i className="isax isax-arrow-right-1 ms-1"></i>
                                 </Link>
                             </div>
@@ -378,7 +495,7 @@ const Dashboard = () => {
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
                                     <i className="isax isax-people5 dashboard-metric-icon fs-18 text-primary"></i> Accessibility
                                 </h6>
-                                <Link to="#" className="text-primary">
+                                <Link to="/domain/accessibility" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
                                 </Link>
                             </div>
@@ -387,21 +504,21 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#7c3aed" strokeWidth="12" strokeLinecap="round" strokeDasharray="240 389" transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#7c3aed" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(latestSummary?.performanceMetrics?.avgAccessibilityScore)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">61.75 %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{latestSummary?.performanceMetrics?.avgAccessibilityScore || 0} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>Overall compliance</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <h6 className="fs-13 fw-semibold text-body mb-1">Failing accessibility checks</h6>
-                                    <p className="fs-2 fw-bold text-body mb-0">51</p>
+                                    <p className="fs-2 fw-bold text-body mb-0">0</p>
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                                <Link to="#" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
+                                <Link to="/domain/accessibility" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
                                     Show history <i className="isax isax-arrow-right-1 ms-1"></i>
                                 </Link>
                             </div>
@@ -416,7 +533,7 @@ const Dashboard = () => {
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
                                     <i className="isax isax-chart-215 dashboard-metric-icon fs-18 text-primary"></i> Search Engine Optimization (SEO)
                                 </h6>
-                                <Link to="#" className="text-primary">
+                                <Link to="/domain/seo" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
                                 </Link>
                             </div>
@@ -425,10 +542,10 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray="306 389" transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(latestSummary?.finalSeoScore)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">78.63 %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{latestSummary?.finalSeoScore || 0} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>Overall compliance</span>
                                         </div>
                                     </div>
@@ -438,11 +555,11 @@ const Dashboard = () => {
                                         SEO opportunities
                                         <i className="isax isax-info-circle text-muted fs-14" title="More information"></i>
                                     </h6>
-                                    <p className="fs-2 fw-bold text-body mb-0">2</p>
+                                    <p className="fs-2 fw-bold text-body mb-0">{latestSummary?.topIssues?.length || 0}</p>
                                 </div>
                             </div>
                             <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                                <Link to="#" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
+                                <Link to="/domain/seo" className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none">
                                     Show history <i className="isax isax-arrow-right-1 ms-1"></i>
                                 </Link>
                             </div>
@@ -453,7 +570,7 @@ const Dashboard = () => {
 
 
             {/* Charts Component */}
-            <DashboardCharts />
+            <DashboardCharts historyData={scanHistory} />
 
         </div>
     );

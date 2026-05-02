@@ -27,6 +27,9 @@ import RunWebsiteAuditPage from '../components/audit/Audit'
 import SEOHealthSlugPage from '../components/audit/seo-health/SEOHealthSlugPage'
 import ResponseStatusDetailPage from '../components/audit/response-status/ResponseStatusDetailPage'
 import SpellCheckerDetailPage from '../components/audit/spell-checker/SpellCheckerDetailPage'
+import HeartbeatView from '../components/heartbeat/HeartbeatView'
+import PerformanceView from '../components/performance/PerformanceView'
+import InventoryPage from '../components/inventory/Inventory'
 
 
 const MainRouter = () => {
@@ -156,6 +159,34 @@ const MainRouter = () => {
         element={
           <ProtectedRouter>
             <SpellCheckerDetailPage />
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/heartbeat"
+        element={
+          <ProtectedRouter>
+            <DashboardLayout breadcrumbTitle="Heartbeat">
+              <HeartbeatView />
+            </DashboardLayout>
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/performance"
+        element={
+          <ProtectedRouter>
+            <DashboardLayout breadcrumbTitle="Performance">
+              <PerformanceView />
+            </DashboardLayout>
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/inventory"
+        element={
+          <ProtectedRouter>
+            <InventoryPage />
           </ProtectedRouter>
         }
       />
