@@ -23,6 +23,11 @@ import DashboardLayout from '../layouts/DashboardLayout'
 import PrioritizedContentPage from '../components/prioritized-content/PrioritizedContentTable'
 import Seo from '../components/seo/Seo'
 import Accessibility from '../components/accessibility/Accessibility'
+import RunWebsiteAuditPage from '../components/audit/Audit'
+import SEOHealthSlugPage from '../components/audit/seo-health/SEOHealthSlugPage'
+import ResponseStatusDetailPage from '../components/audit/response-status/ResponseStatusDetailPage'
+import SpellCheckerDetailPage from '../components/audit/spell-checker/SpellCheckerDetailPage'
+
 
 const MainRouter = () => {
   const tenantId = getTenantId();
@@ -122,6 +127,39 @@ const MainRouter = () => {
           </ProtectedRouter>
         }
       />
+      <Route
+        path="/domain/audit"
+        element={
+          <ProtectedRouter>
+            <RunWebsiteAuditPage />
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/audit/seo-health/:slug"
+        element={
+          <ProtectedRouter>
+            <SEOHealthSlugPage />
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/audit/response-status/:slug"
+        element={
+          <ProtectedRouter>
+            <ResponseStatusDetailPage />
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/audit/spell-checker/:slug"
+        element={
+          <ProtectedRouter>
+            <SpellCheckerDetailPage />
+          </ProtectedRouter>
+        }
+      />
+
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>)
 }

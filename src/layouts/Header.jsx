@@ -60,11 +60,14 @@ export default function Header({
 
     const getInitials = (name) => {
         if (!name) return "U";
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase();
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        if (parts.length === 1 && parts[0]) {
+            return (parts[0][0] + (parts[0][1] || "")).toUpperCase();
+        }
+        return "U";
     };
     // ==================== MAIN DASHBOARD HEADER ====================
     return (
@@ -256,9 +259,15 @@ export default function Header({
                             {/* Profile Dropdown (same as landing) */}
                             <div className="dropdown profile-dropdown">
                                 <a className="dropdown-toggle d-flex align-items-center" data-bs-auto-close="outside" data-bs-toggle="dropdown" href="#">
-                                    <span className="avatar online">
-                                        <img alt="Profile" className="img-fluid rounded-circle" src="/assets/images/avatar-01.jpg" />
-                                    </span>
+                                    {user?.profilePicture ? (
+                                        <span className="avatar online">
+                                            <img alt="Profile" className="img-fluid rounded-circle" src={user.profilePicture} />
+                                        </span>
+                                    ) : (
+                                        <span className="avatar online bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
+                                            {getInitials(user?.name)}
+                                        </span>
+                                    )}
                                 </a>
 
                                 <div className="dropdown-menu p-2 dropdown-menu-end">
@@ -292,9 +301,15 @@ export default function Header({
                             {/* Mobile User Menu */}
                             <div className="dropdown mobile-user-menu profile-dropdown">
                                 <a className="dropdown-toggle d-flex align-items-center" data-bs-auto-close="outside" data-bs-toggle="dropdown" href="#">
-                                    <span className="avatar avatar-md online">
-                                        <img alt="Img" className="img-fluid rounded-circle" src="/assets/images/avatar-01.jpg" />
-                                    </span>
+                                    {user?.profilePicture ? (
+                                        <span className="avatar avatar-md online">
+                                            <img alt="Img" className="img-fluid rounded-circle" src={user.profilePicture} />
+                                        </span>
+                                    ) : (
+                                        <span className="avatar avatar-md online bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
+                                            {getInitials(user?.name)}
+                                        </span>
+                                    )}
                                 </a>
                                 <div className="dropdown-menu p-2 mt-0 dropdown-menu-end">
                                     <div className="d-flex align-items-start p-2 pb-2 mb-2 border-bottom">

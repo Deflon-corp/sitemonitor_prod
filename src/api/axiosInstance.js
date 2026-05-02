@@ -6,7 +6,7 @@ import { clearSession } from '../utils/auth';
 
 // Create a common axios instance
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://sitemonitor-backend.onrender.com/api",
   headers: {
     'accept': 'application/json',
     'Content-Type': 'application/json',

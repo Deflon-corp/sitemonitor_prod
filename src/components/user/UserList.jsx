@@ -330,18 +330,38 @@ export default function UserList() {
                                     ) : users.length > 0 ? (
                                         users.map((user) => {
                                             const { month, day, year } = formatLatestLogin(user.user_last_login);
-                                            const initials = (user.user_first_name?.[0] || "") + (user.user_last_name?.[0] || "");
+                                            
+                                            // Initials logic: 
+                                            // 1. If both first and last name exist, use first letter of each.
+                                            // 2. If only one name exists, use first two letters.
+                                            let initials = "U";
+                                            if (user.user_first_name && user.user_last_name) {
+                                                initials = (user.user_first_name[0] + user.user_last_name[0]).toUpperCase();
+                                            } else if (user.user_first_name) {
+                                                initials = (user.user_first_name[0] + (user.user_first_name[1] || "")).toUpperCase();
+                                            } else if (user.user_last_name) {
+                                                initials = (user.user_last_name[0] + (user.user_last_name[1] || "")).toUpperCase();
+                                            }
 
                                             return (
                                                 <tr key={user._id}>
                                                     <td>
                                                         <div className="d-flex align-items-center gap-3">
-                                                            <span
-                                                                className={`avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold flex-shrink-0`}
-                                                                style={{ width: "40px", height: "40px", fontSize: "0.875rem" }}
-                                                            >
-                                                                {initials || "U"}
-                                                            </span>
+                                                            {user.user_profile_img ? (
+                                                                <img 
+                                                                    src={user.user_profile_img} 
+                                                                    alt="Profile" 
+                                                                    className="avatar rounded-circle flex-shrink-0" 
+                                                                    style={{ width: "40px", height: "40px", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <span
+                                                                    className={`avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold flex-shrink-0`}
+                                                                    style={{ width: "40px", height: "40px", fontSize: "0.875rem" }}
+                                                                >
+                                                                    {initials}
+                                                                </span>
+                                                            )}
                                                             <div>
                                                                 <span className="fw-medium text-body d-block">
                                                                     {user.user_first_name} {user.user_last_name}

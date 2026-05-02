@@ -430,10 +430,11 @@ export default function Sidebar() {
                                         </ul>
                                     </li>
                                     <li>
-                                        <Link to="/audit" className={isLinkActive("/audit") ? "active" : ""}>
+                                        <Link to="/domain/audit" className={isLinkActive("/domain/audit") ? "active" : ""}>
                                             <i className="isax isax-search-status" aria-hidden /><span className="text-truncate">Run WebsiteAudit</span>
                                         </Link>
                                     </li>
+
                                 </ul>
                             </div>
                         </div>

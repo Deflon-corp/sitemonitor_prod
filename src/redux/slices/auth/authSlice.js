@@ -18,6 +18,9 @@ export const loginUserThunk = createAsyncThunk(
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
       }
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
 
       // Return both data and message
       return {
@@ -63,6 +66,9 @@ export const verifyOtpThunk = createAsyncThunk(
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
       }
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
 
       // Return both data and message
       return {
@@ -79,7 +85,7 @@ export const verifyOtpThunk = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
+    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
     token: localStorage.getItem('token') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     loading: false,
@@ -95,6 +101,7 @@ const authSlice = createSlice({
       state.success = false;
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
     },
     updateTokens: (state, action) => {
       state.token = action.payload.access_token;

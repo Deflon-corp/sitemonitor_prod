@@ -1,10 +1,74 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ScanHistoryPopover from "@/components/dashboard/ScanHistoryPopover";
+import CountdownTimer from "@/components/dashboard/CountdownTimer";
+import { getDomainsApi } from "@/api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const Dashboard = () => {
     const location = useLocation();
+    const { user } = useSelector((state) => state.auth);
+    const [domainData, setDomainData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return "Good Morning";
+        if (hour >= 12 && hour < 17) return "Good Afternoon";
+        if (hour >= 17 && hour < 21) return "Good Evening";
+        return "Good Night";
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    };
+
+    const formatTime = (dateString) => {
+        if (!dateString) return "";
+        return new Date(dateString).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    useEffect(() => {
+        const fetchDomainDetails = async () => {
+            let selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+            try {
+                setIsLoading(true);
+                const response = await getDomainsApi(1, 100);
+                
+                if (response && response.success && response.data?.domains) {
+                    const domains = response.data.domains;
+                    
+                    // If no ID is selected, fallback to the first domain (same as Sidebar)
+                    if (!selectedId && domains.length > 0) {
+                        selectedId = domains[0]._id;
+                    }
+
+                    if (selectedId) {
+                        const domain = domains.find((d) => d._id === selectedId);
+                        setDomainData(domain);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching domain details:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDomainDetails();
+    }, []);
 
     return (
         <div className="content">
@@ -89,20 +153,36 @@ const Dashboard = () => {
             {/* Welcome Banner */}
             <div className="bg-primary rounded welcome-wrap position-relative mb-3">
                 <div className="row">
-                    <div className="col-lg-8 col-md-9 col-sm-7">
+                    <div className="col-lg-8 col-md-9 col-sm-10">
                         <div>
-                            <h5 className="text-white mb-1">Good Morning, Jafna Cremson</h5>
-                            <p className="text-white mb-3">
-                                You have 15+ invoices saved to draft that has to send to customers
-                            </p>
-                            <div className="d-flex align-items-center flex-wrap gap-3">
-                                <p className="d-flex align-items-center fs-13 text-white mb-0">
-                                    <i className="isax isax-calendar5 me-1"></i> Friday, 24 Mar 2025
-                                </p>
-                                <p className="d-flex align-items-center fs-13 text-white mb-0">
-                                    <i className="isax isax-clock5 me-1"></i> 11:24 AM
-                                </p>
-                            </div>
+                            <h5 className="text-white mb-1">
+                                {getGreeting()}, {user?.name || "User"}
+                            </h5>
+                            
+                            {isLoading ? (
+                                <div className="text-white-50 mt-2">Loading domain details...</div>
+                            ) : domainData ? (
+                                <>
+                                    <div className="text-white mt-2">
+                                        <div className="d-flex align-items-center gap-2 mb-2 fs-15">
+                                            <i className="isax isax-global"></i>
+                                            <span className="fw-bold">{domainData.dm_title}</span>
+                                            <span className="text-white-50">({domainData.dm_url})</span>
+                                        </div>
+                                    </div>
+                                    <div className="d-flex align-items-center flex-wrap gap-4 mt-2">
+                                        <div className="d-flex align-items-center fs-13 text-white">
+                                            <i className="isax isax-radar me-1"></i>
+                                            <span className="me-2">Last Scan: {domainData.dm_last_scan_at ? `${formatDate(domainData.dm_last_scan_at)} ${formatTime(domainData.dm_last_scan_at)}` : "Never"}</span>
+                                            <span className="mx-2 text-white-50">|</span>
+                                            <span className="me-2">Next Scan:</span>
+                                            <CountdownTimer targetDate={domainData.dm_next_scan_at} />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-white-50 mt-2">No domain selected. Please select a domain from the sidebar.</p>
+                            )}
                         </div>
                     </div>
                 </div>
