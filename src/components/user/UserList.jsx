@@ -9,7 +9,6 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const LANDING_NAV = [
     { href: "/home", label: "Domain Overview", icon: "isax-global" },
     { href: "/home/users", label: "Users", icon: "isax-people" },
-    { href: "/home/rules", label: "Rules", icon: "isax-setting-2" },
     { href: "/home/policies", label: "Policies", icon: "isax-shield-tick" },
     { href: "/home/history-center", label: "History center", icon: "isax-chart-2" },
 ];
@@ -175,7 +174,6 @@ export default function UserList() {
                         const isActive =
                             (pathname === "/home" && item.label === "Domain Overview") ||
                             (pathname === "/home/users" && item.label === "Users") ||
-                            (pathname === "/home/rules" && item.label === "Rules") ||
                             (pathname === "/home/policies" && item.label === "Policies") ||
                             (pathname === "/home/history-center" && item.label === "History center");
 
@@ -330,7 +328,7 @@ export default function UserList() {
                                     ) : users.length > 0 ? (
                                         users.map((user) => {
                                             const { month, day, year } = formatLatestLogin(user.user_last_login);
-                                            
+
                                             // Initials logic: 
                                             // 1. If both first and last name exist, use first letter of each.
                                             // 2. If only one name exists, use first two letters.
@@ -348,10 +346,10 @@ export default function UserList() {
                                                     <td>
                                                         <div className="d-flex align-items-center gap-3">
                                                             {user.user_profile_img ? (
-                                                                <img 
-                                                                    src={user.user_profile_img} 
-                                                                    alt="Profile" 
-                                                                    className="avatar rounded-circle flex-shrink-0" 
+                                                                <img
+                                                                    src={user.user_profile_img}
+                                                                    alt="Profile"
+                                                                    className="avatar rounded-circle flex-shrink-0"
                                                                     style={{ width: "40px", height: "40px", objectFit: "cover" }}
                                                                 />
                                                             ) : (

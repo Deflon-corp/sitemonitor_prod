@@ -47,11 +47,49 @@ const PREDEFINED_POLICIES = [
   { id: 38, title: "Find email adresses", icon: "isax-document-text", isNew: true },
 ];
 
-const NewPolicyDrawer = ({ open, onClose, variant = "drawer" }) => {
+const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, readOnly = false }) => {
   const isPage = variant === "page";
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [drawerView, setDrawerView] = useState("grid");
+  const [selectedPredefinedPolicy, setSelectedPredefinedPolicy] = useState(null);
+
+  const getInitialRule = (policy) => {
+    let type = "text";
+    if (policy?.icon?.includes("image")) type = "image-size";
+    else if (policy?.icon?.includes("link")) type = "link";
+    else if (policy?.icon?.includes("document-text") || policy?.icon?.includes("text")) type = "text";
+    
+    const baseRule = {
+      id: Date.now(),
+      type: type,
+      ruleName: policy?.title || "New Rule",
+    };
+
+    if (type === "image-size") {
+      return {
+        ...baseRule,
+        comparison: "Greater than",
+        value: "",
+        unit: "KB"
+      };
+    } else if (type === "link") {
+      return {
+        ...baseRule,
+        searchType: "Starts with",
+        searchValue: "",
+        containing: "containing"
+      };
+    } else {
+      return {
+        ...baseRule,
+        searchType: "Contains Words",
+        searchValue: "",
+        containing: "containing",
+        selectors: []
+      };
+    }
+  };
 
   const filteredPolicies = PREDEFINED_POLICIES.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase())
@@ -61,18 +99,23 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer" }) => {
     if (!open) return;
     const handleEscape = (e) => {
       if (e.key === "Escape") {
-        if (drawerView === "all-assets" || drawerView === "html-pages" || drawerView === "documents") setDrawerView("create");
+        if (policyId) onClose();
+        else if (drawerView === "all-assets" || drawerView === "html-pages" || drawerView === "documents") setDrawerView("create");
         else if (drawerView === "create") setDrawerView("grid");
         else onClose();
       }
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, onClose, drawerView]);
+  }, [open, onClose, drawerView, policyId]);
 
   useEffect(() => {
-    if (!open) setDrawerView("grid");
-  }, [open]);
+    if (!open) {
+      setDrawerView("grid");
+    } else if (policyId) {
+      setDrawerView("all-assets");
+    }
+  }, [open, policyId]);
 
   const handleContentTypeNext = (contentType) => {
     if (contentType === "all") setDrawerView("all-assets");
@@ -154,7 +197,15 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer" }) => {
 
       {/* Body */}
       {drawerView === "all-assets" ? (
-        <CreatePolicyAllAssetsView onBack={() => setDrawerView("create")} />
+        <CreatePolicyAllAssetsView 
+          onBack={policyId ? onClose : () => {
+            setDrawerView("create");
+            setSelectedPredefinedPolicy(null);
+          }} 
+          policyId={policyId} 
+          readOnly={readOnly}
+          initialData={selectedPredefinedPolicy ? { title: selectedPredefinedPolicy.title, rules: [getInitialRule(selectedPredefinedPolicy)] } : null}
+        />
       ) : drawerView === "html-pages" ? (
         <CreatePolicyHtmlPagesView onBack={() => setDrawerView("create")} />
       ) : drawerView === "documents" ? (
@@ -205,6 +256,7 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer" }) => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          setSelectedPredefinedPolicy(policy);
                           setDrawerView("all-assets");
                         }}
                       >

@@ -216,12 +216,12 @@ const GlobalPoliciesView = ({
                     <div className="dropdown">
                       <button
                         type="button"
-                        className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-1 dropdown-toggle"
+                        className="btn btn-icon btn-sm btn-light rounded-circle"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                         aria-label="Policy actions"
                       >
-                        Action
+                        <i className="isax isax-more" aria-hidden="true" />
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>

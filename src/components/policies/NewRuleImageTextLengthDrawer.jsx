@@ -13,6 +13,19 @@ const NewRuleImageTextLengthDrawer = ({ open, onClose, onSave }) => {
   const [comparison, setComparison] = useState("Less than");
   const [characterCount, setCharacterCount] = useState("");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
+      setCharacterCount(initialData?.characterCount !== undefined ? initialData.characterCount : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setComparison("");
+      setCharacterCount("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

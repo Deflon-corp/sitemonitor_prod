@@ -1,9 +1,14 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+
 import PolicyListEmptyState from "./PolicyListEmptyState";
 import UnwantedPoliciesEmptyView from "./UnwantedPoliciesEmptyView";
 import RequiredPolicyListRow from "./RequiredPolicyListRow";
 import MatchedPolicyListRow from "./MatchedPolicyListRow";
+import { getPoliciesApi, createPolicyApi, deletePolicyApi, getPolicyByIdApi } from "@/api/policyApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import toast from "react-hot-toast";
+
 
 const FILTER_TABS = [
   { key: "all", label: "All" },
@@ -12,53 +17,79 @@ const FILTER_TABS = [
   { key: "matches", label: "Matches", icon: "isax-search-normal-1", iconClass: "text-primary" },
 ];
 
-const SAMPLE_POLICIES = [
-  {
-    id: "1",
-    title: "Text",
-    searchScope: "Everything",
-    status: "hits",
-    compliancePercent: 0.2,
-    policyHits: 499,
-    category: "matches",
-  },
-  {
-    id: "2",
-    title: "Text that starts with Lorem ipsum",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    compliancePercent: 100,
-    policyHits: null,
-    category: "matches",
-  },
-  {
-    id: "3",
-    title: "Text that starts with FD",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    compliancePercent: 100,
-    policyHits: null,
-    category: "required",
-  },
-];
+/** Sample data – replaced with API */
+// const SAMPLE_POLICIES = [
+//   {
+//     id: "1",
+//     title: "Text",
+//     searchScope: "Everything",
+//     status: "hits",
+//     compliancePercent: 0.2,
+//     policyHits: 499,
+//     category: "matches",
+//   },
+//   ...
+// ];
 
-const PolicyListView = ({ onAddNewPolicy }) => {
+
+const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false }) => {
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const currentView = searchParams.get("view") || "summary";
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPolicies = useCallback(async () => {
+    try {
+      setLoading(true);
+      const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+      const res = await getPoliciesApi({ domainId: selectedId });
+      if (res.success && res.data) {
+        // Normalize data: ensure fields exist and map _id to id
+        const normalized = res.data.map(p => ({
+          ...p,
+          id: p._id || p.id,
+          title: p.title || "Untitled Policy",
+          searchScope: p.searchScope || "Everything",
+          compliancePercent: p.compliancePercent || 0,
+          status: p.status || "compliant",
+          category: p.category || "matches"
+        }));
+        setPolicies(normalized);
+      } else {
+        setPolicies([]);
+      }
+
+
+    } catch (err) {
+      console.error("Failed to fetch policies:", err);
+      toast.error("Failed to load policies");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPolicies();
+  }, [fetchPolicies]);
 
   const filteredBySearch = useMemo(() => {
-    let rows = SAMPLE_POLICIES;
+    let rows = policies || [];
     if (search.trim()) {
+
       const q = search.toLowerCase();
       rows = rows.filter(
         (r) =>
-          r.title.toLowerCase().includes(q) || r.searchScope.toLowerCase().includes(q)
+          r.title.toLowerCase().includes(q) || (r.searchScope || "").toLowerCase().includes(q)
       );
     }
     return rows;
-  }, [search]);
+  }, [search, policies]);
+
 
   const filteredRows = useMemo(() => {
     if (activeTab === "all") return filteredBySearch;
@@ -116,6 +147,60 @@ const PolicyListView = ({ onAddNewPolicy }) => {
     alert("PDF export functionality will be implemented soon.");
   }, []);
 
+  const handleDuplicate = async (id) => {
+    try {
+      // Fetch full policy to get its rules
+      const policyRes = await getPolicyByIdApi(id);
+      if (!policyRes.success || !policyRes.data) return;
+
+      const policy = policyRes.data;
+      const newPolicy = {
+        ...policy,
+        title: `${policy.title} (Copy)`,
+      };
+      
+      // Clean up fields
+      delete newPolicy._id;
+      delete newPolicy.id;
+      delete newPolicy.createdAt;
+      delete newPolicy.updatedAt;
+      
+      // Clean up rules IDs
+      if (newPolicy.rules) {
+        newPolicy.rules = newPolicy.rules.map(r => {
+          const newRule = { ...r };
+          delete newRule._id;
+          delete newRule.id;
+          delete newRule.policyId;
+          delete newRule.createdAt;
+          delete newRule.updatedAt;
+          return newRule;
+        });
+      }
+
+      const createRes = await createPolicyApi(newPolicy); 
+      if (createRes.success) {
+        toast.success("Policy duplicated successfully");
+        fetchPolicies();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to duplicate policy");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this policy?")) return;
+    try {
+      const res = await deletePolicyApi(id);
+      if (res.success) {
+        toast.success("Policy deleted successfully");
+        fetchPolicies();
+      }
+    } catch (err) {
+      toast.error("Failed to delete policy");
+    }
+  };
+
   return (
     <div className="d-flex flex-column h-100">
       {/* Header */}
@@ -128,13 +213,15 @@ const PolicyListView = ({ onAddNewPolicy }) => {
           <p className="text-muted fs-13 mb-0">{sortedRows.length} policies found</p>
         </div>
         <div className="d-flex align-items-center gap-2">
-          <Link
-            to="/policies?view=global"
-            className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2 text-decoration-none"
-          >
-            <i className="isax isax-hammer" aria-hidden="true" />
-            Global Policy List
-          </Link>
+          {!hideGlobalButton && (
+            <Link
+              to="/policies?view=global"
+              className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2 text-decoration-none"
+            >
+              <i className="isax isax-hammer" aria-hidden="true" />
+              Global Policy List
+            </Link>
+          )}
           <button
             type="button"
             className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center"
@@ -240,7 +327,6 @@ const PolicyListView = ({ onAddNewPolicy }) => {
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">Actions</th>
                   <th className="py-3 text-body fs-13 fw-semibold" style={{ minWidth: 140 }}>
                     <button
                       type="button"
@@ -256,15 +342,16 @@ const PolicyListView = ({ onAddNewPolicy }) => {
                       )}
                     </button>
                   </th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold">Policy Hits</th>
+                  <th className="py-3 text-body fs-13 fw-semibold">Policy Hits</th>
+                  <th className="py-3 pe-4 text-body fs-13 fw-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedRows.map((row) =>
                   activeTab === "required" ? (
-                    <RequiredPolicyListRow key={row.id} row={row} />
+                    <RequiredPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} />
                   ) : activeTab === "matches" ? (
-                    <MatchedPolicyListRow key={row.id} row={row} />
+                    <MatchedPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} />
                   ) : (
                     <tr key={row.id}>
                       <td className="py-3 ps-4">
@@ -291,26 +378,6 @@ const PolicyListView = ({ onAddNewPolicy }) => {
                         </div>
                       </td>
                       <td className="py-3">
-                        <div className="dropdown">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-1 dropdown-toggle"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                            aria-label="Policy actions"
-                          >
-                            Action
-                          </button>
-                          <ul className="dropdown-menu dropdown-menu-end">
-                            <li><button type="button" className="dropdown-item">Edit policy</button></li>
-                            <li><button type="button" className="dropdown-item">View details</button></li>
-                            <li><button type="button" className="dropdown-item">Duplicate</button></li>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><button type="button" className="dropdown-item text-danger">Delete</button></li>
-                          </ul>
-                        </div>
-                      </td>
-                      <td className="py-3">
                         <span className="text-primary fw-medium fs-13">
                           {row.compliancePercent}% COMPLIANCE
                         </span>
@@ -320,12 +387,32 @@ const PolicyListView = ({ onAddNewPolicy }) => {
                           aria-hidden="true"
                         />
                       </td>
-                      <td className="py-3 pe-4">
+                      <td className="py-3">
                         {row.policyHits != null ? (
                           <span className="text-primary fw-medium fs-13">{row.policyHits} HITS</span>
                         ) : (
                           <span className="text-success fs-13">No hits found</span>
                         )}
+                      </td>
+                      <td className="py-3 pe-4">
+                        <div className="dropdown">
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-sm btn-light rounded-circle"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-label="Policy actions"
+                          >
+                            <i className="isax isax-more" aria-hidden="true" />
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button type="button" className="dropdown-item" onClick={() => onEditPolicy && onEditPolicy(row.id)}>Edit policy</button></li>
+                            <li><button type="button" className="dropdown-item" onClick={() => onViewPolicy && onViewPolicy(row.id)}>View details</button></li>
+                            <li><button type="button" className="dropdown-item" onClick={() => handleDuplicate(row.id)}>Duplicate</button></li>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button type="button" className="dropdown-item text-danger" onClick={() => handleDelete(row.id)}>Delete</button></li>
+                          </ul>
+                        </div>
                       </td>
                     </tr>
                   )

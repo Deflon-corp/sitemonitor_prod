@@ -22,12 +22,6 @@ const STATIC_NOTIFICATIONS = [
     },
 ];
 
-const STATIC_LANGUAGES = [
-    { code: "en", label: "English", flag: "/assets/images/us.svg" },
-    { code: "de", label: "German", flag: "/assets/images/de.svg" },
-    { code: "fr", label: "French", flag: "/assets/images/fr.svg" },
-    { code: "ar", label: "Arabic", flag: "/assets/images/ae.svg" },
-];
 
 const STATIC_QUICK_ADD_ITEMS = [
     { to: "/add-invoice", icon: "isax-document-text-1", label: "Invoice" },
@@ -166,22 +160,6 @@ export default function Header({
                                 </span>
                             </div>
 
-                            {/* Language Selector */}
-                            <div className="nav-item dropdown has-arrow flag-nav me-2">
-                                <a className="btn btn-menubar" data-bs-toggle="dropdown" href="#" role="button">
-                                    <img alt="Language" className="img-fluid" src="/assets/images/us.svg" />
-                                </a>
-                                <ul className="dropdown-menu p-2">
-                                    {STATIC_LANGUAGES.map((lang) => (
-                                        <li key={lang.code}>
-                                            <a className="dropdown-item" href="#">
-                                                <img alt="flag" className="me-2" src={lang.flag} />
-                                                {lang.label}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
 
                             {/* Notifications */}
                             <div className="notification_item me-2">

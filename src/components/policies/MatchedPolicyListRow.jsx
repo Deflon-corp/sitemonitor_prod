@@ -1,4 +1,5 @@
 import React from "react";
+import toast from "react-hot-toast";
 
 /**
  * Circular progress indicator for compliance (e.g. 0.2% or 100% = teal segment).
@@ -29,7 +30,7 @@ const ComplianceCircle = ({ percent }) => {
 /**
  * One policy row for Policy list >> Matches: Title (magnifying glass or check, subtitle, icons), Actions, Compliance (%, COMPLIANCE, circle), Policy Hits (value + HITS label or No hits found).
  */
-const MatchedPolicyListRow = ({ row }) => {
+const MatchedPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) => {
   return (
     <tr>
       <td className="py-2 ps-4">
@@ -58,44 +59,6 @@ const MatchedPolicyListRow = ({ row }) => {
         </div>
       </td>
       <td className="py-2">
-        <div className="dropdown">
-          <button
-            type="button"
-            className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-1 dropdown-toggle"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            aria-label="Policy actions"
-          >
-            Action
-          </button>
-          <ul className="dropdown-menu dropdown-menu-end">
-            <li>
-              <button type="button" className="dropdown-item">
-                Edit policy
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item">
-                View details
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item">
-                Duplicate
-              </button>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <button type="button" className="dropdown-item text-danger">
-                Delete
-              </button>
-            </li>
-          </ul>
-        </div>
-      </td>
-      <td className="py-2">
         <div className="d-flex align-items-center">
           <div className="d-flex flex-column">
             <span className="text-primary fw-medium fs-13">{row.compliancePercent}%</span>
@@ -104,7 +67,7 @@ const MatchedPolicyListRow = ({ row }) => {
           <ComplianceCircle percent={row.compliancePercent} />
         </div>
       </td>
-      <td className="py-2 pe-4">
+      <td className="py-2">
         {row.policyHits != null ? (
           <div className="d-flex flex-column">
             <span className="text-primary fw-medium fs-13">{row.policyHits}</span>
@@ -113,6 +76,44 @@ const MatchedPolicyListRow = ({ row }) => {
         ) : (
           <span className="text-success fs-13">No hits found</span>
         )}
+      </td>
+      <td className="py-2 pe-4">
+        <div className="dropdown">
+          <button
+            type="button"
+            className="btn btn-icon btn-sm btn-light rounded-circle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="Policy actions"
+          >
+            <i className="isax isax-more" aria-hidden="true" />
+          </button>
+          <ul className="dropdown-menu dropdown-menu-end">
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onEdit && onEdit(row.id)}>
+                Edit policy
+              </button>
+            </li>
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onView && onView(row.id)}>
+                View details
+              </button>
+            </li>
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onDuplicate && onDuplicate(row.id)}>
+                Duplicate
+              </button>
+            </li>
+            <li>
+              <hr className="dropdown-divider" />
+            </li>
+            <li>
+              <button type="button" className="dropdown-item text-danger" onClick={() => onDelete && onDelete(row.id)}>
+                Delete
+              </button>
+            </li>
+          </ul>
+        </div>
       </td>
     </tr>
   );

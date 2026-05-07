@@ -31,7 +31,9 @@ const AddRuleToPolicyView = ({ allowedRuleIds, onRuleSelect }) => {
   return (
     <div>
       <p className="text-body fs-13 text-muted mb-3">Drag and drop the rule to add rules to the policy.</p>
-      <div className="row g-2">
+      <div className="overflow-auto custom-scrollbar pe-1" style={{ maxHeight: "calc(72px * 3 + 30px)" }}>
+        <div className="row g-2">
+
         {rulesToShow.map((rule) => (
           <div key={rule.id} className="col-4">
             <div
@@ -66,8 +68,10 @@ const AddRuleToPolicyView = ({ allowedRuleIds, onRuleSelect }) => {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
+
   );
 };
 

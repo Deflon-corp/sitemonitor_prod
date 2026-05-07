@@ -10,7 +10,7 @@ const SEARCH_OPTIONS = [
   "Regex",
 ];
 
-const NewRulePageTitleDrawer = ({ open, onClose, onSave }) => {
+const NewRulePageTitleDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Starts with");
   const [searchValue, setSearchValue] = useState("");
@@ -18,12 +18,25 @@ const NewRulePageTitleDrawer = ({ open, onClose, onSave }) => {
 
   useEffect(() => {
     if (!open) return;
+    if (initialData) {
+      setRuleName(initialData.ruleName || "");
+      setSearchType(initialData.searchType || "Starts with");
+      setSearchValue(initialData.searchValue || "");
+      setContaining(initialData.containing || "containing");
+    } else {
+      setRuleName("");
+      setSearchType("Starts with");
+      setSearchValue("");
+      setContaining("containing");
+    }
+
     const handleEscape = (e) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, onClose]);
+  }, [open, onClose, initialData]);
+
 
   const handleSave = () => {
     onSave?.({

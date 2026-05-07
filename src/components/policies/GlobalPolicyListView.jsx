@@ -66,6 +66,8 @@ const SAMPLE_POLICIES = [
 
 const GlobalPolicyListView = ({
   onAddNewPolicy,
+  onEditPolicy,
+  onViewPolicy,
   basePath = "/policies",
   currentView = "global-list",
 }) => {
@@ -246,7 +248,14 @@ const GlobalPolicyListView = ({
               </thead>
               <tbody>
                 {sortedRows.map((row) => (
-                  <PolicyListTableRow key={row.id} row={row} hitsBarMax={HITS_BAR_MAX} />
+                  <PolicyListTableRow 
+                    key={row.id} 
+                    row={row} 
+                    hitsBarMax={HITS_BAR_MAX} 
+                    onEdit={onEditPolicy}
+                    onView={onViewPolicy}
+                    // For Global Policy list, you might need to pass onDuplicate/onDelete as well if implemented
+                  />
                 ))}
               </tbody>
             </table>

@@ -23,6 +23,19 @@ const NewRuleReadabilityLevelDrawer = ({ open, onClose, onSave }) => {
   const [searchFor, setSearchFor] = useState("Greater than");
   const [readabilityScore, setReadabilityScore] = useState("7th grade");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setSearchFor(initialData?.searchFor !== undefined ? initialData.searchFor : "");
+      setReadabilityScore(initialData?.readabilityScore !== undefined ? initialData.readabilityScore : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setSearchFor("");
+      setReadabilityScore("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

@@ -16,6 +16,21 @@ const NewRuleFileSizeDrawer = ({ open, onClose, onSave }) => {
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("KB");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
+      setValue(initialData?.value !== undefined ? initialData.value : "");
+      setUnit(initialData?.unit !== undefined ? initialData.unit : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setComparison("");
+      setValue("");
+      setUnit("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

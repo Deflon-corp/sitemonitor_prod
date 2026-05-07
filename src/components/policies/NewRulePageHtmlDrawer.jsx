@@ -12,7 +12,7 @@ const SEARCH_OPTIONS = [
   "CSS selector",
 ];
 
-const NewRulePageHtmlDrawer = ({ open, onClose, onSave }) => {
+const NewRulePageHtmlDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Starts with");
   const [searchValue, setSearchValue] = useState("");
@@ -21,12 +21,28 @@ const NewRulePageHtmlDrawer = ({ open, onClose, onSave }) => {
 
   useEffect(() => {
     if (!open) return;
+    if (initialData) {
+      setRuleName(initialData.ruleName || "");
+      setSearchType(initialData.searchType || "Starts with");
+      setSearchValue(initialData.searchValue || "");
+      setContaining(initialData.containing || "containing");
+      setSelectors(initialData.selectors?.length > 0 ? initialData.selectors : [{ type: "Limit search", value: "" }]);
+    } else {
+      // Reset for new rule
+      setRuleName("");
+      setSearchType("Starts with");
+      setSearchValue("");
+      setContaining("containing");
+      setSelectors([{ type: "Limit search", value: "" }]);
+    }
+
     const handleEscape = (e) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, onClose]);
+  }, [open, onClose, initialData]);
+
 
   const addSelectorRow = () => {
     setSelectors((prev) => [...prev, { type: "Limit search", value: "" }]);

@@ -5,6 +5,10 @@ import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 import ContentWithPolicyMatchesPagesView from "./ContentWithPolicyMatchesPagesView";
 import ContentWithPolicyMatchesPdfView from "./ContentWithPolicyMatchesPdfView";
 import ContentWithPolicyMatchesOtherView from "./ContentWithPolicyMatchesOtherView";
+import { getPoliciesApi } from "@/api/policyApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import toast from "react-hot-toast";
+
 
 const TABS = [
   { key: "all", label: "All", icon: "isax-folder" },
@@ -16,16 +20,18 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
-  id: `row-${i + 1}`,
-  title: i % 5 === 0 ? "(No title found)" : "Search",
-  url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,
-  unwanted: 0,
-  required: 0,
-  matches: 1,
-  priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-  views: 0,
-}));
+/** Sample data – replaced with API */
+// const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
+//   id: `row-${i + 1}`,
+//   title: i % 5 === 0 ? "(No title found)" : "Search",
+//   url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,
+//   unwanted: 0,
+//   required: 0,
+//   matches: 1,
+//   priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
+//   views: 0,
+// }));
+
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
@@ -43,7 +49,39 @@ const ContentWithPolicyMatchesView = () => {
   const [sortDir, setSortDir] = useState("desc");
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const viewsTooltipRef = useRef(null);
+
+  const fetchPolicies = useCallback(async () => {
+    try {
+      setLoading(true);
+      const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+      const res = await getPoliciesApi({ domainId: selectedId });
+      if (res.success && res.data) {
+        setPolicies(res.data.map(p => ({
+          ...p,
+          id: p._id || p.id,
+          title: p.title || "Untitled",
+          url: p.url || "#",
+          unwanted: p.unwanted || 0,
+          required: p.required || 0,
+          matches: p.policyHits || 0,
+          priority: p.priority || "Low",
+          views: p.views || 0
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to fetch policies for content matches:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPolicies();
+  }, [fetchPolicies]);
+
 
   const openPageDetails = useCallback((row) => {
     setSelectedPage(row);
@@ -60,8 +98,9 @@ const ContentWithPolicyMatchesView = () => {
   }, []);
 
   const filteredRows = useMemo(() => {
-    let rows = SAMPLE_ROWS;
+    let rows = policies || [];
     if (search.trim()) {
+
       const q = search.toLowerCase();
       rows = rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
     }

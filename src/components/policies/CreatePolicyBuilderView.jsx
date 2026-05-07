@@ -19,13 +19,18 @@ import NewRuleHeaderTextLengthDrawer from "./NewRuleHeaderTextLengthDrawer";
 import NewRuleReadabilityLevelDrawer from "./NewRuleReadabilityLevelDrawer";
 import NewRuleMetaHeaderDrawer from "./NewRuleMetaHeaderDrawer";
 import NewRuleMetaHeaderLengthDrawer from "./NewRuleMetaHeaderLengthDrawer";
+import { getDomainsApi } from "@/api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import { getDomainLabel } from "@/layouts/Sidebar";
+import { createPolicyApi, getPolicyByIdApi, updatePolicyApi } from "@/api/policyApi";
+import { showToast } from "@/components/common/alerts/ToastAlert";
 
-const AVAILABLE_DOMAINS = [
-  { id: "1", label: "Bajaj FinServ -500" },
-  { id: "2", label: "aarogyaabharat.com" },
-  { id: "3", label: "gmdindia.com" },
-  { id: "4", label: "metoraa.com" },
-];
+
+
+
+
+/** Hardcoded domains removed for API integration */
+
 
 /** Rule ids for Documents: exclude Page html, Image size, Image text, Image text length, Link text, Link text length, Readability level. */
 const DOCUMENTS_RULE_IDS = [
@@ -44,16 +49,158 @@ const DOCUMENTS_RULE_IDS = [
 ];
 
 /** Shared policy builder UI: Settings, Add rule to policy, drop zone, and all rule drawers. Used by All assets, HTML pages, and Documents. */
-const CreatePolicyBuilderView = ({ onBack, contentType }) => {
+const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, initialData }) => {
   const [leftTab, setLeftTab] = useState("settings");
+  const [title, setTitle] = useState(initialData?.title || "");
   const [displayAs, setDisplayAs] = useState("unwanted");
+
   const [priority, setPriority] = useState("Low");
   const [scheduled, setScheduled] = useState(true);
   const [applyScope, setApplyScope] = useState("domains");
   const [ruleOperator, setRuleOperator] = useState("or");
-  const [selectedDomains, setSelectedDomains] = useState([{ id: "1", label: "Bajaj FinServ -500" }]);
+  const [availableDomains, setAvailableDomains] = useState([]);
+  const [selectedDomains, setSelectedDomains] = useState([]);
   const [domainDropdownOpen, setDomainDropdownOpen] = useState(false);
   const [domainSearch, setDomainSearch] = useState("");
+  const [isLoadingDomains, setIsLoadingDomains] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [rules, setRules] = useState(initialData?.rules || []);
+  const [editingRuleId, setEditingRuleId] = useState(null);
+  const [isLoadingPolicy, setIsLoadingPolicy] = useState(false);
+
+  useEffect(() => {
+    if (policyId) {
+      const fetchPolicy = async () => {
+        setIsLoadingPolicy(true);
+        try {
+          const res = await getPolicyByIdApi(policyId);
+          if (res.success && res.data) {
+            const data = res.data;
+            setTitle(data.title || "");
+            setDisplayAs(data.category || "matches");
+            setPriority(data.priority || "Low");
+            setScheduled(data.scheduled ?? true);
+            setApplyScope(data.isGlobal ? "global" : "domains");
+            setRuleOperator(data.ruleOperator || "or");
+            setRules(data.rules || []);
+            // TODO: Match domainIds with availableDomains once domains load.
+            // Simplified for now.
+          }
+        } catch (err) {
+          showToast("Failed to load policy details", "error");
+        } finally {
+          setIsLoadingPolicy(false);
+        }
+      };
+      fetchPolicy();
+    }
+  }, [policyId]);
+
+  const [activeRuleType, setActiveRuleType] = useState(null);
+
+  const handleRuleSave = (ruleData) => {
+    if (readOnly) return;
+    const isDuplicate = rules.some((r) => r.ruleName.toLowerCase() === ruleData.ruleName.toLowerCase() && r.id !== editingRuleId);
+    if (isDuplicate) {
+      showToast("A rule with this name already exists in this policy", "error");
+      return;
+    }
+
+    if (editingRuleId) {
+      setRules((prev) => prev.map((r) => (r.id === editingRuleId ? { ...ruleData, type: activeRuleType, id: editingRuleId } : r)));
+      setEditingRuleId(null);
+    } else {
+      setRules((prev) => [...prev, { ...ruleData, type: activeRuleType, id: Date.now() }]);
+    }
+    setActiveRuleType(null);
+  };
+
+
+  const openRuleDrawer = (type) => {
+    if (readOnly) return;
+    setActiveRuleType(type);
+    if (type === "page-html") setNewRuleDrawerOpen(true);
+    if (type === "text") setNewRuleTextDrawerOpen(true);
+    if (type === "page-title") setNewRulePageTitleDrawerOpen(true);
+    if (type === "page-title-length") setNewRulePageTitleLengthDrawerOpen(true);
+    if (type === "page-url") setNewRulePageUrlDrawerOpen(true);
+    if (type === "link") setNewRuleLinkDrawerOpen(true);
+    if (type === "link-text") setNewRuleLinkTextDrawerOpen(true);
+    if (type === "link-text-length") setNewRuleLinkTextLengthDrawerOpen(true);
+    if (type === "file-size") setNewRuleFileSizeDrawerOpen(true);
+    if (type === "image-size") setNewRuleImageSizeDrawerOpen(true);
+    if (type === "image-text") setNewRuleImageTextDrawerOpen(true);
+    if (type === "image-text-length") setNewRuleImageTextLengthDrawerOpen(true);
+    if (type === "external-link-count") setNewRuleExternalLinkCountDrawerOpen(true);
+    if (type === "incoming-link-count") setNewRuleIncomingLinkCountDrawerOpen(true);
+    if (type === "heading-text") setNewRuleHeadingTextDrawerOpen(true);
+    if (type === "header-text-length") setNewRuleHeaderTextLengthDrawerOpen(true);
+    if (type === "readability-level") setNewRuleReadabilityLevelDrawerOpen(true);
+    if (type === "meta-header") setNewRuleMetaHeaderDrawerOpen(true);
+    if (type === "meta-header-length") setNewRuleMetaHeaderLengthDrawerOpen(true);
+  };
+
+
+  const removeRule = (id) => {
+    if (readOnly) return;
+    setRules((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const editRule = (rule) => {
+    if (readOnly) return;
+    setEditingRuleId(rule.id);
+    openRuleDrawer(rule.type);
+  };
+
+
+  const handleSave = async () => {
+    if (readOnly) return;
+
+    if (!title.trim()) {
+      showToast("Please enter a policy title", "error");
+      return;
+    }
+
+    if (rules.length === 0) {
+      showToast("Please add at least one rule to the policy", "error");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const payload = {
+        title: title.trim(),
+        category: displayAs,
+        priority: priority,
+        scheduled: scheduled,
+        domainIds: applyScope === "domains" ? selectedDomains.map(d => d.id) : [],
+        isGlobal: applyScope === "global",
+        rules: rules,
+        ruleOperator: ruleOperator,
+      };
+
+
+
+      let res;
+      if (policyId) {
+        res = await updatePolicyApi(policyId, payload);
+      } else {
+        res = await createPolicyApi(payload);
+      }
+
+      if (res.success) {
+        showToast(policyId ? "Policy updated successfully!" : "Policy created successfully!");
+        if (onBack) onBack(); // Go back after success
+      }
+    } catch (err) {
+      console.error("Failed to save policy:", err);
+      showToast(err.response?.data?.message || "Failed to save policy", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
   const [newRuleDrawerOpen, setNewRuleDrawerOpen] = useState(false);
   const [newRuleTextDrawerOpen, setNewRuleTextDrawerOpen] = useState(false);
   const [newRulePageTitleDrawerOpen, setNewRulePageTitleDrawerOpen] = useState(false);
@@ -87,12 +234,41 @@ const CreatePolicyBuilderView = ({ onBack, contentType }) => {
     setDomainSearch("");
   };
 
-  const dropdownDomains = AVAILABLE_DOMAINS.filter((d) =>
+  useEffect(() => {
+    const fetchDomains = async () => {
+      try {
+        setIsLoadingDomains(true);
+        const res = await getDomainsApi(1, 100);
+        if (res.success && res.data?.domains) {
+          const mapped = res.data.domains.map(d => ({
+            id: d._id,
+            label: d.dm_title || getDomainLabel(d.dm_url)
+          }));
+          setAvailableDomains(mapped);
+
+          // Auto-select current domain if on domain-specific path
+          const currentId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+          if (currentId) {
+            const current = mapped.find(m => m.id === currentId);
+            if (current) setSelectedDomains([current]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch domains for policy builder:", err);
+      } finally {
+        setIsLoadingDomains(false);
+      }
+    };
+    fetchDomains();
+  }, []);
+
+  const dropdownDomains = availableDomains.filter((d) =>
     d.label.toLowerCase().includes(domainSearch.toLowerCase().trim())
   );
   const isSelected = (id) => selectedDomains.some((s) => s.id === id);
 
   useEffect(() => {
+
     const handleClickOutside = (e) => {
       if (domainDropdownRef.current && !domainDropdownRef.current.contains(e.target)) {
         setDomainDropdownOpen(false);
@@ -102,10 +278,12 @@ const CreatePolicyBuilderView = ({ onBack, contentType }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
   return (
     <div className="d-flex flex-column flex-grow-1 overflow-hidden">
       <div className="flex-grow-1 overflow-auto d-flex min-h-0">
-        <div className="flex-shrink-0 border-end border-secondary border-opacity-25 p-4 d-flex flex-column" style={{ width: 400, minHeight: "140vh" }}>
+        <div className="flex-shrink-0 border-end border-secondary border-opacity-25 p-4 d-flex flex-column" style={{ width: 400 }}>
+
           <div className="d-flex flex-column gap-2 mb-4">
             <button
               type="button"
@@ -119,13 +297,26 @@ const CreatePolicyBuilderView = ({ onBack, contentType }) => {
               className={`btn btn-sm d-flex align-items-center gap-2 text-start ${leftTab === "add-rule" ? "btn-primary" : "btn-light border border-primary border-opacity-25"}`}
               onClick={() => setLeftTab("add-rule")}
             >
-              <i className="isax isax-add-circle fs-18" aria-hidden="true" /> Add rule to the policy
+              <i className="isax isax-add-circle fs-18" aria-hidden="true" /> Add rule
             </button>
+
           </div>
 
           {leftTab === "settings" && (
             <>
+              <div className="mb-4">
+                <label className="form-label text-body fs-13 fw-semibold mb-1">Policy Title</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm border border-primary border-opacity-25"
+                  placeholder="e.g. My Custom Policy"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
               <p className="text-body fs-13 fw-semibold mb-2">Display this policy as:</p>
+
               <div className="d-flex flex-wrap gap-2 mb-4">
                 {[
                   { key: "unwanted", label: "Unwanted", icon: "isax-close-circle" },
@@ -221,13 +412,16 @@ const CreatePolicyBuilderView = ({ onBack, contentType }) => {
                           style={{ maxHeight: 240, zIndex: 1050 }}
                           role="listbox"
                         >
-                          {dropdownDomains.length === 0 ? (
+                          {isLoadingDomains ? (
+                            <li className="px-3 py-2 text-muted fs-13">Loading domains...</li>
+                          ) : dropdownDomains.length === 0 ? (
                             <li className="px-3 py-2 text-muted fs-13">No matching domains</li>
                           ) : (
                             dropdownDomains.map((d) => {
                               const selected = isSelected(d.id);
                               return (
                                 <li key={d.id} role="option" aria-selected={selected}>
+
                                   <button
                                     type="button"
                                     className={`btn btn-link w-100 text-start text-decoration-none d-flex align-items-center justify-content-start gap-2 py-2 px-3 fs-13 ${selected ? "text-muted" : "text-body"}`}
@@ -324,79 +518,237 @@ const CreatePolicyBuilderView = ({ onBack, contentType }) => {
           </div>
           <div
             ref={dropZoneRef}
-            className="border-2 border-secondary border-opacity-25 border-dashed rounded-3 d-flex align-items-center justify-content-center bg-light bg-opacity-25 min-vh-50"
+            className="border-2 border-secondary border-opacity-25 border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center bg-light bg-opacity-25 p-4 min-vh-50"
             style={{ minHeight: 280 }}
             onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
             onDrop={(e) => {
               e.preventDefault();
               const ruleId = e.dataTransfer.getData("rule-id");
-              if (ruleId === "page-html") setNewRuleDrawerOpen(true);
-              if (ruleId === "text") setNewRuleTextDrawerOpen(true);
-              if (ruleId === "page-title") setNewRulePageTitleDrawerOpen(true);
-              if (ruleId === "page-title-length") setNewRulePageTitleLengthDrawerOpen(true);
-              if (ruleId === "page-url") setNewRulePageUrlDrawerOpen(true);
-              if (ruleId === "link") setNewRuleLinkDrawerOpen(true);
-              if (ruleId === "link-text") setNewRuleLinkTextDrawerOpen(true);
-              if (ruleId === "link-text-length") setNewRuleLinkTextLengthDrawerOpen(true);
-              if (ruleId === "file-size") setNewRuleFileSizeDrawerOpen(true);
-              if (ruleId === "image-size") setNewRuleImageSizeDrawerOpen(true);
-              if (ruleId === "image-text") setNewRuleImageTextDrawerOpen(true);
-              if (ruleId === "image-text-length") setNewRuleImageTextLengthDrawerOpen(true);
-              if (ruleId === "external-link-count") setNewRuleExternalLinkCountDrawerOpen(true);
-              if (ruleId === "incoming-link-count") setNewRuleIncomingLinkCountDrawerOpen(true);
-              if (ruleId === "heading-text") setNewRuleHeadingTextDrawerOpen(true);
-              if (ruleId === "header-text-length") setNewRuleHeaderTextLengthDrawerOpen(true);
-              if (ruleId === "readability-level") setNewRuleReadabilityLevelDrawerOpen(true);
-              if (ruleId === "meta-header") setNewRuleMetaHeaderDrawerOpen(true);
-              if (ruleId === "meta-header-length") setNewRuleMetaHeaderLengthDrawerOpen(true);
+              if (ruleId) openRuleDrawer(ruleId);
             }}
+
           >
-            <button
-              type="button"
-              className="btn btn-link text-primary text-decoration-none d-flex align-items-center gap-2 fs-13"
-              onClick={() => setLeftTab("add-rule")}
-            >
-              <i className="isax isax-add-circle fs-20" aria-hidden="true" /> Add rule to policy
-            </button>
+            {rules.length > 0 ? (
+              <div className="w-100 d-flex flex-column gap-3">
+                {rules.map((rule, index) => (
+                  <div key={rule.id} className="position-relative">
+                    {index > 0 && (
+                      <div className="d-flex align-items-center justify-content-center my-2 position-relative">
+                        <div className="position-absolute start-0 end-0 border-top border-secondary border-opacity-10" />
+                        <span className="badge bg-light text-primary border border-primary border-opacity-10 rounded-pill px-3 py-1 fs-11 fw-bold text-uppercase position-relative z-1" style={{ letterSpacing: "0.5px" }}>
+                          {ruleOperator}
+                        </span>
+                      </div>
+                    )}
+                    <div className="card border border-secondary border-opacity-25 shadow-sm hover-shadow-md transition-all">
+                      <div className="card-body d-flex align-items-center justify-content-between py-3">
+                        <div className="d-flex align-items-center gap-3">
+                          <span className="avatar avatar-32 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
+                            <i className="isax isax-judge fs-18" />
+                          </span>
+                          <div>
+                            <p className="mb-0 fw-semibold fs-14 text-body d-flex align-items-center gap-2">
+                              {rule.ruleName || "Untitled Rule"}
+                              <span className="badge bg-primary bg-opacity-10 text-primary fw-normal fs-10 px-2 py-0.5 rounded-1">
+                                {rule.type}
+                              </span>
+                            </p>
+                            <p className="mb-0 text-muted fs-12">
+                              Matches {rule.searchType} <span className="text-primary fw-medium">"{rule.searchValue}"</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="dropdown">
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-sm btn-light border-0"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="isax isax-more-2 fs-18" />
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end border border-secondary border-opacity-25 shadow-sm py-1">
+                            <li>
+                              <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-13" onClick={() => editRule(rule)}>
+                                <i className="isax isax-edit text-muted" /> Edit rule
+                              </button>
+                            </li>
+                            <li><hr className="dropdown-divider border-secondary border-opacity-10" /></li>
+                            <li>
+                              <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-13 text-danger" onClick={() => removeRule(rule.id)}>
+                                <i className="isax isax-trash" /> Delete rule
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="btn btn-link text-primary text-decoration-none d-flex align-items-center gap-2 fs-13 align-self-center mt-2"
+                  onClick={() => setLeftTab("add-rule")}
+                >
+                  <i className="isax isax-add-circle fs-20" aria-hidden="true" /> Add another rule
+                </button>
+              </div>
+            ) : (
+
+              <div className="text-center p-5">
+                <div className="avatar avatar-64 avatar-rounded bg-light text-muted mb-3 mx-auto d-flex align-items-center justify-content-center border-2 border-dashed border-secondary border-opacity-25">
+                  <i className="isax isax-add-circle fs-32" />
+                </div>
+                <p className="text-body fw-medium mb-1">Drag and drop the rule to add rules to the policy.</p>
+                <p className="text-muted fs-12 mb-0">Select rules from the left panel and drag them here</p>
+
+              </div>
+            )}
+
           </div>
+
         </div>
       </div>
 
       <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
         <div className="d-flex justify-content-end align-items-center gap-2">
-          <button type="button" className="btn rounded-2 border border-primary border-opacity-25 bg-white text-primary" onClick={onBack}>
+          <button type="button" className="btn rounded-2 border border-primary border-opacity-25 bg-white text-primary" onClick={onBack} disabled={isSaving}>
             <i className="isax isax-arrow-left-1 me-1" aria-hidden="true" /> Previous
           </button>
           <button
             type="button"
             className="btn rounded-2 bg-primary text-white border-0 d-flex align-items-center gap-1"
-            onClick={() => setLeftTab("add-rule")}
+            onClick={handleSave}
+            disabled={isSaving}
           >
-            <i className="isax isax-add-circle fs-18" aria-hidden="true" /> Add rule to the policy
+            {isSaving ? (
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+            ) : (
+              <i className="isax isax-tick-circle fs-18" aria-hidden="true" />
+            )}
+            <span>Save Policy</span>
           </button>
         </div>
+
       </div>
 
-      <NewRulePageHtmlDrawer open={newRuleDrawerOpen} onClose={() => setNewRuleDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleTextDrawer open={newRuleTextDrawerOpen} onClose={() => setNewRuleTextDrawerOpen(false)} onSave={() => {}} />
-      <NewRulePageTitleDrawer open={newRulePageTitleDrawerOpen} onClose={() => setNewRulePageTitleDrawerOpen(false)} onSave={() => {}} />
-      <NewRulePageTitleLengthDrawer open={newRulePageTitleLengthDrawerOpen} onClose={() => setNewRulePageTitleLengthDrawerOpen(false)} onSave={() => {}} />
-      <NewRulePageUrlDrawer open={newRulePageUrlDrawerOpen} onClose={() => setNewRulePageUrlDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleLinkDrawer open={newRuleLinkDrawerOpen} onClose={() => setNewRuleLinkDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleLinkTextDrawer open={newRuleLinkTextDrawerOpen} onClose={() => setNewRuleLinkTextDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleLinkTextLengthDrawer open={newRuleLinkTextLengthDrawerOpen} onClose={() => setNewRuleLinkTextLengthDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleFileSizeDrawer open={newRuleFileSizeDrawerOpen} onClose={() => setNewRuleFileSizeDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleImageSizeDrawer open={newRuleImageSizeDrawerOpen} onClose={() => setNewRuleImageSizeDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleImageTextDrawer open={newRuleImageTextDrawerOpen} onClose={() => setNewRuleImageTextDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleImageTextLengthDrawer open={newRuleImageTextLengthDrawerOpen} onClose={() => setNewRuleImageTextLengthDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleExternalLinkCountDrawer open={newRuleExternalLinkCountDrawerOpen} onClose={() => setNewRuleExternalLinkCountDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleIncomingLinkCountDrawer open={newRuleIncomingLinkCountDrawerOpen} onClose={() => setNewRuleIncomingLinkCountDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleHeadingTextDrawer open={newRuleHeadingTextDrawerOpen} onClose={() => setNewRuleHeadingTextDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleHeaderTextLengthDrawer open={newRuleHeaderTextLengthDrawerOpen} onClose={() => setNewRuleHeaderTextLengthDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleReadabilityLevelDrawer open={newRuleReadabilityLevelDrawerOpen} onClose={() => setNewRuleReadabilityLevelDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleMetaHeaderDrawer open={newRuleMetaHeaderDrawerOpen} onClose={() => setNewRuleMetaHeaderDrawerOpen(false)} onSave={() => {}} />
-      <NewRuleMetaHeaderLengthDrawer open={newRuleMetaHeaderLengthDrawerOpen} onClose={() => setNewRuleMetaHeaderLengthDrawerOpen(false)} onSave={() => {}} />
+      <NewRulePageHtmlDrawer
+        open={newRuleDrawerOpen}
+        onClose={() => { setNewRuleDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleTextDrawer
+        open={newRuleTextDrawerOpen}
+        onClose={() => { setNewRuleTextDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRulePageTitleDrawer
+        open={newRulePageTitleDrawerOpen}
+        onClose={() => { setNewRulePageTitleDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRulePageTitleLengthDrawer
+        open={newRulePageTitleLengthDrawerOpen}
+        onClose={() => { setNewRulePageTitleLengthDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRulePageUrlDrawer
+        open={newRulePageUrlDrawerOpen}
+        onClose={() => { setNewRulePageUrlDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleLinkDrawer
+        open={newRuleLinkDrawerOpen}
+        onClose={() => { setNewRuleLinkDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleLinkTextDrawer
+        open={newRuleLinkTextDrawerOpen}
+        onClose={() => { setNewRuleLinkTextDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleLinkTextLengthDrawer
+        open={newRuleLinkTextLengthDrawerOpen}
+        onClose={() => { setNewRuleLinkTextLengthDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleFileSizeDrawer
+        open={newRuleFileSizeDrawerOpen}
+        onClose={() => { setNewRuleFileSizeDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleImageSizeDrawer
+        open={newRuleImageSizeDrawerOpen}
+        onClose={() => { setNewRuleImageSizeDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleImageTextDrawer
+        open={newRuleImageTextDrawerOpen}
+        onClose={() => { setNewRuleImageTextDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleImageTextLengthDrawer
+        open={newRuleImageTextLengthDrawerOpen}
+        onClose={() => { setNewRuleImageTextLengthDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleExternalLinkCountDrawer
+        open={newRuleExternalLinkCountDrawerOpen}
+        onClose={() => { setNewRuleExternalLinkCountDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleIncomingLinkCountDrawer
+        open={newRuleIncomingLinkCountDrawerOpen}
+        onClose={() => { setNewRuleIncomingLinkCountDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleHeadingTextDrawer
+        open={newRuleHeadingTextDrawerOpen}
+        onClose={() => { setNewRuleHeadingTextDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleHeaderTextLengthDrawer
+        open={newRuleHeaderTextLengthDrawerOpen}
+        onClose={() => { setNewRuleHeaderTextLengthDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleReadabilityLevelDrawer
+        open={newRuleReadabilityLevelDrawerOpen}
+        onClose={() => { setNewRuleReadabilityLevelDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleMetaHeaderDrawer
+        open={newRuleMetaHeaderDrawerOpen}
+        onClose={() => { setNewRuleMetaHeaderDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+      <NewRuleMetaHeaderLengthDrawer
+        open={newRuleMetaHeaderLengthDrawerOpen}
+        onClose={() => { setNewRuleMetaHeaderLengthDrawerOpen(false); setEditingRuleId(null); }}
+        onSave={handleRuleSave}
+        initialData={rules.find(r => r.id === editingRuleId)}
+      />
+
     </div>
+
   );
 };
 

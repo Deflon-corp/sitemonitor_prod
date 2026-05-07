@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import NewPolicyDrawer from "./NewPolicyDrawer";
 import ContentWithPolicyMatchesView from "./ContentWithPolicyMatchesView";
 import PolicyListView from "./PolicyListView";
@@ -8,6 +9,16 @@ import GlobalPolicyListView from "./GlobalPolicyListView";
 import UnwantedPoliciesView from "./UnwantedPoliciesView";
 import PagesWithIgnoredChecksView from "./PagesWithIgnoredChecksView";
 import VerticalBarChart from "./VerticalBarChart";
+import { getPolicyStatsApi } from "@/api/policyApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+
+
+const LANDING_NAV = [
+  { href: "/home", label: "Domain Overview", icon: "isax-global" },
+  { href: "/home/users", label: "Users", icon: "isax-people" },
+  { href: "/home/policies", label: "Policies", icon: "isax-shield-tick" },
+  { href: "/home/history-center", label: "History center", icon: "isax-chart-2" },
+];
 
 const POLICY_NAV = [
   { key: "summary", label: "Summary", icon: "isax-home-2", href: "/home/policies?view=summary" },
@@ -16,16 +27,17 @@ const POLICY_NAV = [
   { key: "ignored", label: "Pages with Ignored Checks", icon: "isax-eye-slash", href: "/home/policies?view=ignored" },
 ];
 
-/** Sample data – replace with API */
-const PRIORITIES_DATA = [{ label: "High", value: 1 }, { label: "Medium", value: 0 }, { label: "Low", value: 0 }];
-const POLICY_DIST_DATA = [
-  { label: "Unwanted", value: 0 },
-  { label: "Required", value: 0 },
-  { label: "Matches", value: 1 },
-];
-const COMPLIANCE_PERCENT = 66.73;
-const POLICIES_WITH_VIOLATIONS = 1;
-const CONTENT_WITH_VIOLATIONS = 499;
+/** Sample data – replaced with API */
+// const PRIORITIES_DATA = [{ label: "High", value: 1 }, { label: "Medium", value: 0 }, { label: "Low", value: 0 }];
+// const POLICY_DIST_DATA = [
+//   { label: "Unwanted", value: 0 },
+//   { label: "Required", value: 0 },
+//   { label: "Matches", value: 1 },
+// ];
+// const COMPLIANCE_PERCENT = 66.73;
+// const POLICIES_WITH_VIOLATIONS = 1;
+// const CONTENT_WITH_VIOLATIONS = 499;
+
 
 const DonutChart = ({ percent, label }) => {
   const r = 62;
@@ -87,10 +99,114 @@ const PolicyTrendChart = () => {
   );
 };
 
-const PoliciesView = () => {
+const PoliciesView = ({ isLanding = false }) => {
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
+
   const [newPolicyDrawerOpen, setNewPolicyDrawerOpen] = useState(false);
+  const [editingPolicyId, setEditingPolicyId] = useState(null);
+  const [editingPolicyReadOnly, setEditingPolicyReadOnly] = useState(false);
+  const [stats, setStats] = useState({
+    priorities: [],
+    distribution: [],
+    policiesWithViolations: 0,
+    contentWithViolations: 0,
+    compliancePercent: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+        const res = await getPolicyStatsApi({ domainId: selectedId });
+        if (res.success && res.data) {
+          setStats({
+            priorities: res.data.priorities || [],
+            distribution: res.data.distribution || [],
+            policiesWithViolations: res.data.policiesWithViolations || 0,
+            contentWithViolations: res.data.contentWithViolations || 0,
+            compliancePercent: res.data.compliancePercent || 0,
+          });
+        }
+
+      } catch (err) {
+        console.error("Failed to fetch policy stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+
+  if (isLanding) {
+    return (
+        <div className="content landing-content">
+          {/* Navigation Tabs */}
+          <div className="landing-nav-tabs">
+            <div className="landing-nav-tabs-inner">
+              {LANDING_NAV.map((item) => {
+                const isActive =
+                  (pathname === "/home" && item.label === "Domain Overview") ||
+                  (pathname === "/home/users" && item.label === "Users") ||
+                  (pathname === "/home/policies" && item.label === "Policies") ||
+                  (pathname === "/home/history-center" && item.label === "History center");
+    
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    className={`landing-pill ${isActive ? "landing-pill-active" : "landing-pill-inactive"}`}
+                  >
+                    <i className={`isax ${item.icon} landing-pill-icon`} aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+    
+          <div className="domain-overview-section">
+            <div className="min-w-0 p-4 bg-body-tertiary rounded-3 overflow-auto">
+              <PolicyListView 
+                onAddNewPolicy={() => {
+                  setEditingPolicyId(null);
+                  setEditingPolicyReadOnly(false);
+                  setNewPolicyDrawerOpen(true);
+                }} 
+                onEditPolicy={(id) => {
+                  setEditingPolicyId(id);
+                  setEditingPolicyReadOnly(false);
+                  setNewPolicyDrawerOpen(true);
+                }}
+                onViewPolicy={(id) => {
+                  setEditingPolicyId(id);
+                  setEditingPolicyReadOnly(true);
+                  setNewPolicyDrawerOpen(true);
+                }}
+                hideGlobalButton={true} 
+              />
+            </div>
+          </div>
+    
+          <NewPolicyDrawer
+            open={newPolicyDrawerOpen}
+            onClose={() => {
+              setNewPolicyDrawerOpen(false);
+              setTimeout(() => {
+                setEditingPolicyId(null);
+                setEditingPolicyReadOnly(false);
+              }, 300); // clear after drawer closes
+            }}
+            policyId={editingPolicyId}
+            readOnly={editingPolicyReadOnly}
+          />
+        </div>
+      );
+  }
 
   return (
     <>
@@ -121,11 +237,47 @@ const PoliciesView = () => {
           {currentView === "content-matches" ? (
             <ContentWithPolicyMatchesView />
           ) : currentView === "list" ? (
-            <PolicyListView onAddNewPolicy={() => setNewPolicyDrawerOpen(true)} />
+            <PolicyListView 
+              onAddNewPolicy={() => {
+                setEditingPolicyId(null);
+                setEditingPolicyReadOnly(false);
+                setNewPolicyDrawerOpen(true);
+              }} 
+              onEditPolicy={(id) => {
+                setEditingPolicyId(id);
+                setEditingPolicyReadOnly(false);
+                setNewPolicyDrawerOpen(true);
+              }}
+              onViewPolicy={(id) => {
+                setEditingPolicyId(id);
+                setEditingPolicyReadOnly(true);
+                setNewPolicyDrawerOpen(true);
+              }}
+            />
           ) : currentView === "global" ? (
-            <GlobalPoliciesView onAddNewPolicy={() => setNewPolicyDrawerOpen(true)} />
+            <GlobalPoliciesView onAddNewPolicy={() => {
+              setEditingPolicyId(null);
+              setEditingPolicyReadOnly(false);
+              setNewPolicyDrawerOpen(true);
+            }} />
           ) : currentView === "global-list" ? (
-            <GlobalPolicyListView onAddNewPolicy={() => setNewPolicyDrawerOpen(true)} />
+            <GlobalPolicyListView 
+              onAddNewPolicy={() => {
+                setEditingPolicyId(null);
+                setEditingPolicyReadOnly(false);
+                setNewPolicyDrawerOpen(true);
+              }} 
+              onEditPolicy={(id) => {
+                setEditingPolicyId(id);
+                setEditingPolicyReadOnly(false);
+                setNewPolicyDrawerOpen(true);
+              }}
+              onViewPolicy={(id) => {
+                setEditingPolicyId(id);
+                setEditingPolicyReadOnly(true);
+                setNewPolicyDrawerOpen(true);
+              }}
+            />
           ) : currentView === "unwanted" ? (
             <UnwantedPoliciesView />
           ) : currentView === "ignored" ? (
@@ -161,8 +313,10 @@ const PoliciesView = () => {
                     <div className="card-body">
                       <h6 className="fw-semibold text-body mb-1">Priorities</h6>
                       <p className="fs-13 text-muted mb-3">Distribution of policies with matches across priority levels</p>
-                      <VerticalBarChart items={PRIORITIES_DATA} maxVal={5} />
+                      <VerticalBarChart items={stats.priorities || []} maxVal={Math.max(5, ...(stats.priorities || []).map(p => p.value || 0))} />
+
                     </div>
+
                   </div>
                 </div>
 
@@ -172,8 +326,10 @@ const PoliciesView = () => {
                     <div className="card-body">
                       <h6 className="fw-semibold text-body mb-1">Policy Distribution</h6>
                       <p className="fs-13 text-muted mb-3">Distribution of policies that matches their corresponding setting</p>
-                      <VerticalBarChart items={POLICY_DIST_DATA} maxVal={5} />
+                      <VerticalBarChart items={stats.distribution || []} maxVal={Math.max(5, ...(stats.distribution || []).map(d => d.value || 0))} />
+
                     </div>
+
                   </div>
                 </div>
 
@@ -184,8 +340,9 @@ const PoliciesView = () => {
                       <h6 className="fw-semibold text-body mb-1">Policy Diagnostics</h6>
                       <p className="fs-13 text-muted mb-3">Percentage shows number of pages that are compliant with all Policies</p>
                       <div className="d-flex justify-content-center justify-content-lg-start">
-                        <DonutChart percent={COMPLIANCE_PERCENT} label="Policy Compliance" />
+                        <DonutChart percent={stats.compliancePercent} label="Policy Compliance" />
                       </div>
+
                     </div>
                   </div>
                 </div>
@@ -196,16 +353,17 @@ const PoliciesView = () => {
                     <div className="card-body">
                       <div className="mb-3">
                         <h6 className="fs-13 fw-semibold text-body mb-1">Policies with violations</h6>
-                        <p className="display-6 fw-bold text-body mb-0">{POLICIES_WITH_VIOLATIONS}</p>
+                        <p className="display-6 fw-bold text-body mb-0">{stats.policiesWithViolations}</p>
                       </div>
                       <div className="mb-3">
                         <h6 className="fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1">
                           Content with policy violations
                           <i className="isax isax-information text-muted fs-14" title="Content with policy violations" aria-hidden="true" />
                         </h6>
-                        <p className="display-6 fw-bold text-body mb-0">{CONTENT_WITH_VIOLATIONS}</p>
+                        <p className="display-6 fw-bold text-body mb-0">{stats.contentWithViolations}</p>
                       </div>
                       <PolicyTrendChart />
+
                       <div className="d-flex justify-content-end mt-2 pt-2 border-top">
                         <Link to="#" className="text-primary fs-13 d-inline-flex align-items-center">
                           Show history
@@ -223,7 +381,15 @@ const PoliciesView = () => {
 
       <NewPolicyDrawer
         open={newPolicyDrawerOpen}
-        onClose={() => setNewPolicyDrawerOpen(false)}
+        onClose={() => {
+          setNewPolicyDrawerOpen(false);
+          setTimeout(() => {
+            setEditingPolicyId(null);
+            setEditingPolicyReadOnly(false);
+          }, 300); // clear after drawer closes
+        }}
+        policyId={editingPolicyId}
+        readOnly={editingPolicyReadOnly}
       />
     </>
   );

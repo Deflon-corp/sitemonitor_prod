@@ -15,6 +15,21 @@ const NewRulePageUrlDrawer = ({ open, onClose, onSave }) => {
   const [searchValue, setSearchValue] = useState("");
   const [containing, setContaining] = useState("containing");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setSearchType(initialData?.searchType !== undefined ? initialData.searchType : "");
+      setSearchValue(initialData?.searchValue !== undefined ? initialData.searchValue : "");
+      setContaining(initialData?.containing !== undefined ? initialData.containing : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setSearchType("");
+      setSearchValue("");
+      setContaining("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

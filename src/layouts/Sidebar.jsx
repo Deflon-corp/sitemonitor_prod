@@ -245,33 +245,7 @@ export default function Sidebar() {
                                     );
                                 })()}
                                 <ul>
-                                    <li className="menu-title"><span>Main</span></li>
-                                    <li className="submenu">
-                                        <a href="#" className={`subdrop ${isSectionActive(["/domain/prioritized-content"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
-                                            <i className="isax isax-notification-bing5 sidebar-module-icon" aria-hidden />
-                                            <span>Prioritized Content</span>
-                                            <span className="menu-arrow" />
-                                        </a>
-                                        <ul>
-                                            <li><Link to="/domain/prioritized-content?filter=all" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=all") ? "active" : ""}`}><i className="isax isax-document-copy me-2" aria-hidden />All</Link></li>
-                                            <li><Link to="/domain/prioritized-content?filter=pages" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=pages") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Pages</Link></li>
-                                            <li><Link to="/domain/prioritized-content?filter=pdf" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=pdf") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />PDF Documents</Link></li>
-                                            <li><Link to="/domain/prioritized-content?filter=other" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=other") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Other Documents</Link></li>
-                                        </ul>
-                                    </li>
-                                    <li className="submenu">
-                                        <a href="#" className={`subdrop ${isSectionActive(["/policies"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
-                                            <i className="isax isax-shield-tick sidebar-module-icon" aria-hidden />
-                                            <span className="text-truncate">Policies</span>
-                                            <span className="menu-arrow" />
-                                        </a>
-                                        <ul>
-                                            <li><Link to="/domain/policies?view=summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2"></i>Summary</Link></li>
-                                            <li><Link to="/domain/policies?view=content-matches" className="d-flex align-items-center"><i className="isax isax-document-copy me-2"></i>Content with Policy Matches</Link></li>
-                                            <li><Link to="/domain/policies?view=list" className="d-flex align-items-center"><i className="isax isax-category-2 me-2"></i>Policy List</Link></li>
-                                            <li><Link to="/domain/policies?view=ignored" className="d-flex align-items-center"><i className="isax isax-eye-slash me-2"></i>Pages with Ignored Checks</Link></li>
-                                        </ul>
-                                    </li>
+                                    {/* <li className="menu-title"><span>Main</span></li> */}
                                     <li className="submenu">
                                         <a href="#" className={`subdrop ${isSectionActive(["/domain/quality-assurance"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
                                             <i className="isax isax-tick-circle5 sidebar-module-icon" aria-hidden />
@@ -320,17 +294,32 @@ export default function Sidebar() {
                                                     <li><Link to="/domain/quality-assurance?view=readability-checker" className="d-flex align-items-center"><i className="isax isax-discovery me-2" aria-hidden />Readability Checker</Link></li>
                                                 </ul>
                                             </li>
-                                            <li className="submenu">
-                                                <a href="#" className="subdrop d-flex align-items-center flex-nowrap gap-2" onClick={handleSubmenuClick}>
-                                                    <i className="isax isax-tick-circle sidebar-module-icon flex-shrink-0" aria-hidden />
-                                                    <span className="text-truncate">Language Validation</span>
-                                                    <span className="menu-arrow flex-shrink-0 ms-auto" />
-                                                </a>
-                                                <ul>
-                                                    <li><Link to="/domain/quality-assurance?view=language-summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2" aria-hidden />Summary</Link></li>
-                                                    <li><Link to="/domain/quality-assurance?view=language-issues" className="d-flex align-items-center"><i className="isax isax-document-text me-2" aria-hidden />Issues by page</Link></li>
-                                                </ul>
-                                            </li>
+                                        </ul>
+                                    </li>
+                                    {/* <li className="submenu">
+    <a href="#" className={`subdrop ${isSectionActive(["/domain/prioritized-content"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
+        <i className="isax isax-notification-bing5 sidebar-module-icon" aria-hidden />
+        <span>Prioritized Content</span>
+        <span className="menu-arrow" />
+    </a>
+    <ul>
+        <li><Link to="/domain/prioritized-content?filter=all" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=all") ? "active" : ""}`}><i className="isax isax-document-copy me-2" aria-hidden />All</Link></li>
+        <li><Link to="/domain/prioritized-content?filter=pages" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=pages") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Pages</Link></li>
+        <li><Link to="/domain/prioritized-content?filter=pdf" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=pdf") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />PDF Documents</Link></li>
+        <li><Link to="/domain/prioritized-content?filter=other" className={`d-flex align-items-center ${isLinkActive("/domain/prioritized-content?filter=other") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Other Documents</Link></li>
+    </ul>
+</li> */}
+                                    <li className="submenu">
+                                        <a href="#" className={`subdrop ${isSectionActive(["/policies"]) ? "active" : ""}`} onClick={handleSubmenuClick}>
+                                            <i className="isax isax-shield-tick sidebar-module-icon" aria-hidden />
+                                            <span className="text-truncate">Policies</span>
+                                            <span className="menu-arrow" />
+                                        </a>
+                                        <ul>
+                                            <li><Link to="/domain/policies?view=summary" className="d-flex align-items-center"><i className="isax isax-home-2 me-2"></i>Summary</Link></li>
+                                            <li><Link to="/domain/policies?view=content-matches" className="d-flex align-items-center"><i className="isax isax-document-copy me-2"></i>Content with Policy Matches</Link></li>
+                                            <li><Link to="/domain/policies?view=list" className="d-flex align-items-center"><i className="isax isax-category-2 me-2"></i>Policy List</Link></li>
+                                            <li><Link to="/domain/policies?view=ignored" className="d-flex align-items-center"><i className="isax isax-eye-slash me-2"></i>Pages with Ignored Checks</Link></li>
                                         </ul>
                                     </li>
                                     <li className="submenu">

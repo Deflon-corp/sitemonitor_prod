@@ -18,6 +18,21 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave }) => {
   const [exprType, setExprType] = useState("Starts with");
   const [exprValue, setExprValue] = useState("");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setMetaName(initialData?.metaName !== undefined ? initialData.metaName : "");
+      setExprType(initialData?.exprType !== undefined ? initialData.exprType : "");
+      setExprValue(initialData?.exprValue !== undefined ? initialData.exprValue : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setMetaName("");
+      setExprType("");
+      setExprValue("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

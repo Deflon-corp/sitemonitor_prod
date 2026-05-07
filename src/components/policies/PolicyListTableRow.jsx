@@ -1,11 +1,13 @@
 import React from "react";
+import toast from "react-hot-toast";
+
 const DEFAULT_HITS_BAR_MAX = 500;
 
 /**
  * Single policy row for the Global Policy List table (Title, Added by, Creation date, Hits, Action).
  * Used when displaying All, Matches, Required, Unwanted, or Archived policies.
  */
-const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX }) => {
+const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX, onDuplicate, onDelete, onEdit, onView }) => {
   return (
     <tr>
       <td className="py-2 ps-4">
@@ -54,26 +56,26 @@ const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX }) => {
         <div className="dropdown">
           <button
             type="button"
-            className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-1 dropdown-toggle"
+            className="btn btn-icon btn-sm btn-light rounded-circle"
             data-bs-toggle="dropdown"
             aria-expanded="false"
             aria-label="Policy actions"
           >
-            Action
+            <i className="isax isax-more" aria-hidden="true" />
           </button>
           <ul className="dropdown-menu dropdown-menu-end">
             <li>
-              <button type="button" className="dropdown-item">
+              <button type="button" className="dropdown-item" onClick={() => onEdit && onEdit(row.id)}>
                 Edit policy
               </button>
             </li>
             <li>
-              <button type="button" className="dropdown-item">
+              <button type="button" className="dropdown-item" onClick={() => onView && onView(row.id)}>
                 View details
               </button>
             </li>
             <li>
-              <button type="button" className="dropdown-item">
+              <button type="button" className="dropdown-item" onClick={() => onDuplicate && onDuplicate(row.id)}>
                 Duplicate
               </button>
             </li>
@@ -81,7 +83,7 @@ const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX }) => {
               <hr className="dropdown-divider" />
             </li>
             <li>
-              <button type="button" className="dropdown-item text-danger">
+              <button type="button" className="dropdown-item text-danger" onClick={() => onDelete && onDelete(row.id)}>
                 Delete
               </button>
             </li>

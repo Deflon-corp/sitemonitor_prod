@@ -68,7 +68,7 @@ const MainRouter = () => {
         <Route path="history-center" element={<HistoryList />} />
         <Route path="add-domain" element={<AddDomain />} />
         <Route path="update-domain/:dm_id" element={<UpdateDomain />} />
-        <Route path="policies" element={<PoliciesView />} />
+        <Route path="policies" element={<PoliciesView isLanding={true} />} />
       </Route>
       <Route
         path="/domain"

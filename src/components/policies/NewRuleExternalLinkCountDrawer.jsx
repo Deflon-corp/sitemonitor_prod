@@ -13,6 +13,19 @@ const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave }) => {
   const [comparison, setComparison] = useState("Less than");
   const [linkCount, setLinkCount] = useState("");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
+      setLinkCount(initialData?.linkCount !== undefined ? initialData.linkCount : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setComparison("");
+      setLinkCount("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

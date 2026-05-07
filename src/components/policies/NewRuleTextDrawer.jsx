@@ -11,11 +11,20 @@ const SEARCH_OPTIONS = [
   "Conforms with",
 ];
 
-const NewRuleTextDrawer = ({ open, onClose, onSave }) => {
+const NewRuleTextDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Contains Words");
   const [searchValue, setSearchValue] = useState("");
   const [containing, setContaining] = useState("containing");
+
+  useEffect(() => {
+    if (open) {
+      setRuleName(initialData?.ruleName || "");
+      setSearchType(initialData?.searchType || "Contains Words");
+      setSearchValue(initialData?.searchValue || "");
+      setContaining(initialData?.containing || "containing");
+    }
+  }, [open, initialData]);
 
   useEffect(() => {
     if (!open) return;

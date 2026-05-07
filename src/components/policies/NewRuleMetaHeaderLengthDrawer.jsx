@@ -14,6 +14,21 @@ const NewRuleMetaHeaderLengthDrawer = ({ open, onClose, onSave }) => {
   const [comparison, setComparison] = useState("Less than");
   const [characterCount, setCharacterCount] = useState("");
 
+
+  useEffect(() => {
+    if (open && initialData) {
+      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
+      setMetaName(initialData?.metaName !== undefined ? initialData.metaName : "");
+      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
+      setCharacterCount(initialData?.characterCount !== undefined ? initialData.characterCount : "");
+    } else if (open && !initialData) {
+      setRuleName("");
+      setMetaName("");
+      setComparison("");
+      setCharacterCount("");
+    }
+  }, [open, initialData]);
+
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e) => {

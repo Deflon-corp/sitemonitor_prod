@@ -18,15 +18,12 @@ import PotentialMisspellingsView from "./PotentialMisspellingsView";
 import MisspellingsSectionView from "./MisspellingsSectionView";
 import DictionarySectionView from "./DictionarySectionView";
 import IgnoredSpellingsSectionView from "./IgnoredSpellingsSectionView";
-import LanguageValidationSummaryView from "./LanguageValidationSummaryView";
-import PagesWithLanguageIssuesView from "./PagesWithLanguageIssuesView";
 
 const LINK_VIEW_KEYS = ["links", "content-broken-links", "broken-links", "broken-images", "broken-links-sitemap"];
 const SUMMARY_LINKS_VIEW_KEYS = ["summary-broken-links", "summary-broken-images"];
 const SPELLCHECK_VIEW_KEYS = ["spellcheck", "spellcheck-summary", "spellcheck-pages", "spellcheck-misspellings", "spellcheck-potential", "spellcheck-dictionary", "spellcheck-ignored"];
 const SUMMARY_SPELLCHECK_VIEW_KEYS = ["summary-potential-misspellings", "summary-misspellings"];
 const READABILITY_VIEW_KEYS = ["readability", "readability-summary", "readability-checker"];
-const LANGUAGE_VIEW_KEYS = ["language", "language-summary", "language-issues"];
 
 const LINKS_SUB_NAV = [
   { key: "content-broken-links", label: "Content with Broken Links", icon: "isax-document-text", href: "/domain/quality-assurance?view=content-broken-links" },
@@ -49,10 +46,6 @@ const READABILITY_SUB_NAV = [
   { key: "readability-checker", label: "Readability Checker", icon: "isax-discovery", href: "/domain/quality-assurance?view=readability-checker" },
 ];
 
-const LANGUAGE_SUB_NAV = [
-  { key: "language-summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=language-summary" },
-  { key: "language-issues", label: "Issues by page", icon: "isax-document-text", href: "/domain/quality-assurance?view=language-issues" },
-];
 
 const QA_NAV = [
   { key: "summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=summary" },
@@ -60,7 +53,6 @@ const QA_NAV = [
   { key: "links", label: "Links", icon: "isax-link-2", href: "/domain/quality-assurance?view=content-broken-links", children: LINKS_SUB_NAV },
   { key: "spellcheck", label: "Spellcheck", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-summary", children: SPELLCHECK_SUB_NAV },
   { key: "readability", label: "Readability", icon: "isax-book-1", href: "/domain/quality-assurance?view=readability-summary", children: READABILITY_SUB_NAV },
-  { key: "language", label: "Language Validation", icon: "isax-tick-circle", href: "/domain/quality-assurance?view=language-summary", children: LANGUAGE_SUB_NAV },
 ];
 
 /** Sample data – replace with API */
@@ -174,7 +166,6 @@ export default function QualityAssuranceView() {
     SPELLCHECK_VIEW_KEYS.includes(currentView) ||
     SUMMARY_SPELLCHECK_VIEW_KEYS.includes(currentView);
   const isReadabilityView = READABILITY_VIEW_KEYS.includes(currentView);
-  const isLanguageView = LANGUAGE_VIEW_KEYS.includes(currentView);
 
   const qaSummaryExportRows = useMemo(() => getQASummaryExportRows(), []);
   const qaSummaryReportName = "Quality-Assurance-Summary-Report";
@@ -229,8 +220,6 @@ export default function QualityAssuranceView() {
                     ? isSpellcheckView
                     : item.key === "readability"
                       ? isReadabilityView
-                      : item.key === "language"
-                        ? isLanguageView
                         : currentView === item.key;
 
               if (hasChildren && item.children) {
@@ -527,10 +516,6 @@ export default function QualityAssuranceView() {
           <ReadabilitySummaryView />
         ) : currentView === "readability-checker" ? (
           <ReadabilityCheckerView />
-        ) : currentView === "language-summary" ? (
-          <LanguageValidationSummaryView />
-        ) : currentView === "language-issues" ? (
-          <PagesWithLanguageIssuesView />
         ) : currentView === "summary-broken-links" ? (
           <SummaryCategoryView title="Unique broken links" viewKey="summary-broken-links" defaultQaSubView="broken-links" icon="isax-link-2" />
         ) : currentView === "summary-potential-misspellings" ? (
@@ -546,7 +531,6 @@ export default function QualityAssuranceView() {
                 {currentView === "links" && "Links."}
                 {(currentView === "spellcheck" || currentView?.startsWith?.("spellcheck-")) && "Spellcheck."}
                 {(currentView === "readability" || currentView?.startsWith?.("readability-")) && "Readability."}
-                {(currentView === "language" || currentView?.startsWith?.("language-")) && "Language validation."}
               </p>
             </div>
           </div>
