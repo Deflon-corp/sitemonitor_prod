@@ -20,7 +20,7 @@ const HEADING_OPTIONS = [
   { id: "h6", label: "<H6>" },
 ];
 
-const NewRuleHeadingTextDrawer = ({ open, onClose, onSave }) => {
+const NewRuleHeadingTextDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [headingTypes, setHeadingTypes] = useState([]);
   const [searchType, setSearchType] = useState("Starts with");

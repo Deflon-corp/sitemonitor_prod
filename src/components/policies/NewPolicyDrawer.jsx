@@ -4,48 +4,7 @@ import CreatePolicyAllAssetsView from "./CreatePolicyAllAssetsView";
 import CreatePolicyHtmlPagesView from "./CreatePolicyHtmlPagesView";
 import CreatePolicyDocumentsView from "./CreatePolicyDocumentsView";
 
-/** Predefined policies – replace with API/Policy Exchange Center */
-const PREDEFINED_POLICIES = [
-  { id: 1, title: "Text that starts with Lorem ipsum", icon: "isax-document-text" },
-  { id: 2, title: "Images greater than 1MB", icon: "isax-image" },
-  { id: 3, title: "Find words in all capital letters", icon: "isax-text" },
-  { id: 4, title: "Repeated words", icon: "isax-text" },
-  { id: 5, title: "Incorrect usage of digit separators", icon: "isax-text" },
-  { id: 6, title: "Find all missing privacy policy links", icon: "isax-link-square" },
-  { id: 7, title: "Find pages with links that contain Lorem ipsum", icon: "isax-link-2" },
-  { id: 8, title: "Images greater than 100kB", icon: "isax-image" },
-  { id: 9, title: "Terms to avoid when writing about gender and age", icon: "isax-text" },
-  { id: 10, title: "Brand name without trademark", icon: "isax-copyright" },
-  { id: 11, title: "Find all Pages with Dropbox links", icon: "isax-link-2" },
-  { id: 12, title: "Find all missing financial services guide links", icon: "isax-link-square" },
-  { id: 13, title: "Page titles that contain Lorem ipsum", icon: "isax-document-text" },
-  { id: 14, title: "Images greater than 500kB", icon: "isax-image" },
-  { id: 15, title: "Find publicly exposed credit card numbers", icon: "isax-card" },
-  { id: 16, title: "Find long paragraph", icon: "isax-text" },
-  { id: 17, title: "Terms to avoid when writing about disabilities", icon: "isax-text" },
-  { id: 18, title: "Max. word length", icon: "isax-text" },
-  { id: 19, title: "Words without specific context", icon: "isax-text" },
-  { id: 20, title: "Wrong date format", icon: "isax-calendar" },
-  { id: 21, title: "Find all missing terms and conditions links", icon: "isax-link-square" },
-  { id: 22, title: "Find all missing product disclosure statement links", icon: "isax-link-square" },
-  { id: 23, title: "Find all missing banking practice links", icon: "isax-link-square" },
-  { id: 24, title: "Find all pages missing the word \"AFSL\"", icon: "isax-text" },
-  /* New options from Policy Exchange */
-  { id: 25, title: "Find all pages missing the word \"ABN\"", icon: "isax-document-text" },
-  { id: 26, title: "Find all pages missing the word \"BSB\"", icon: "isax-document-text" },
-  { id: 27, title: "Find misspelled [Company Name]", icon: "isax-document-text" },
-  { id: 28, title: "Find all pages missing [Company Name]", icon: "isax-document-text" },
-  { id: 29, title: "Find all pages missing the words \"disclosure document(s)\"", icon: "isax-document-text" },
-  { id: 30, title: "Find all pages missing the word \"fees\"", icon: "isax-document-text" },
-  { id: 31, title: "Find all pages missing the word \"cost\"", icon: "isax-document-text" },
-  { id: 32, title: "Find emails not inside an anchor element", icon: "isax-sms" },
-  { id: 33, title: "Search for [Link Name]", icon: "isax-link-2" },
-  { id: 34, title: "Search for Pages with unsafe links", icon: "isax-link-2" },
-  { id: 35, title: "Search for pages without viewport element", icon: "isax-link-2" },
-  { id: 36, title: "Find empty tags", icon: "isax-document-text", isNew: true },
-  { id: 37, title: "Find canonical values", icon: "isax-document-text", isNew: true },
-  { id: 38, title: "Find email adresses", icon: "isax-document-text", isNew: true },
-];
+import PREDEFINED_POLICIES from "../../data/defaultRules.json";
 
 const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, readOnly = false }) => {
   const isPage = variant === "page";
@@ -55,6 +14,13 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
   const [selectedPredefinedPolicy, setSelectedPredefinedPolicy] = useState(null);
 
   const getInitialRule = (policy) => {
+    if (policy.ruleConfig) {
+      return {
+        ...policy.ruleConfig,
+        id: Date.now()
+      };
+    }
+
     let type = "text";
     if (policy?.icon?.includes("image")) type = "image-size";
     else if (policy?.icon?.includes("link")) type = "link";
@@ -202,14 +168,15 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
             setDrawerView("create");
             setSelectedPredefinedPolicy(null);
           }} 
+          onSuccess={onClose}
           policyId={policyId} 
           readOnly={readOnly}
           initialData={selectedPredefinedPolicy ? { title: selectedPredefinedPolicy.title, rules: [getInitialRule(selectedPredefinedPolicy)] } : null}
         />
       ) : drawerView === "html-pages" ? (
-        <CreatePolicyHtmlPagesView onBack={() => setDrawerView("create")} />
+        <CreatePolicyHtmlPagesView onBack={() => setDrawerView("create")} onSuccess={onClose} />
       ) : drawerView === "documents" ? (
-        <CreatePolicyDocumentsView onBack={() => setDrawerView("create")} />
+        <CreatePolicyDocumentsView onBack={() => setDrawerView("create")} onSuccess={onClose} />
       ) : drawerView === "create" ? (
         <CreatePolicyContentTypeView
           onBack={() => setDrawerView("grid")}

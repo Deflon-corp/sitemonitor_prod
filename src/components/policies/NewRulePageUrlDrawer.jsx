@@ -9,7 +9,7 @@ const SEARCH_OPTIONS = [
   "Matches regex",
 ];
 
-const NewRulePageUrlDrawer = ({ open, onClose, onSave }) => {
+const NewRulePageUrlDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Starts with");
   const [searchValue, setSearchValue] = useState("");

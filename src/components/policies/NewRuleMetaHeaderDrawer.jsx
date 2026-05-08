@@ -12,7 +12,7 @@ const EXPR_OPTIONS = [
   "Date age less than",
 ];
 
-const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave }) => {
+const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [metaName, setMetaName] = useState("");
   const [exprType, setExprType] = useState("Starts with");

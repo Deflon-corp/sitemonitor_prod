@@ -8,7 +8,7 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRulePageTitleLengthDrawer = ({ open, onClose, onSave }) => {
+const NewRulePageTitleLengthDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Less than");
   const [characterCount, setCharacterCount] = useState("");

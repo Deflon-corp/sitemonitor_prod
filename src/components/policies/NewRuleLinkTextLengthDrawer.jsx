@@ -8,7 +8,7 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRuleLinkTextLengthDrawer = ({ open, onClose, onSave }) => {
+const NewRuleLinkTextLengthDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Less than");
   const [characterCount, setCharacterCount] = useState("");

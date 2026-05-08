@@ -10,7 +10,7 @@ const SEARCH_OPTIONS = [
   "Regex",
 ];
 
-const NewRuleImageTextDrawer = ({ open, onClose, onSave }) => {
+const NewRuleImageTextDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Starts with");
   const [searchValue, setSearchValue] = useState("");

@@ -58,6 +58,7 @@ const MatchedPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) =>
           </div>
         </div>
       </td>
+      <td className="py-2 text-body fs-13">{row.addDate}</td>
       <td className="py-2">
         <div className="d-flex align-items-center">
           <div className="d-flex flex-column">

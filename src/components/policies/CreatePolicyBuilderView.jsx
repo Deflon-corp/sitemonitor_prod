@@ -24,6 +24,7 @@ import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import { getDomainLabel } from "@/layouts/Sidebar";
 import { createPolicyApi, getPolicyByIdApi, updatePolicyApi } from "@/api/policyApi";
 import { showToast } from "@/components/common/alerts/ToastAlert";
+import PREDEFINED_POLICIES from "../../data/defaultRules.json";
 
 
 
@@ -49,7 +50,7 @@ const DOCUMENTS_RULE_IDS = [
 ];
 
 /** Shared policy builder UI: Settings, Add rule to policy, drop zone, and all rule drawers. Used by All assets, HTML pages, and Documents. */
-const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, initialData }) => {
+const CreatePolicyBuilderView = ({ onBack, onSuccess, contentType, policyId, readOnly, initialData }) => {
   const [leftTab, setLeftTab] = useState("settings");
   const [title, setTitle] = useState(initialData?.title || "");
   const [displayAs, setDisplayAs] = useState("unwanted");
@@ -67,6 +68,7 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
   const [rules, setRules] = useState(initialData?.rules || []);
   const [editingRuleId, setEditingRuleId] = useState(null);
   const [isLoadingPolicy, setIsLoadingPolicy] = useState(false);
+  const [defaultRuleSearch, setDefaultRuleSearch] = useState("");
 
   useEffect(() => {
     if (policyId) {
@@ -190,7 +192,8 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
 
       if (res.success) {
         showToast(policyId ? "Policy updated successfully!" : "Policy created successfully!");
-        if (onBack) onBack(); // Go back after success
+        if (onSuccess) onSuccess();
+        else if (onBack) onBack();
       }
     } catch (err) {
       console.error("Failed to save policy:", err);
@@ -297,7 +300,14 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
               className={`btn btn-sm d-flex align-items-center gap-2 text-start ${leftTab === "add-rule" ? "btn-primary" : "btn-light border border-primary border-opacity-25"}`}
               onClick={() => setLeftTab("add-rule")}
             >
-              <i className="isax isax-add-circle fs-18" aria-hidden="true" /> Add rule
+              <i className="isax isax-add-circle fs-18" aria-hidden="true" /> Add own rule
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm d-flex align-items-center gap-2 text-start ${leftTab === "default-rules" ? "btn-primary" : "btn-light border border-primary border-opacity-25"}`}
+              onClick={() => setLeftTab("default-rules")}
+            >
+              <i className="isax isax-task-square fs-18" aria-hidden="true" /> Add default rule
             </button>
 
           </div>
@@ -482,6 +492,54 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
               allowedRuleIds={contentType === "documents" ? DOCUMENTS_RULE_IDS : undefined}
             />
           )}
+
+          {leftTab === "default-rules" && (
+            <div className="d-flex flex-column flex-grow-1 min-h-0 overflow-hidden">
+              <input
+                type="text"
+                className="form-control form-control-sm mb-3 border-primary border-opacity-25"
+                placeholder="Search default rules..."
+                value={defaultRuleSearch}
+                onChange={(e) => setDefaultRuleSearch(e.target.value)}
+              />
+              <div className="row g-2 flex-grow-1 overflow-auto m-0 pb-2 pe-1" style={{ alignContent: "flex-start" }}>
+                {PREDEFINED_POLICIES
+                  .filter(p => !contentType || contentType !== "documents" || DOCUMENTS_RULE_IDS.includes(p.ruleConfig.type))
+                  .filter(p => p.title.toLowerCase().includes(defaultRuleSearch.toLowerCase()))
+                  .map(policy => (
+                  <div key={policy.id} className="col-6">
+                    <button
+                      type="button"
+                      className="btn btn-light border border-secondary border-opacity-25 d-flex flex-column align-items-center justify-content-center gap-2 text-center p-3 h-100 w-100 hover-shadow-sm transition-all rounded-3"
+                      onClick={() => {
+                        if (readOnly) return;
+                        const isDuplicate = rules.some((r) => r.ruleName.toLowerCase() === policy.ruleConfig.ruleName.toLowerCase());
+                        if (isDuplicate) {
+                          showToast("A rule with this name already exists in this policy", "error");
+                          return;
+                        }
+                        setRules((prev) => [...prev, { ...policy.ruleConfig, id: Date.now() }]);
+                        showToast("Default rule added successfully", "success");
+                      }}
+                    >
+                      <span className="avatar avatar-32 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center mb-1">
+                        <i className={`isax ${policy.icon} fs-18`} />
+                      </span>
+                      <div className="d-flex flex-column gap-2 align-items-center w-100">
+                        <span className="fs-12 fw-semibold text-body text-wrap" style={{ lineHeight: 1.3 }}>{policy.title}</span>
+                        <span className="badge bg-primary bg-opacity-10 text-primary fw-normal fs-10 px-2 py-0.5 rounded-1 mt-auto">
+                          {policy.ruleConfig.type}
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+                {PREDEFINED_POLICIES.filter(p => p.title.toLowerCase().includes(defaultRuleSearch.toLowerCase())).length === 0 && (
+                  <div className="col-12 text-center text-muted fs-13 py-4">No matching default rules</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div
@@ -490,35 +548,41 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
             dropZoneRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
           }}
         >
-          <h6 className="fw-semibold text-body mb-3">Policy rules</h6>
-          <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
-            <span className="text-muted fs-13">Rule operator</span>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="ruleOp"
-                id="ruleOr"
-                checked={ruleOperator === "or"}
-                onChange={() => setRuleOperator("or")}
-              />
-              <label className="form-check-label fs-13" htmlFor="ruleOr">Or</label>
-            </div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="ruleOp"
-                id="ruleAnd"
-                checked={ruleOperator === "and"}
-                onChange={() => setRuleOperator("and")}
-              />
-              <label className="form-check-label fs-13" htmlFor="ruleAnd">And</label>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="fw-semibold text-body mb-0 fs-16">Policy rules</h6>
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-muted fs-14">Rule operator</span>
+              <div className="d-flex align-items-center gap-3">
+                <div className="form-check form-check-inline m-0 p-0 d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                  <input
+                    className="form-check-input m-0"
+                    type="radio"
+                    name="ruleOp"
+                    id="ruleOr"
+                    checked={ruleOperator === "or"}
+                    onChange={() => setRuleOperator("or")}
+                    style={{ width: "20px", height: "20px", cursor: "pointer", borderWidth: "2px" }}
+                  />
+                  <label className="form-check-label fs-14 text-body" htmlFor="ruleOr" style={{ cursor: "pointer" }}>Or</label>
+                </div>
+                <div className="form-check form-check-inline m-0 p-0 d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                  <input
+                    className="form-check-input m-0"
+                    type="radio"
+                    name="ruleOp"
+                    id="ruleAnd"
+                    checked={ruleOperator === "and"}
+                    onChange={() => setRuleOperator("and")}
+                    style={{ width: "20px", height: "20px", cursor: "pointer", borderWidth: "2px" }}
+                  />
+                  <label className="form-check-label fs-14 text-body" htmlFor="ruleAnd" style={{ cursor: "pointer" }}>And</label>
+                </div>
+              </div>
             </div>
           </div>
           <div
             ref={dropZoneRef}
-            className="border-2 border-secondary border-opacity-25 border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center bg-light bg-opacity-25 p-4 min-vh-50"
+            className="border-2 border-secondary border-opacity-25 border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center bg-white p-4 min-vh-50"
             style={{ minHeight: 280 }}
             onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
             onDrop={(e) => {
@@ -529,69 +593,94 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
 
           >
             {rules.length > 0 ? (
-              <div className="w-100 d-flex flex-column gap-3">
-                {rules.map((rule, index) => (
-                  <div key={rule.id} className="position-relative">
-                    {index > 0 && (
-                      <div className="d-flex align-items-center justify-content-center my-2 position-relative">
+              <div className="w-100 d-flex flex-column gap-3 position-relative">
+                {rules.reduce((acc, rule, index) => {
+                  if (index % 2 === 0) acc.push([rule]);
+                  else acc[acc.length - 1].push(rule);
+                  return acc;
+                }, []).map((rowRules, rowIndex) => (
+                  <React.Fragment key={`row-${rowIndex}`}>
+                    {/* Horizontal Divider for Rows */}
+                    {rowIndex > 0 && (
+                      <div className="w-100 position-relative d-flex align-items-center justify-content-center py-1">
                         <div className="position-absolute start-0 end-0 border-top border-secondary border-opacity-10" />
-                        <span className="badge bg-light text-primary border border-primary border-opacity-10 rounded-pill px-3 py-1 fs-11 fw-bold text-uppercase position-relative z-1" style={{ letterSpacing: "0.5px" }}>
+                        <span className="badge bg-white text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 fs-12 fw-semibold text-uppercase position-relative z-1" style={{ letterSpacing: "0.5px" }}>
                           {ruleOperator}
                         </span>
                       </div>
                     )}
-                    <div className="card border border-secondary border-opacity-25 shadow-sm hover-shadow-md transition-all">
-                      <div className="card-body d-flex align-items-center justify-content-between py-3">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="avatar avatar-32 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
-                            <i className="isax isax-judge fs-18" />
-                          </span>
-                          <div>
-                            <p className="mb-0 fw-semibold fs-14 text-body d-flex align-items-center gap-2">
-                              {rule.ruleName || "Untitled Rule"}
-                              <span className="badge bg-primary bg-opacity-10 text-primary fw-normal fs-10 px-2 py-0.5 rounded-1">
-                                {rule.type}
+
+                    <div className="d-flex align-items-stretch w-100" style={{ gap: "1.5rem" }}>
+                      {rowRules.map((rule, colIndex) => (
+                        <React.Fragment key={rule.id}>
+                          {colIndex > 0 && (
+                            <div className="d-flex align-items-center justify-content-center flex-shrink-0 position-relative z-3" style={{ width: "0px" }}>
+                              <span className="badge bg-white text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fs-11 fw-semibold text-uppercase shadow-sm position-absolute top-50 start-50 translate-middle">
+                                {ruleOperator}
                               </span>
-                            </p>
-                            <p className="mb-0 text-muted fs-12">
-                              Matches {rule.searchType} <span className="text-primary fw-medium">"{rule.searchValue}"</span>
-                            </p>
+                            </div>
+                          )}
+                          <div className="flex-grow-1" style={{ flexBasis: "0", minWidth: 0 }}>
+                            <div className="card border border-secondary border-opacity-25 shadow-sm hover-shadow-md transition-all rounded-3 h-100">
+                              <div className="card-body d-flex align-items-center justify-content-between p-3 py-4">
+                                <div className="d-flex align-items-center gap-3 w-100 overflow-hidden">
+                                  <div className="avatar avatar-48 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "48px", height: "48px" }}>
+                                    <i className="isax isax-judge fs-24" />
+                                  </div>
+                                  <div className="d-flex flex-column align-items-start gap-1 flex-grow-1 overflow-hidden" style={{ minWidth: 0 }}>
+                                    <span className="mb-0 fw-semibold fs-14 text-body text-truncate w-100" title={rule.ruleName || "Untitled Rule"}>
+                                      {rule.ruleName || "Untitled Rule"}
+                                    </span>
+                                    <span className="badge bg-primary bg-opacity-10 text-primary fw-medium fs-10 px-2 py-1 rounded-2" style={{ letterSpacing: "0.2px" }}>
+                                      {rule.type}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="dropdown flex-shrink-0 ms-2">
+                                  <button
+                                    type="button"
+                                    className="btn btn-icon btn-sm rounded-3 d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 border-0 text-muted hover:bg-opacity-20"
+                                    style={{ width: "36px", height: "36px" }}
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                  >
+                                    <i className="isax isax-element-plus fs-20" />
+                                  </button>
+                                  <ul className="dropdown-menu dropdown-menu-end border border-secondary border-opacity-25 shadow-sm py-1">
+                                    <li>
+                                      <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-14" onClick={() => editRule(rule)}>
+                                        <i className="isax isax-edit text-muted" /> Edit rule
+                                      </button>
+                                    </li>
+                                    <li><hr className="dropdown-divider border-secondary border-opacity-10" /></li>
+                                    <li>
+                                      <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-14 text-danger" onClick={() => removeRule(rule.id)}>
+                                        <i className="isax isax-trash" /> Delete rule
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="dropdown">
-                          <button
-                            type="button"
-                            className="btn btn-icon btn-sm btn-light border-0"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                          >
-                            <i className="isax isax-more-2 fs-18" />
-                          </button>
-                          <ul className="dropdown-menu dropdown-menu-end border border-secondary border-opacity-25 shadow-sm py-1">
-                            <li>
-                              <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-13" onClick={() => editRule(rule)}>
-                                <i className="isax isax-edit text-muted" /> Edit rule
-                              </button>
-                            </li>
-                            <li><hr className="dropdown-divider border-secondary border-opacity-10" /></li>
-                            <li>
-                              <button className="dropdown-item d-flex align-items-center gap-2 py-2 fs-13 text-danger" onClick={() => removeRule(rule.id)}>
-                                <i className="isax isax-trash" /> Delete rule
-                              </button>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
+                        </React.Fragment>
+                      ))}
+                      {/* Maintain 50% width layout if odd number of items */}
+                      {rowRules.length === 1 && (
+                        <div className="flex-grow-1" style={{ flexBasis: "0", minWidth: 0, visibility: "hidden" }}></div>
+                      )}
                     </div>
-                  </div>
+                  </React.Fragment>
                 ))}
-                <button
-                  type="button"
-                  className="btn btn-link text-primary text-decoration-none d-flex align-items-center gap-2 fs-13 align-self-center mt-2"
-                  onClick={() => setLeftTab("add-rule")}
-                >
-                  <i className="isax isax-add-circle fs-20" aria-hidden="true" /> Add another rule
-                </button>
+                <div className="col-12 d-flex justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-link text-primary text-decoration-none d-flex align-items-center gap-2 fs-14 mt-4 fw-medium"
+                    onClick={() => setLeftTab("add-rule")}
+                  >
+                    <i className="isax isax-add-circle fs-24" aria-hidden="true" /> Add another rule
+                  </button>
+                </div>
               </div>
             ) : (
 
@@ -600,7 +689,7 @@ const CreatePolicyBuilderView = ({ onBack, contentType, policyId, readOnly, init
                   <i className="isax isax-add-circle fs-32" />
                 </div>
                 <p className="text-body fw-medium mb-1">Drag and drop the rule to add rules to the policy.</p>
-                <p className="text-muted fs-12 mb-0">Select rules from the left panel and drag them here</p>
+                <p className="text-muted fs-13 mb-0">Select rules from the left panel and drag them here</p>
 
               </div>
             )}

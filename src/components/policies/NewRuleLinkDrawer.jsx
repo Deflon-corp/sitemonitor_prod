@@ -9,7 +9,7 @@ const SEARCH_OPTIONS = [
   "Regex",
 ];
 
-const NewRuleLinkDrawer = ({ open, onClose, onSave }) => {
+const NewRuleLinkDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchType, setSearchType] = useState("Starts with");
   const [searchValue, setSearchValue] = useState("");

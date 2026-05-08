@@ -8,7 +8,7 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRuleMetaHeaderLengthDrawer = ({ open, onClose, onSave }) => {
+const NewRuleMetaHeaderLengthDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [metaName, setMetaName] = useState("");
   const [comparison, setComparison] = useState("Less than");

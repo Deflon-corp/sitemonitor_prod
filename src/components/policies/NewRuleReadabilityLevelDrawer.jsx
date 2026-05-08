@@ -18,7 +18,7 @@ const READABILITY_GRADES = [
   "College"
 ];
 
-const NewRuleReadabilityLevelDrawer = ({ open, onClose, onSave }) => {
+const NewRuleReadabilityLevelDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [searchFor, setSearchFor] = useState("Greater than");
   const [readabilityScore, setReadabilityScore] = useState("7th grade");

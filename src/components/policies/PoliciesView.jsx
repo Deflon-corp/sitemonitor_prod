@@ -107,6 +107,7 @@ const PoliciesView = ({ isLanding = false }) => {
   const [newPolicyDrawerOpen, setNewPolicyDrawerOpen] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState(null);
   const [editingPolicyReadOnly, setEditingPolicyReadOnly] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({
     priorities: [],
     distribution: [],
@@ -139,7 +140,7 @@ const PoliciesView = ({ isLanding = false }) => {
       }
     };
     fetchStats();
-  }, []);
+  }, [refreshKey]);
 
 
   if (isLanding) {
@@ -188,14 +189,16 @@ const PoliciesView = ({ isLanding = false }) => {
                   setNewPolicyDrawerOpen(true);
                 }}
                 hideGlobalButton={true} 
+                refreshTrigger={refreshKey}
               />
             </div>
           </div>
     
           <NewPolicyDrawer
             open={newPolicyDrawerOpen}
-            onClose={() => {
+            onClose={(saved) => {
               setNewPolicyDrawerOpen(false);
+              if (saved === true) setRefreshKey(prev => prev + 1);
               setTimeout(() => {
                 setEditingPolicyId(null);
                 setEditingPolicyReadOnly(false);
@@ -253,6 +256,7 @@ const PoliciesView = ({ isLanding = false }) => {
                 setEditingPolicyReadOnly(true);
                 setNewPolicyDrawerOpen(true);
               }}
+              refreshTrigger={refreshKey}
             />
           ) : currentView === "global" ? (
             <GlobalPoliciesView onAddNewPolicy={() => {
@@ -277,6 +281,7 @@ const PoliciesView = ({ isLanding = false }) => {
                 setEditingPolicyReadOnly(true);
                 setNewPolicyDrawerOpen(true);
               }}
+              refreshTrigger={refreshKey}
             />
           ) : currentView === "unwanted" ? (
             <UnwantedPoliciesView />
@@ -381,8 +386,9 @@ const PoliciesView = ({ isLanding = false }) => {
 
       <NewPolicyDrawer
         open={newPolicyDrawerOpen}
-        onClose={() => {
+        onClose={(saved) => {
           setNewPolicyDrawerOpen(false);
+          if (saved === true) setRefreshKey(prev => prev + 1);
           setTimeout(() => {
             setEditingPolicyId(null);
             setEditingPolicyReadOnly(false);

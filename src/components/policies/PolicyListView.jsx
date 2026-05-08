@@ -32,7 +32,7 @@ const FILTER_TABS = [
 // ];
 
 
-const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false }) => {
+const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false, refreshTrigger }) => {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
@@ -42,12 +42,13 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
   const [sortDir, setSortDir] = useState("asc");
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const fetchPolicies = useCallback(async () => {
     try {
       setLoading(true);
-      const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
-      const res = await getPoliciesApi({ domainId: selectedId });
+      const res = await getPoliciesApi();
       if (res.success && res.data) {
         // Normalize data: ensure fields exist and map _id to id
         const normalized = res.data.map(p => ({
@@ -57,7 +58,14 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
           searchScope: p.searchScope || "Everything",
           compliancePercent: p.compliancePercent || 0,
           status: p.status || "compliant",
-          category: p.category || "matches"
+          category: p.category || "matches",
+          addDate: p.createdAt ? (() => {
+            const d = new Date(p.createdAt);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+          })() : "N/A"
         }));
         setPolicies(normalized);
       } else {
@@ -75,7 +83,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
 
   useEffect(() => {
     fetchPolicies();
-  }, [fetchPolicies]);
+  }, [fetchPolicies, refreshTrigger]);
 
   const filteredBySearch = useMemo(() => {
     let rows = policies || [];
@@ -103,11 +111,21 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
       if (sortBy === "title") {
         return dir * a.title.localeCompare(b.title);
       }
+      if (sortBy === "date") {
+        return dir * (new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+      }
       return dir * (a.compliancePercent - b.compliancePercent);
     });
   }, [filteredRows, sortBy, sortDir]);
 
+  const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return sortedRows.slice(start, start + rowsPerPage);
+  }, [sortedRows, currentPage, rowsPerPage]);
+
   const handleSort = (key) => {
+    setCurrentPage(1);
     if (sortBy === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
@@ -327,6 +345,20 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                       )}
                     </button>
                   </th>
+                  <th className="py-3 text-body fs-13 fw-semibold">
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
+                      onClick={() => handleSort("date")}
+                    >
+                      Add Date
+                      {sortBy === "date" ? (
+                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                      ) : (
+                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                      )}
+                    </button>
+                  </th>
                   <th className="py-3 text-body fs-13 fw-semibold" style={{ minWidth: 140 }}>
                     <button
                       type="button"
@@ -347,7 +379,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                 </tr>
               </thead>
               <tbody>
-                {sortedRows.map((row) =>
+                {paginatedRows.map((row) =>
                   activeTab === "required" ? (
                     <RequiredPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} />
                   ) : activeTab === "matches" ? (
@@ -377,6 +409,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                           </div>
                         </div>
                       </td>
+                      <td className="py-3 text-body fs-13">{row.addDate}</td>
                       <td className="py-3">
                         <span className="text-primary fw-medium fs-13">
                           {row.compliancePercent}% COMPLIANCE
@@ -419,6 +452,66 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                 )}
               </tbody>
             </table>
+
+            {/* Pagination UI */}
+            {totalPages > 1 && (
+              <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top bg-light bg-opacity-50">
+                <div className="d-flex align-items-center gap-2">
+                  <span className="text-muted small">Rows per page</span>
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: "auto" }}
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {[10, 25, 50, 100].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                  <span className="text-muted small">
+                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                  </span>
+                </div>
+                <nav aria-label="Policy list pagination">
+                  <ul className="pagination pagination-sm mb-0 gap-1">
+                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage <= 1}
+                      >
+                        Previous
+                      </button>
+                    </li>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <li key={p} className={`page-item ${currentPage === p ? "active" : ""}`}>
+                        <button
+                          type="button"
+                          className="page-link rounded-2"
+                          onClick={() => setCurrentPage(p)}
+                        >
+                          {p}
+                        </button>
+                      </li>
+                    ))}
+                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage >= totalPages}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            )}
           </div>
         )}
       </div>

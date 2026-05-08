@@ -8,7 +8,7 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRuleIncomingLinkCountDrawer = ({ open, onClose, onSave }) => {
+const NewRuleIncomingLinkCountDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Less than");
   const [linkCount, setLinkCount] = useState("");

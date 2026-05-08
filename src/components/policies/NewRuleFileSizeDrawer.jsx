@@ -10,7 +10,7 @@ const COMPARISON_OPTIONS = [
 
 const SIZE_UNITS = ["Bytes", "KB", "MB", "GB"];
 
-const NewRuleFileSizeDrawer = ({ open, onClose, onSave }) => {
+const NewRuleFileSizeDrawer = ({ open, onClose, onSave, initialData }) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Greater than");
   const [value, setValue] = useState("");
