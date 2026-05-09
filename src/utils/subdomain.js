@@ -15,10 +15,16 @@ export const getTenantId = () => {
         return null;
     }
 
-    const parts = hostname.split('.');
+    let parts = hostname.split('.');
+
+    // Ignore 'www' prefix if it exists and there are other parts
+    if (parts.length > 1 && parts[0].toLowerCase() === 'www') {
+        parts = parts.slice(1);
+    }
 
     // Example: rbi.localhost -> parts: ['rbi', 'localhost']
     // Example: tenant1.example.com -> parts: ['tenant1', 'example', 'com']
+    // Example: www.rbi.sitemonitor.in -> parts: ['rbi', 'sitemonitor', 'in'] (after slice)
     if (parts.length >= 2) {
         // If the last part is localhost (dev environment), the first part is the tenant
         if (parts[parts.length - 1] === 'localhost') {
