@@ -58,6 +58,7 @@ const ContentWithPolicyMatchesView = () => {
       setLoading(true);
       const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
       const res = await getPolicyContentMatchesApi({ domainId: selectedId });
+      console.log("[ContentMatches] API Response:", res);
       if (res.success && res.data) {
         setPolicies(res.data.map(m => ({
           ...m,
@@ -190,6 +191,16 @@ const ContentWithPolicyMatchesView = () => {
     });
     doc.save(`${baseName}.pdf`);
   }, [paginatedRows, baseName]);
+
+  if (loading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center h-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="d-flex flex-column h-100">
