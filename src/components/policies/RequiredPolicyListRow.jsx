@@ -65,7 +65,6 @@ const RequiredPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) =
             <span className="text-primary fw-medium fs-13">{row.compliancePercent}%</span>
             <span className="text-muted fs-12">COMPLIANCE</span>
           </div>
-          <ComplianceCircle percent={row.compliancePercent} />
         </div>
       </td>
       <td className="py-2">

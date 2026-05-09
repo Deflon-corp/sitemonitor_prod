@@ -130,8 +130,9 @@ const ContentWithPolicyMatchesView = () => {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
+  const totalPages = rowsPerPage === -1 ? 1 : Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
   const paginatedRows = useMemo(() => {
+    if (rowsPerPage === -1) return sortedRows;
     const start = (currentPage - 1) * rowsPerPage;
     return sortedRows.slice(start, start + rowsPerPage);
   }, [sortedRows, currentPage, rowsPerPage]);
@@ -208,7 +209,10 @@ const ContentWithPolicyMatchesView = () => {
             <button
               type="button"
               className={`nav-link border-0 rounded-0 pb-2 px-3 d-flex align-items-center gap-2 ${activeTab === tab.key ? "text-primary border-bottom border-2 border-primary bg-transparent" : "text-body"}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key);
+                setCurrentPage(1);
+              }}
             >
               <i className={`isax ${tab.icon} fs-16`} aria-hidden="true" />
               {tab.label}
@@ -414,7 +418,7 @@ const ContentWithPolicyMatchesView = () => {
             </div>
 
             {/* Pagination */}
-            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top">
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top bg-light bg-opacity-50 mt-auto">
               <div className="d-flex align-items-center gap-2">
                 <span className="text-muted small">Rows per page</span>
                 <select
@@ -429,52 +433,58 @@ const ContentWithPolicyMatchesView = () => {
                   {ROWS_PER_PAGE_OPTIONS.map((n) => (
                     <option key={n} value={n}>{n}</option>
                   ))}
+                  <option value={-1}>All</option>
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                  {rowsPerPage === -1 
+                    ? `1–${sortedRows.length} of ${sortedRows.length}`
+                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`
+                  }
                 </span>
               </div>
-              <nav aria-label="Content with policy matches pagination">
-                <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                    <button
-                      type="button"
-                      className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage <= 1}
-                      aria-label="Previous"
-                    >
-                      Previous
-                    </button>
-                  </li>
-                  {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                    const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
-                    if (p > totalPages) return null;
-                    return (
-                      <li key={p} className="page-item">
-                        <button
-                          type="button"
-                          className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
-                          onClick={() => setCurrentPage(p)}
-                        >
-                          {p}
-                        </button>
-                      </li>
-                    );
-                  })}
-                  <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                    <button
-                      type="button"
-                      className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage >= totalPages}
-                      aria-label="Next"
-                    >
-                      Next
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+              {rowsPerPage !== -1 && totalPages > 1 && (
+                <nav aria-label="Content with policy matches pagination">
+                  <ul className="pagination pagination-sm mb-0 gap-1">
+                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage <= 1}
+                        aria-label="Previous"
+                      >
+                        Previous
+                      </button>
+                    </li>
+                    {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+                      const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
+                      if (p > totalPages) return null;
+                      return (
+                        <li key={p} className="page-item">
+                          <button
+                            type="button"
+                            className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </button>
+                        </li>
+                      );
+                    })}
+                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage >= totalPages}
+                        aria-label="Next"
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
             </div>
           </div>
         </>

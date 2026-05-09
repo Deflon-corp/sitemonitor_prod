@@ -147,18 +147,18 @@ export default function Sidebar() {
                     <div className="sidebar" id="sidebar-two">
                         <div className="sidebar-logo d-flex align-items-center gap-2 py-3 px-3">
                             <div className="sidebar-logo">
-                                <Link to="/" className="logo logo-normal">
-                                    <img alt="Logo" src="/assets/images/logo.svg" />
+                                <Link to="/" className="logo logo-normal d-flex align-items-center">
+                                    <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#2c496e", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                                 </Link>
-                                <Link to="/" className="logo-small">
-                                    <img alt="Logo" src="/assets/images/logo-small.svg" />
+                                {/* <Link to="/" className="logo-small d-flex align-items-center justify-content-center">
+                                    <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#343a40" }}>S</span>
+                                </Link> */}
+                                {/* <Link to="/" className="dark-logo d-flex align-items-center">
+                                    <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#fff", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                                 </Link>
-                                <Link to="/" className="dark-logo">
-                                    <img alt="Logo" src="/assets/images/logo-white.svg" />
-                                </Link>
-                                <Link to="/" className="dark-small">
-                                    <img alt="Logo" src="/assets/images/logo-small-white.svg" />
-                                </Link>
+                                <Link to="/" className="dark-small d-flex align-items-center justify-content-center">
+                                    <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#fff" }}>S</span>
+                                </Link> */}
                                 <a href="#" id="toggle_btn">
                                     <i className="isax isax-menu-1"></i>
                                 </a>
@@ -208,18 +208,18 @@ export default function Sidebar() {
                 <div className="sidebar-else-wrapper">
                     <div className="sidebar" id="sidebar-two">
                         <div className="sidebar-logo">
-                            <Link to="/" className="logo logo-normal">
-                                <img alt="Logo" src="/assets/images/logo.svg" />
+                            <Link to="/" className="logo logo-normal d-flex align-items-center">
+                                <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#2c496e", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                             </Link>
-                            <Link to="/" className="logo-small">
-                                <img alt="Logo" src="/assets/images/logo-small.svg" />
+                            {/* <Link to="/" className="logo-small d-flex align-items-center justify-content-center">
+                                <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#343a40" }}>S</span>
                             </Link>
-                            <Link to="/" className="dark-logo">
-                                <img alt="Logo" src="/assets/images/logo-white.svg" />
+                            <Link to="/" className="dark-logo d-flex align-items-center">
+                                <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#fff", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                             </Link>
-                            <Link to="/" className="dark-small">
-                                <img alt="Logo" src="/assets/images/logo-small-white.svg" />
-                            </Link>
+                            <Link to="/" className="dark-small d-flex align-items-center justify-content-center">
+                                <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#fff" }}>S</span>
+                            </Link> */}
                             <a href="#" id="toggle_btn">
                                 <i className="isax isax-menu-1"></i>
                             </a>

@@ -68,11 +68,11 @@ export default function Header({
         <div className="header landing-header">
             <div className="main-header landing-main-header">
                 <div className="header-left">
-                    <Link className="logo" to="/">
-                        <img alt="Logo" src="/assets/images/logo.svg" />
+                    <Link className="logo d-flex align-items-center" to="/">
+                        <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#343a40", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                     </Link>
-                    <Link className="dark-logo" to="/">
-                        <img alt="Logo" src="/assets/images/logo.svg" />
+                    <Link className="dark-logo d-flex align-items-center" to="/">
+                        <span style={{ fontSize: "1.5rem", fontWeight: "700", color: "#fff", letterSpacing: "-0.5px" }}>Sitemonitor</span>
                     </Link>
                 </div>
 

@@ -118,8 +118,9 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
     });
   }, [filteredRows, sortBy, sortDir]);
 
-  const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
+  const totalPages = rowsPerPage === -1 ? 1 : Math.ceil(sortedRows.length / rowsPerPage);
   const paginatedRows = useMemo(() => {
+    if (rowsPerPage === -1) return sortedRows;
     const start = (currentPage - 1) * rowsPerPage;
     return sortedRows.slice(start, start + rowsPerPage);
   }, [sortedRows, currentPage, rowsPerPage]);
@@ -258,7 +259,10 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
             <button
               type="button"
               className={`nav-link border-0 rounded-0 pb-2 px-3 d-flex align-items-center gap-2 ${activeTab === tab.key ? "text-primary border-bottom border-2 border-primary bg-transparent" : "text-body"}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key);
+                setCurrentPage(1);
+              }}
             >
               {tab.icon && (
                 <i className={`isax ${tab.icon} fs-16 ${tab.iconClass ?? ""}`} aria-hidden="true" />
@@ -310,7 +314,10 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
             className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2"
             placeholder="Search..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             aria-label="Search"
             style={{ paddingLeft: "2.75rem" }}
           />
@@ -414,11 +421,6 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                         <span className="text-primary fw-medium fs-13">
                           {row.compliancePercent}% COMPLIANCE
                         </span>
-                        <span
-                          className="rounded-circle d-inline-block ms-1 bg-secondary bg-opacity-25"
-                          style={{ width: 8, height: 8 }}
-                          aria-hidden="true"
-                        />
                       </td>
                       <td className="py-3">
                         {row.policyHits != null ? (
@@ -454,27 +456,31 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
             </table>
 
             {/* Pagination UI */}
-            {totalPages > 1 && (
-              <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top bg-light bg-opacity-50">
-                <div className="d-flex align-items-center gap-2">
-                  <span className="text-muted small">Rows per page</span>
-                  <select
-                    className="form-select form-select-sm"
-                    style={{ width: "auto" }}
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                      setRowsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    {[10, 25, 50, 100].map((n) => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                  <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
-                  </span>
-                </div>
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top bg-light bg-opacity-50 mt-auto">
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-muted small">Rows per page</span>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "auto" }}
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  {[10, 25, 50, 100].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                  <option value={-1}>All</option>
+                </select>
+                <span className="text-muted small">
+                  {rowsPerPage === -1 
+                    ? `1–${sortedRows.length} of ${sortedRows.length}`
+                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`
+                  }
+                </span>
+              </div>
+              {rowsPerPage !== -1 && totalPages > 1 && (
                 <nav aria-label="Policy list pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
                     <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
@@ -510,8 +516,8 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                     </li>
                   </ul>
                 </nav>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
