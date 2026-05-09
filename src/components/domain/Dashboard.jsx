@@ -5,6 +5,7 @@ import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ScanHistoryPopover from "@/components/dashboard/ScanHistoryPopover";
 import CountdownTimer from "@/components/dashboard/CountdownTimer";
 import { getDomainsApi, getDomainScanHistoryApi, getDomainLatestSummaryApi, triggerDomainScanApi } from "@/api/domainApi";
+import { getPolicyStatsApi } from "@/api/policyApi";
 import toast from "react-hot-toast";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
@@ -14,6 +15,7 @@ const Dashboard = () => {
     const [domainData, setDomainData] = useState(null);
     const [scanHistory, setScanHistory] = useState([]);
     const [latestSummary, setLatestSummary] = useState(null);
+    const [policyStats, setPolicyStats] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isScanning, setIsScanning] = useState(false);
 
@@ -93,15 +95,17 @@ const Dashboard = () => {
 
     const uptimePercentage = calculateUptime();
 
-    const fetchScanData = async (dmId) => {
+    const fetchScanData = async (dmId, objectId) => {
         try {
-            const [historyRes, summaryRes] = await Promise.all([
+            const [historyRes, summaryRes, policyRes] = await Promise.all([
                 getDomainScanHistoryApi(dmId),
-                getDomainLatestSummaryApi(dmId)
+                getDomainLatestSummaryApi(dmId),
+                getPolicyStatsApi({ domainId: objectId || dmId })
             ]);
 
             if (historyRes.success) setScanHistory(historyRes.data || []);
             if (summaryRes.success) setLatestSummary(summaryRes.data);
+            if (policyRes.success) setPolicyStats(policyRes.data);
         } catch (error) {
             console.error("Error fetching scan data:", error);
         }
@@ -125,7 +129,7 @@ const Dashboard = () => {
                     const domain = domains.find((d) => d._id === selectedId);
                     setDomainData(domain);
                     if (domain) {
-                        fetchScanData(domain.dm_id);
+                        fetchScanData(domain.dm_id, domain._id);
                     }
                 }
             }
@@ -396,29 +400,29 @@ const Dashboard = () => {
                                     <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                         <svg className="content-policies-ring" width="120" height="120" viewBox="0 0 140 140">
                                             <circle cx="70" cy="70" r="62" fill="none" stroke="#e5e7eb" strokeWidth="12" />
-                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(latestSummary?.complianceSummary?.termsFound ? 100 : 0)} transform="rotate(-90 70 70)" />
+                                            <circle cx="70" cy="70" r="62" fill="none" stroke="#14b8a6" strokeWidth="12" strokeLinecap="round" strokeDasharray={calculateDashArray(policyStats?.compliancePercent || 0)} transform="rotate(-90 70 70)" />
                                         </svg>
                                         <div className="position-absolute text-center px-1" style={{ maxWidth: 70, lineHeight: 1.2 }}>
-                                            <span className="d-block fs-4 fw-bold text-body">{latestSummary?.complianceSummary?.termsFound ? '100' : '0'} %</span>
+                                            <span className="d-block fs-4 fw-bold text-body">{Math.round(policyStats?.compliancePercent || 0)} %</span>
                                             <span className="d-block text-muted" style={{ fontSize: "0.65rem" }}>overall compliance</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <h6 className="fs-13 fw-semibold text-body mb-1">Policies with violations</h6>
-                                    <p className="fs-2 fw-bold text-body mb-2">{latestSummary?.complianceSummary?.keywordsMissing?.length || 0}</p>
+                                    <p className="fs-2 fw-bold text-body mb-2">{policyStats?.policiesWithViolations || 0}</p>
                                     <div className="d-flex flex-wrap gap-3">
-                                        <div className="d-flex align-items-center gap-2 text-muted fs-13">
-                                            <i className="isax isax-close-circle fs-18"></i>
-                                            <span>0</span>
+                                        <div className="d-flex align-items-center gap-2 text-muted fs-13" title="Unwanted">
+                                            <i className="isax isax-close-circle fs-18 text-danger"></i>
+                                            <span>{policyStats?.distribution?.find(d => d.label === 'Unwanted')?.value || 0}</span>
                                         </div>
-                                        <div className="d-flex align-items-center gap-2 text-muted fs-13">
-                                            <i className="isax isax-danger fs-18"></i>
-                                            <span>0</span>
+                                        <div className="d-flex align-items-center gap-2 text-muted fs-13" title="Required">
+                                            <i className="isax isax-danger fs-18 text-primary"></i>
+                                            <span>{policyStats?.distribution?.find(d => d.label === 'Required')?.value || 0}</span>
                                         </div>
-                                        <div className="d-flex align-items-center gap-2 text-muted fs-13">
-                                            <i className="isax isax-search-normal-1 fs-18"></i>
-                                            <span>{latestSummary?.complianceSummary?.keywordsMissing?.length || 0}</span>
+                                        <div className="d-flex align-items-center gap-2 text-muted fs-13" title="Matches">
+                                            <i className="isax isax-search-normal-1 fs-18 text-primary"></i>
+                                            <span>{policyStats?.distribution?.find(d => d.label === 'Matches')?.value || 0}</span>
                                         </div>
                                     </div>
                                 </div>

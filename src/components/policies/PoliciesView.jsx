@@ -21,10 +21,10 @@ const LANDING_NAV = [
 ];
 
 const POLICY_NAV = [
-  { key: "summary", label: "Summary", icon: "isax-home-2", href: "/home/policies?view=summary" },
-  { key: "content-matches", label: "Content with Policy Matches", icon: "isax-document-copy", href: "/home/policies?view=content-matches" },
-  { key: "list", label: "Policy List", icon: "isax-shield-tick", href: "/home/policies?view=list" },
-  { key: "ignored", label: "Pages with Ignored Checks", icon: "isax-eye-slash", href: "/home/policies?view=ignored" },
+  { key: "summary", label: "Summary", icon: "isax-home-2" },
+  { key: "content-matches", label: "Content with Policy Matches", icon: "isax-document-copy" },
+  { key: "list", label: "Policy List", icon: "isax-shield-tick" },
+  { key: "ignored", label: "Pages with Ignored Checks", icon: "isax-eye-slash" },
 ];
 
 /** Sample data – replaced with API */
@@ -67,18 +67,31 @@ const DonutChart = ({ percent, label }) => {
 };
 
 /** Simple placeholder for time-series – replace with chart library if needed */
-const PolicyTrendChart = () => {
-  const pathPoints = "0 80 35 70 70 55 105 45 140 35 175 28 210 22 245 18 280 12";
+const PolicyTrendChart = ({ trend = [] }) => {
+  if (!trend || trend.length === 0) return null;
+  
+  const maxVal = Math.max(10, ...trend.map(t => t.value));
+  const width = 280;
+  const height = 100;
+  
+  const points = trend.map((t, i) => {
+    const x = (i / (trend.length - 1)) * width;
+    const y = height - (t.value / maxVal) * height;
+    return `${x} ${y}`;
+  }).join(" ");
+
+  const pathPoints = points;
+
   return (
     <div className="mt-3">
-      <svg viewBox="0 0 280 100" className="w-100" style={{ height: 120 }} preserveAspectRatio="none">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-100" style={{ height: 120 }} preserveAspectRatio="none">
         <defs>
           <linearGradient id="policyTrendGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path fill="url(#policyTrendGrad)" d={`M${pathPoints} L280,100 L0,100 Z`} />
+        <path fill="url(#policyTrendGrad)" d={`M0,${height} L${pathPoints} L${width},${height} Z`} />
         <path d={`M${pathPoints}`} fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <div className="d-flex flex-wrap gap-3 mt-2 fs-12 text-muted">
@@ -114,6 +127,7 @@ const PoliciesView = ({ isLanding = false }) => {
     policiesWithViolations: 0,
     contentWithViolations: 0,
     compliancePercent: 0,
+    trend: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +144,7 @@ const PoliciesView = ({ isLanding = false }) => {
             policiesWithViolations: res.data.policiesWithViolations || 0,
             contentWithViolations: res.data.contentWithViolations || 0,
             compliancePercent: res.data.compliancePercent || 0,
+            trend: res.data.trend || [],
           });
         }
 
@@ -190,6 +205,7 @@ const PoliciesView = ({ isLanding = false }) => {
                 }}
                 hideGlobalButton={true} 
                 refreshTrigger={refreshKey}
+                isLanding={isLanding}
               />
             </div>
           </div>
@@ -220,10 +236,11 @@ const PoliciesView = ({ isLanding = false }) => {
             <nav className="d-flex flex-wrap gap-1 gap-md-4 align-items-center" aria-label="Policies navigation">
               {POLICY_NAV.map((item) => {
                 const isActive = currentView === item.key;
+                const to = `${pathname}?view=${item.key}`;
                 return (
                   <Link
                     key={item.key}
-                    to={item.href}
+                    to={to}
                     className={`d-inline-flex align-items-center text-decoration-none py-2 px-2 rounded ${isActive ? "bg-light text-primary" : "text-body"}`}
                   >
                     <i className={`isax ${item.icon} me-2`} aria-hidden="true" />
@@ -257,15 +274,17 @@ const PoliciesView = ({ isLanding = false }) => {
                 setNewPolicyDrawerOpen(true);
               }}
               refreshTrigger={refreshKey}
+              isLanding={isLanding}
             />
           ) : currentView === "global" ? (
-            <GlobalPoliciesView onAddNewPolicy={() => {
+            <GlobalPoliciesView basePath={pathname} onAddNewPolicy={() => {
               setEditingPolicyId(null);
               setEditingPolicyReadOnly(false);
               setNewPolicyDrawerOpen(true);
             }} />
           ) : currentView === "global-list" ? (
             <GlobalPolicyListView 
+              basePath={pathname}
               onAddNewPolicy={() => {
                 setEditingPolicyId(null);
                 setEditingPolicyReadOnly(false);
@@ -367,7 +386,7 @@ const PoliciesView = ({ isLanding = false }) => {
                         </h6>
                         <p className="display-6 fw-bold text-body mb-0">{stats.contentWithViolations}</p>
                       </div>
-                      <PolicyTrendChart />
+                      <PolicyTrendChart trend={stats.trend} />
 
                       <div className="d-flex justify-content-end mt-2 pt-2 border-top">
                         <Link to="#" className="text-primary fs-13 d-inline-flex align-items-center">

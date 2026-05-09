@@ -30,7 +30,7 @@ const ComplianceCircle = ({ percent }) => {
 /**
  * One policy row for Policy list >> Required: Title (green check, subtitle, icons), Actions, Compliance (%, COMPLIANCE, circle), Policy Hits.
  */
-const RequiredPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) => {
+const RequiredPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView, onViewHits }) => {
   return (
     <tr>
       <td className="py-2 ps-4">
@@ -94,6 +94,11 @@ const RequiredPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) =
             <li>
               <button type="button" className="dropdown-item" onClick={() => onView && onView(row.id)}>
                 View details
+              </button>
+            </li>
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onViewHits && onViewHits(row)}>
+                View hits
               </button>
             </li>
             <li>

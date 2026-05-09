@@ -30,7 +30,7 @@ const ComplianceCircle = ({ percent }) => {
 /**
  * One policy row for Policy list >> Matches: Title (magnifying glass or check, subtitle, icons), Actions, Compliance (%, COMPLIANCE, circle), Policy Hits (value + HITS label or No hits found).
  */
-const MatchedPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) => {
+const MatchedPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView, onViewHits }) => {
   return (
     <tr>
       <td className="py-2 ps-4">
@@ -97,6 +97,11 @@ const MatchedPolicyListRow = ({ row, onDuplicate, onDelete, onEdit, onView }) =>
             <li>
               <button type="button" className="dropdown-item" onClick={() => onView && onView(row.id)}>
                 View details
+              </button>
+            </li>
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onViewHits && onViewHits(row)}>
+                View hits
               </button>
             </li>
             <li>

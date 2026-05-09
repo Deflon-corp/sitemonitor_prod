@@ -5,7 +5,7 @@ import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 import ContentWithPolicyMatchesPagesView from "./ContentWithPolicyMatchesPagesView";
 import ContentWithPolicyMatchesPdfView from "./ContentWithPolicyMatchesPdfView";
 import ContentWithPolicyMatchesOtherView from "./ContentWithPolicyMatchesOtherView";
-import { getPoliciesApi } from "@/api/policyApi";
+import { getPolicyContentMatchesApi } from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import toast from "react-hot-toast";
 
@@ -57,22 +57,22 @@ const ContentWithPolicyMatchesView = () => {
     try {
       setLoading(true);
       const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
-      const res = await getPoliciesApi({ domainId: selectedId });
+      const res = await getPolicyContentMatchesApi({ domainId: selectedId });
       if (res.success && res.data) {
-        setPolicies(res.data.map(p => ({
-          ...p,
-          id: p._id || p.id,
-          title: p.title || "Untitled",
-          url: p.url || "#",
-          unwanted: p.unwanted || 0,
-          required: p.required || 0,
-          matches: p.policyHits || 0,
-          priority: p.priority || "Low",
-          views: p.views || 0
+        setPolicies(res.data.map(m => ({
+          ...m,
+          id: m._id || m.id,
+          title: m.url || "Untitled",
+          url: m.url || "#",
+          unwanted: m.unwanted || 0,
+          required: m.required || 0,
+          matches: m.matches || 0,
+          priority: m.priority || "Low",
+          views: m.views || 0
         })));
       }
     } catch (err) {
-      console.error("Failed to fetch policies for content matches:", err);
+      console.error("Failed to fetch matches for content matches view:", err);
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ const ContentWithPolicyMatchesView = () => {
       rows = rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
     }
     return rows;
-  }, [search]);
+  }, [search, policies]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;
@@ -118,7 +118,7 @@ const ContentWithPolicyMatchesView = () => {
       }
       return dir * (a.views - b.views);
     });
-  }, [filteredRows, sortBy, sortDir]);
+  }, [filteredRows, sortBy, sortDir, policies]);
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -490,9 +490,21 @@ const ContentWithPolicyMatchesView = () => {
         </>
       )}
 
-      {activeTab === "pages" && <ContentWithPolicyMatchesPagesView />}
-      {activeTab === "pdf" && <ContentWithPolicyMatchesPdfView />}
-      {activeTab === "other" && <ContentWithPolicyMatchesOtherView />}
+      {activeTab === "pages" && (
+        <ContentWithPolicyMatchesPagesView 
+          data={policies.filter(p => !p.url.toLowerCase().endsWith(".pdf") && !p.url.toLowerCase().endsWith(".docx"))} 
+        />
+      )}
+      {activeTab === "pdf" && (
+        <ContentWithPolicyMatchesPdfView 
+          data={policies.filter(p => p.url.toLowerCase().endsWith(".pdf"))} 
+        />
+      )}
+      {activeTab === "other" && (
+        <ContentWithPolicyMatchesOtherView 
+          data={policies.filter(p => p.url.toLowerCase().endsWith(".docx") || p.url.toLowerCase().endsWith(".xlsx"))} 
+        />
+      )}
 
       <PageDetailsDrawer
         open={pageDetailsOpen}

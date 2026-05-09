@@ -7,7 +7,7 @@ const DEFAULT_HITS_BAR_MAX = 500;
  * Single policy row for the Global Policy List table (Title, Added by, Creation date, Hits, Action).
  * Used when displaying All, Matches, Required, Unwanted, or Archived policies.
  */
-const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX, onDuplicate, onDelete, onEdit, onView }) => {
+const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX, onDuplicate, onDelete, onEdit, onView, onViewHits }) => {
   return (
     <tr>
       <td className="py-2 ps-4">
@@ -72,6 +72,11 @@ const PolicyListTableRow = ({ row, hitsBarMax = DEFAULT_HITS_BAR_MAX, onDuplicat
             <li>
               <button type="button" className="dropdown-item" onClick={() => onView && onView(row.id)}>
                 View details
+              </button>
+            </li>
+            <li>
+              <button type="button" className="dropdown-item" onClick={() => onViewHits && onViewHits(row)}>
+                View hits
               </button>
             </li>
             <li>

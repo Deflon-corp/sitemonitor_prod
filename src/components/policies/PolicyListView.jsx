@@ -8,6 +8,7 @@ import MatchedPolicyListRow from "./MatchedPolicyListRow";
 import { getPoliciesApi, createPolicyApi, deletePolicyApi, getPolicyByIdApi } from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import toast from "react-hot-toast";
+import PolicyReportHitsDrawer from "./PolicyReportHitsDrawer";
 
 
 const FILTER_TABS = [
@@ -32,7 +33,7 @@ const FILTER_TABS = [
 // ];
 
 
-const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false, refreshTrigger }) => {
+const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false, refreshTrigger, isLanding = false }) => {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
@@ -44,11 +45,18 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [hitsDrawerOpen, setHitsDrawerOpen] = useState(false);
+  const [selectedPolicyForHits, setSelectedPolicyForHits] = useState(null);
 
   const fetchPolicies = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getPoliciesApi();
+      const query = {};
+      if (!isLanding) {
+        const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+        if (selectedId) query.domainId = selectedId;
+      }
+      const res = await getPoliciesApi(query);
       if (res.success && res.data) {
         // Normalize data: ensure fields exist and map _id to id
         const normalized = res.data.map(p => ({
@@ -234,7 +242,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
         <div className="d-flex align-items-center gap-2">
           {!hideGlobalButton && (
             <Link
-              to="/policies?view=global"
+              to={`${pathname}?view=global`}
               className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2 text-decoration-none"
             >
               <i className="isax isax-hammer" aria-hidden="true" />
@@ -388,9 +396,15 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
               <tbody>
                 {paginatedRows.map((row) =>
                   activeTab === "required" ? (
-                    <RequiredPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} />
+                    <RequiredPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} onViewHits={(r) => {
+                      setSelectedPolicyForHits(r);
+                      setHitsDrawerOpen(true);
+                    }} />
                   ) : activeTab === "matches" ? (
-                    <MatchedPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} />
+                    <MatchedPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} onViewHits={(r) => {
+                      setSelectedPolicyForHits(r);
+                      setHitsDrawerOpen(true);
+                    }} />
                   ) : (
                     <tr key={row.id}>
                       <td className="py-3 ps-4">
@@ -407,7 +421,16 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                           </span>
                           <div className="min-w-0">
                             <span className="fw-semibold text-body d-block fs-13">{row.title}</span>
-                            <span className="text-muted fs-12 d-block">Search in: {row.searchScope}</span>
+                            <span className="text-muted fs-12 d-block">
+                              Search in: {row.searchScope}
+                              {row.isGlobal ? (
+                                <span className="ms-2 badge bg-success bg-opacity-10 text-success fw-normal" style={{ fontSize: '10px' }}>Global</span>
+                              ) : row.domainIds?.length > 0 ? (
+                                <span className="ms-2 text-primary" style={{ fontSize: '11px' }} title={row.domainIds.map(d => d.dm_title || d.dm_url).join(', ')}>
+                                  Applied to {row.domainIds.length} {row.domainIds.length === 1 ? 'domain' : 'domains'}
+                                </span>
+                              ) : null}
+                            </span>
                             <div className="d-flex align-items-center gap-2 mt-1">
                               <i className="isax isax-information text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
                               <i className="isax isax-timer-1 text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
@@ -442,6 +465,10 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end">
                             <li><button type="button" className="dropdown-item" onClick={() => onEditPolicy && onEditPolicy(row.id)}>Edit policy</button></li>
+                            <li><button type="button" className="dropdown-item" onClick={() => {
+                              setSelectedPolicyForHits(row);
+                              setHitsDrawerOpen(true);
+                            }}>View hits</button></li>
                             <li><button type="button" className="dropdown-item" onClick={() => onViewPolicy && onViewPolicy(row.id)}>View details</button></li>
                             <li><button type="button" className="dropdown-item" onClick={() => handleDuplicate(row.id)}>Duplicate</button></li>
                             <li><hr className="dropdown-divider" /></li>
@@ -521,6 +548,13 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
           </div>
         )}
       </div>
+
+      <PolicyReportHitsDrawer
+        open={hitsDrawerOpen}
+        onClose={() => setHitsDrawerOpen(false)}
+        policyId={selectedPolicyForHits?.id}
+        policyTitle={selectedPolicyForHits?.title}
+      />
     </div>
   );
 };

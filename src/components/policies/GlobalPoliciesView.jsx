@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { DOMAINS } from "../../lib/domains-config";
+import { getPoliciesApi, getPolicyStatsApi } from "@/api/policyApi";
 import PolicyHitsPerDomainDrawer from "./PolicyHitsPerDomainDrawer";
 import VerticalBarChart from "./VerticalBarChart";
 
@@ -34,24 +34,49 @@ const GlobalPoliciesView = ({
   onAddNewPolicy,
   basePath = "/policies",
   currentView = "global",
-  thirdCardLoading = false,
 }) => {
   const [sortHitsDesc, setSortHitsDesc] = useState(true);
   const [hitsDrawerPolicy, setHitsDrawerPolicy] = useState(null);
   const [runPolicyAgainPolicy, setRunPolicyAgainPolicy] = useState(null);
+  const [stats, setStats] = useState({ priorities: [], distribution: [] });
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const GLOBAL_NAV = getGlobalNav(basePath);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [statsRes, policiesRes] = await Promise.all([
+          getPolicyStatsApi({ domainId: null }), // Global stats
+          getPoliciesApi({ domainId: null }),   // Global policies
+        ]);
+        if (statsRes.success) setStats(statsRes.data);
+        if (policiesRes.success) setPolicies(policiesRes.data);
+      } catch (err) {
+        console.error("Failed to fetch global policy data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const sortedRows = useMemo(() => {
-    return [...SAMPLE_MOST_MATCHES].sort((a, b) =>
-      sortHitsDesc ? b.hits - a.hits : a.hits - b.hits
-    );
-  }, [sortHitsDesc]);
+    return [...policies]
+      .sort((a, b) => sortHitsDesc ? (b.policyHits || 0) - (a.policyHits || 0) : (a.policyHits || 0) - (b.policyHits || 0))
+      .slice(0, 5);
+  }, [policies, sortHitsDesc]);
 
   const domainHitsForPolicy = useMemo(() => {
-    if (!hitsDrawerPolicy || hitsDrawerPolicy.hits <= 0) return [];
-    const first = DOMAINS[0];
-    if (!first) return [{ domainId: "1", domainName: "Bajaj FinServ -500", domainUrl: "https://www.bajajfinserv.in/", hits: hitsDrawerPolicy.hits }];
-    return [{ domainId: first.id, domainName: first.name, domainUrl: first.url, hits: hitsDrawerPolicy.hits }];
+    if (!hitsDrawerPolicy || !hitsDrawerPolicy.domainIds) return [];
+    return (hitsDrawerPolicy.domainIds || []).map(d => ({
+      domainId: d._id,
+      domainName: d.dm_title || "Unknown Domain",
+      domainUrl: d.dm_url || "#",
+      hits: hitsDrawerPolicy.policyHits || 0
+    }));
   }, [hitsDrawerPolicy]);
 
   return (
@@ -101,38 +126,21 @@ const GlobalPoliciesView = ({
 
       {/* Overview cards */}
       <div className="row g-3 g-xl-4 mb-4">
-        <div className="col-lg-4">
+        <div className="col-lg-6">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Priorities</h6>
               <p className="fs-13 text-muted mb-3">Distribution of policies with matches across priority levels</p>
-              <VerticalBarChart items={PRIORITIES_DATA} maxVal={5} />
+              <VerticalBarChart items={stats.priorities || []} maxVal={Math.max(5, ...(stats.priorities || []).map(p => p.value || 0))} />
             </div>
           </div>
         </div>
-        <div className="col-lg-4">
+        <div className="col-lg-6">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Policy Distribution</h6>
               <p className="fs-13 text-muted mb-3">Distribution of policies that match their corresponding setting</p>
-              <VerticalBarChart items={POLICY_DIST_DATA} maxVal={5} />
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-4">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Policy Distribution</h6>
-              <p className="fs-13 text-muted mb-3">Distribution of policies that match their corresponding setting</p>
-              {thirdCardLoading ? (
-                <div className="d-flex align-items-center justify-content-center py-4">
-                  <div className="spinner-border spinner-border-sm text-primary" role="status" aria-label="Loading">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                </div>
-              ) : (
-                <VerticalBarChart items={POLICY_DIST_DATA} maxVal={5} />
-              )}
+              <VerticalBarChart items={stats.distribution || []} maxVal={Math.max(5, ...(stats.distribution || []).map(d => d.value || 0))} />
             </div>
           </div>
         </div>
@@ -188,28 +196,28 @@ const GlobalPoliciesView = ({
                     </div>
                   </td>
                   <td className="py-2">
-                    {row.hits > 0 ? (
+                    {(row.policyHits || 0) > 0 ? (
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-decoration-none d-inline-block"
                         onClick={() => setHitsDrawerPolicy(row)}
-                        aria-label={`${row.hits} hits – view policy hits per domain`}
+                        aria-label={`${row.policyHits} hits – view policy hits per domain`}
                       >
                         <div className="progress rounded-pill flex-grow-1" style={{ height: 24, minWidth: 80, maxWidth: 120 }}>
                           <div
                             className="progress-bar bg-primary d-flex align-items-center justify-content-center rounded-pill"
                             role="progressbar"
-                            style={{ width: `${Math.min(100, (row.hits / 500) * 100)}%` }}
-                            aria-valuenow={row.hits}
+                            style={{ width: `${Math.min(100, ((row.policyHits || 0) / 500) * 100)}%` }}
+                            aria-valuenow={row.policyHits}
                             aria-valuemin="0"
                             aria-valuemax="500"
                           >
-                            <span className="text-white fs-13 fw-medium">{row.hits}</span>
+                            <span className="text-white fs-13 fw-medium">{row.policyHits}</span>
                           </div>
                         </div>
                       </button>
                     ) : (
-                      <span className="text-muted fs-13">{row.hits}</span>
+                      <span className="text-muted fs-13">{row.policyHits || 0}</span>
                     )}
                   </td>
                   <td className="py-3 pe-4">

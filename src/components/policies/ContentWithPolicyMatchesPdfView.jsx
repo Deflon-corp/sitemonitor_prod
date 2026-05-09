@@ -19,7 +19,7 @@ const SAMPLE_ROWS = Array.from({ length: 18 }, (_, i) => ({
   views: Math.floor(Math.random() * 200),
 }));
 
-const ContentWithPolicyMatchesPdfView = () => {
+const ContentWithPolicyMatchesPdfView = ({ data = [] }) => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -37,10 +37,10 @@ const ContentWithPolicyMatchesPdfView = () => {
   }, []);
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return data;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return data.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, data]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;

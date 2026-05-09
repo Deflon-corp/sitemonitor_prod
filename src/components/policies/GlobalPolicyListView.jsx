@@ -4,6 +4,7 @@ import PolicyListEmptyState from "./PolicyListEmptyState";
 import UnwantedPoliciesEmptyView from "./UnwantedPoliciesEmptyView";
 import ArchivedPoliciesEmptyView from "./ArchivedPoliciesEmptyView";
 import PolicyListTableRow from "./PolicyListTableRow";
+import PolicyReportHitsDrawer from "./PolicyReportHitsDrawer";
 
 const getGlobalNav = (basePath) => [
   { key: "dashboard", label: "Global Policy Dashboard", icon: "isax-hammer", href: `${basePath}?view=global` },
@@ -79,6 +80,8 @@ const GlobalPolicyListView = ({
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [hitsDrawerOpen, setHitsDrawerOpen] = useState(false);
+  const [selectedPolicyForHits, setSelectedPolicyForHits] = useState(null);
 
   const filteredBySearch = useMemo(() => {
     let rows = SAMPLE_POLICIES;
@@ -271,6 +274,10 @@ const GlobalPolicyListView = ({
                     hitsBarMax={HITS_BAR_MAX} 
                     onEdit={onEditPolicy}
                     onView={onViewPolicy}
+                    onViewHits={(r) => {
+                      setSelectedPolicyForHits(r);
+                      setHitsDrawerOpen(true);
+                    }}
                   />
                 ))}
               </tbody>
@@ -342,6 +349,13 @@ const GlobalPolicyListView = ({
           </div>
         )}
       </div>
+
+      <PolicyReportHitsDrawer
+        open={hitsDrawerOpen}
+        onClose={() => setHitsDrawerOpen(false)}
+        policyId={selectedPolicyForHits?.id}
+        policyTitle={selectedPolicyForHits?.title}
+      />
     </div>
   );
 };
