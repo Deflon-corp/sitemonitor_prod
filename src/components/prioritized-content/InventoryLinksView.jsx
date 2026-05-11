@@ -32,26 +32,9 @@ const CONTENT_TYPES = [
   { key: "archive-files", label: "Archive files", icon: "isax-archive-book", total: 0 },
 ];
 
-const SAMPLE_INTERNAL = [
-  { id: "1", link: "https://www.bajajfinserv.in/personal-loans", type: "Link", responseCode: "200" },
-  { id: "2", link: "https://www.bajajfinserv.in/home-loans", type: "Link", responseCode: "200" },
-  { id: "3", link: "https://www.bajajfinserv.in/contact-us", type: "Link", responseCode: "200" },
-  { id: "4", link: "https://www.bajajfinserv.in/careers", type: "Link", responseCode: "200" },
-  { id: "5", link: "https://www.bajajfinserv.in/about-us", type: "Link", responseCode: "200" },
-  { id: "6", link: "https://www.bajajfinserv.in/emi-calculator", type: "Link", responseCode: "200" },
-  { id: "7", link: "https://www.bajajfinserv.in/insurance", type: "Link", responseCode: "200" },
-  { id: "8", link: "https://www.bajajfinserv.in/investments", type: "Link", responseCode: "200" },
-  { id: "9", link: "https://www.bajajfinserv.in/faq", type: "Link", responseCode: "200" },
-  { id: "10", link: "https://www.bajajfinserv.in/privacy-policy", type: "Link", responseCode: "200" },
-];
 
-const SAMPLE_EXTERNAL = [
-  { id: "e1", link: "https://www.linkedin.com/company/bajajfinserv", type: "Link", responseCode: "200" },
-  { id: "e2", link: "https://twitter.com/bajajfinserv", type: "Link", responseCode: "200" },
-  { id: "e3", link: "https://www.facebook.com/bajajfinserv", type: "Link", responseCode: "200" },
-  { id: "e4", link: "https://www.youtube.com/bajajfinserv", type: "Link", responseCode: "200" },
-  { id: "e5", link: "https://www.instagram.com/bajajfinserv", type: "Link", responseCode: "200" },
-];
+
+
 
 
 
@@ -354,10 +337,18 @@ function LinksDetailView({
 }
 
 export default function InventoryLinksView({
-  contentTypes = CONTENT_TYPES,
-  internalRows = SAMPLE_INTERNAL,
-  externalRows = SAMPLE_EXTERNAL,
+  items = [],
+  contentTypes: contentTypesProp = CONTENT_TYPES,
 }) {
+  const internalRows = useMemo(() => items.filter(r => r.type === "Internal"), [items]);
+  const externalRows = useMemo(() => items.filter(r => r.type === "External" || r.type === "Broken"), [items]);
+
+  const contentTypes = useMemo(() => {
+    return CONTENT_TYPES.map(t => {
+      if (t.key === "pages") return { ...t, total: items.length };
+      return t;
+    });
+  }, [items]);
   const [selectedType, setSelectedType] = useState(null);
   const [pagesDrawerOpen, setPagesDrawerOpen] = useState(false);
 

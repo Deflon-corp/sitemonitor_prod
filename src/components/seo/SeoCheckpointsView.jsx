@@ -1,40 +1,30 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-import SeoCheckpointPagesDrawer, { } from "@/components/seo/SeoCheckpointPagesDrawer";
-import PageDetailsMisspellingsDrawer, { } from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
+import SeoCheckpointPagesDrawer from "@/components/seo/SeoCheckpointPagesDrawer";
+import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
+import { getDomainSeoCheckpointsApi } from "../../api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const TEAL = "#14b8a6";
-
-
-
-
-
-
-
-
-
-
-
-const HIGH_PRIORITY = [
-  { id: "hp1", issue: "Missing title", showInfoIcon: true, status: "error", compliancePercent: 0.6, pagesLabel: "497 PAGES", pagesHref: "#" },
-  { id: "hp2", issue: "Missing H1", showInfoIcon: true, status: "error", compliancePercent: 99.6, pagesLabel: "2 PAGES", pagesHref: "#" },
-  { id: "hp3", issue: "Title found on more than one page", status: "ok", compliancePercent: 100, pagesLabel: "No issues found" },
-];
-
-const MEDIUM_PRIORITY = [
-  { id: "mp1", issue: "Multiple H1 on page", status: "error", compliancePercent: 9, pagesLabel: "455 PAGES", pagesHref: "#" },
-  { id: "mp2", issue: "H1 found on more than one page", status: "error", compliancePercent: 9, pagesLabel: "455 PAGES", pagesHref: "#" },
-  { id: "mp3", issue: "Images missing ALT", status: "error", compliancePercent: 99.6, pagesLabel: "2 PAGES", pagesHref: "#" },
-  { id: "mp4", issue: "Missing sub headings", showInfoIcon: true, status: "error", compliancePercent: 99.8, pagesLabel: "1 PAGE", pagesHref: "#" },
-];
 
 const ComplianceRing = ({ percent, status }) => {
   const r = 20;
   const circumference = 2 * Math.PI * r;
   const filled = Math.min(100, Math.max(0, percent)) / 100 * circumference;
-  const color = status === "ok" ? "#22c55e" : percent >= 99 ? TEAL : "#e5e7eb";
+  
+  let color = "#e5e7eb"; // Default gray
+  if (status === "ok" || percent === 100) {
+    color = "#22c55e"; // Green
+  } else if (percent >= 70) {
+    color = TEAL; // Teal
+  } else if (percent >= 40) {
+    color = "#fd7e14"; // Orange
+  } else if (percent > 0) {
+    color = "#dc3545"; // Red
+  }
+
   return (
     <div className="position-relative d-inline-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}>
       <svg width={44} height={44} viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
@@ -50,7 +40,6 @@ const ComplianceRing = ({ percent, status }) => {
   );
 };
 
-/** Parse "497 PAGES" -> 497, "1 PAGE" -> 1. Returns 0 for "No issues found" or invalid. */
 function parsePageCount(pagesLabel) {
   const m = pagesLabel.match(/^(\d+)\s*(?:PAGE|PAGES)$/i);
   return m ? parseInt(m[1], 10) : 0;
@@ -126,6 +115,11 @@ const CheckpointSection = ({
                   </td>
                 </tr>
               ))}
+              {rows.length === 0 && (
+                <tr>
+                    <td colSpan="3" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -151,6 +145,29 @@ const SeoCheckpointsView = () => {
   const [checkpointDrawerIssue, setCheckpointDrawerIssue] = useState(null);
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
+  const [checkpoints, setCheckpoints] = useState({ high: [], medium: [], low: [] });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchCheckpoints = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const response = await getDomainSeoCheckpointsApi(domainId);
+      if (response.success) {
+        setCheckpoints(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch SEO checkpoints:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    fetchCheckpoints();
+  }, [fetchCheckpoints]);
 
   const openCheckpointPagesDrawer = useCallback((row) => {
     if (parsePageCount(row.pagesLabel) <= 0) return;
@@ -159,11 +176,15 @@ const SeoCheckpointsView = () => {
   }, []);
 
   const openPageDetails = useCallback((page) => {
-    setSelectedPageForDetails({ id: 0, title: page.title, url: page.url });
+    setSelectedPageForDetails(page);
     setPageDetailsDrawerOpen(true);
   }, []);
 
-  const allRows = [...HIGH_PRIORITY.map((r) => ({ ...r, priority: "High" })), ...MEDIUM_PRIORITY.map((r) => ({ ...r, priority: "Medium" }))];
+  const allRows = [
+    ...checkpoints.high.map((r) => ({ ...r, priority: "High" })), 
+    ...checkpoints.medium.map((r) => ({ ...r, priority: "Medium" })),
+    ...checkpoints.low.map((r) => ({ ...r, priority: "Low" }))
+  ];
 
   const exportCSV = useCallback(() => {
     const header = "Priority,Issue,Compliance %,Pages\n";
@@ -199,6 +220,16 @@ const SeoCheckpointsView = () => {
     doc.save(`${REPORT_BASE}.pdf`);
   }, [allRows]);
 
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center p-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="seo-checkpoints-view">
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
@@ -221,7 +252,7 @@ const SeoCheckpointsView = () => {
         title="High priority"
         iconClass="isax-chart-2 text-danger"
         description="These alerts can make it difficult for search engines to crawl, index and rank pages."
-        rows={HIGH_PRIORITY}
+        rows={checkpoints.high}
         onPagesClick={openCheckpointPagesDrawer}
       />
 
@@ -229,7 +260,15 @@ const SeoCheckpointsView = () => {
         title="Medium priority"
         iconClass="isax-chart-2 text-warning"
         description="These warnings can have a negative effect on search engine rankings."
-        rows={MEDIUM_PRIORITY}
+        rows={checkpoints.medium}
+        onPagesClick={openCheckpointPagesDrawer}
+      />
+
+      <CheckpointSection
+        title="Low priority"
+        iconClass="isax-chart-2 text-primary"
+        description="These minor issues should be addressed for better overall SEO health."
+        rows={checkpoints.low}
         onPagesClick={openCheckpointPagesDrawer}
       />
 

@@ -7,32 +7,8 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE = [
-  { id: 1, url: "https://www.bajajfinserv.in/search", pageCount: 1 },
-  { id: 2, url: "https://www.bajajfinserv.in/login", pageCount: 1 },
-  { id: 3, url: "https://www.bajajfinserv.in/contact-us", pageCount: 2 },
-  { id: 4, url: "https://www.bajajfinserv.in/emi-calculator", pageCount: 1 },
-  { id: 5, url: "https://www.bajajfinserv.in/feedback", pageCount: 1 },
-  { id: 6, url: "https://www.bajajfinserv.in/newsletter", pageCount: 1 },
-  { id: 7, url: "https://www.bajajfinserv.in/apply", pageCount: 3 },
-  { id: 8, url: "https://www.bajajfinserv.in/register", pageCount: 1 },
-  { id: 9, url: "https://www.bajajfinserv.in/products/loan-form", pageCount: 2 },
-  { id: 10, url: "https://www.bajajfinserv.in/cards/application", pageCount: 1 },
-];
-
-/** Form details table rows (LINK, TYPE, RESPONSE CODE) for embedded/drawer view */
-const FORM_DETAILS_SAMPLE = [
-  { id: 1, link: "https://www.bajajfinserv.in/search", type: "Form", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/login", type: "Form", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/contact-us", type: "Form", responseCode: "200" },
-  { id: 4, link: "https://www.bajajfinserv.in/emi-calculator", type: "Form", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/feedback", type: "Form", responseCode: "200" },
-  { id: 6, link: "https://www.bajajfinserv.in/apply", type: "Form", responseCode: "200" },
-];
-
-export default function InventoryFormsView({ items = SAMPLE, variant }) {
+export default function InventoryFormsView({ items = [], variant }) {
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("internal");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [pagesDrawerOpen, setPagesDrawerOpen] = useState(false);
@@ -43,7 +19,7 @@ export default function InventoryFormsView({ items = SAMPLE, variant }) {
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
     return items.filter((r) =>
-      r.url.toLowerCase().includes(search.trim().toLowerCase())
+      (r.url || "").toLowerCase().includes(search.trim().toLowerCase())
     );
   }, [items, search]);
 
@@ -89,8 +65,8 @@ export default function InventoryFormsView({ items = SAMPLE, variant }) {
   // Form details variant: LINK, TYPE, RESPONSE CODE table (for Page Details drawer)
   if (variant === "details") {
     const detailsFiltered = !search.trim()
-      ? FORM_DETAILS_SAMPLE
-      : FORM_DETAILS_SAMPLE.filter((r) =>
+      ? items
+      : items.filter((r) =>
           (r.link || "").toLowerCase().includes(search.trim().toLowerCase())
         );
     const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
@@ -239,37 +215,7 @@ export default function InventoryFormsView({ items = SAMPLE, variant }) {
       </div>
 
       {/* Tabs + Download + Search row */}
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <nav className="nav nav-tabs border-0 gap-2 gap-md-4" aria-label="Forms scope">
-          <button
-            type="button"
-            className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${
-              tab === "internal"
-                ? "fw-semibold text-primary border-bottom border-2 border-primary"
-                : "text-muted"
-            }`}
-            style={{
-              borderBottom: tab === "internal" ? "2px solid var(--bs-primary)" : "2px solid transparent",
-            }}
-            onClick={() => setTab("internal")}
-          >
-            Internal
-          </button>
-          <button
-            type="button"
-            className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${
-              tab === "external"
-                ? "fw-semibold text-primary border-bottom border-2 border-primary"
-                : "text-muted"
-            }`}
-            style={{
-              borderBottom: tab === "external" ? "2px solid var(--bs-primary)" : "2px solid transparent",
-            }}
-            onClick={() => setTab("external")}
-          >
-            External
-          </button>
-        </nav>
+      <div className="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3">
         <div className="d-flex align-items-center gap-2 forms-download-report-btn">
           <DownloadReportDropdown
             reportBaseName={formsReportBase}

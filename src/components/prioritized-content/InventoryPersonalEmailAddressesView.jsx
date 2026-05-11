@@ -12,19 +12,7 @@ const TITLE = "Email addresses";
 const ICON = "isax-sms";
 const REPORT_BASE = "Email-Addresses-Report";
 
-/** Site-wide Personal inventory: email, documents count, pages count */
-const SAMPLE = [
-  { id: 1, email: "investors@bajajfinserv.in", documents: 0, pages: 498 },
-  { id: 2, email: "investor.service@bajajfinserv.in", documents: 0, pages: 12 },
-  { id: 3, email: "support@bajajfinserv.in", documents: 2, pages: 156 },
-  { id: 4, email: "contact@bajajfinserv.in", documents: 0, pages: 89 },
-  { id: 5, email: "careers@bajajfinserv.in", documents: 1, pages: 34 },
-  { id: 6, email: "compliance@bajajfinserv.in", documents: 5, pages: 22 },
-  { id: 7, email: "feedback@bajajfinserv.in", documents: 0, pages: 8 },
-  { id: 8, email: "privacy@bajajfinserv.in", documents: 0, pages: 201 },
-];
-
-export default function InventoryPersonalEmailAddressesView({ items = SAMPLE }) {
+export default function InventoryPersonalEmailAddressesView({ items = [] }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);

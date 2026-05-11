@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback  } from "react";
-import PageDetailsDrawer, { } from "@/components/prioritized-content/PageDetailsDrawer";
+import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import QAQuickInfoMenu from "@/components/quality-assurance/QAQuickInfoMenu";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
@@ -16,25 +16,10 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 function toPageDetailsPage(row) {
-  const id = Number.parseInt(row.id, 10) || 0;
-  return { id, title: row.title, url: row.url };
+  return row;
 }
 
-/** Sample data – replace with API */
-const SAMPLE_ROWS = [
-  { id: "1", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/godrej-343-l-3-star-frost-free-double-door-refrigerator-lush-white-rteon-343-p-33-lush-w-219jlw/p/29185", notifications: 53, views: 0 },
-  { id: "2", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/samsung-253-l-3-star-frost-free-double-door-refrigerator/p/29184", notifications: 50, views: 0 },
-  { id: "3", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lg-260-l-3-star-frost-free-double-door-refrigerator/p/29183", notifications: 51, views: 0 },
-  { id: "4", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/whirlpool-265-l-3-star-frost-free-double-door-refrigerator/p/29182", notifications: 52, views: 0 },
-  { id: "5", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/haier-324-l-frost-free-double-door-refrigerator/p/29181", notifications: 50, views: 0 },
-  { id: "6", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/ifb-279-l-3-star-frost-free-double-door-refrigerator/p/29180", notifications: 51, views: 0 },
-  { id: "7", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/mitra-230-l-3-star-single-door-refrigerator/p/29179", notifications: 53, views: 0 },
-  { id: "8", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/kelvinator-192-l-single-door-refrigerator/p/29178", notifications: 52, views: 0 },
-];
-
-
-
-export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
+export default function InventoryHtmlPagesView({ items = [] }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -49,9 +34,10 @@ export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
   };
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return items;
+    const rows = Array.isArray(items) ? items : [];
+    if (!search.trim()) return rows;
     const q = search.trim().toLowerCase();
-    return items.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+    return rows.filter((r) => (r.title || "").toLowerCase().includes(q) || (r.url || "").toLowerCase().includes(q));
   }, [items, search]);
 
   const sortedRows = useMemo(() => {
@@ -220,10 +206,10 @@ export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
               )
               , React.createElement('tbody', {}
                 , paginatedRows.map((row) => (
-                  React.createElement('tr', { key: row.id}
+                  React.createElement('tr', { key: String(row.id || Math.random())}
                     , React.createElement('td', { className: "py-3 ps-4" }
                       , React.createElement('div', { className: "d-flex flex-column" }
-                        , React.createElement('span', { className: "fw-semibold text-body" }, row.title)
+                        , React.createElement('span', { className: "fw-semibold text-body" }, String(row.title || "(No title)"))
                         , React.createElement('a', {
                           href: row.url,
                           target: "_blank",
@@ -238,7 +224,7 @@ export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
                               , React.createElement('path', { d: "M10 14L21 3"  , stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"} )
                             )
                           )
-                          , row.url
+                          , String(row.url || "")
                         )
                       )
                     )
@@ -251,21 +237,21 @@ export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
                           'aria-expanded': "false",
                           'aria-label': "Show quick info"  }
 
-                          , React.createElement('span', { className: "badge bg-primary bg-opacity-10 text-primary rounded-pill"    }, row.notifications)
+                          , React.createElement('span', { className: "badge bg-primary bg-opacity-10 text-primary rounded-pill"    }, String(row.notifications || 0))
                         )
                         , React.createElement(QAQuickInfoMenu, {
-                          brokenLinks: 2,
-                          brokenImages: 2,
-                          misspellings: 2,
-                          policies: 1,
-                          accessibility: 40,
-                          seo: 6,
-                          dataPrivacy: 0}
+                          brokenLinks: Array.isArray(row.brokenLinks) ? row.brokenLinks.length : (Number(row.brokenLinks) || 0),
+                          brokenImages: Array.isArray(row.brokenImages) ? row.brokenImages.length : (Number(row.brokenImages) || 0),
+                          misspellings: Array.isArray(row.misspellings) ? row.misspellings.length : (Number(row.misspellings) || 0),
+                          policies: Array.isArray(row.policies) ? row.policies.length : (Number(row.policies) || 0),
+                          accessibility: (row.accessibility?.violations?.length || Number(row.accessibility?.score) || 0),
+                          seo: Array.isArray(row.seo) ? row.seo.length : (Number(row.seo) || 0),
+                          dataPrivacy: Number(row.dataPrivacy) || 0}
                         )
                       )
                     )
                     , React.createElement('td', { className: "py-3"}
-                      , React.createElement('span', { className: "text-body"}, row.views)
+                      , React.createElement('span', { className: "text-body"}, String(row.views || 0))
                     )
                     , React.createElement('td', { className: "py-3 pe-4 text-end"  }
                       , React.createElement('div', { className: "d-flex align-items-center justify-content-end gap-1"   }
@@ -351,7 +337,7 @@ export default function InventoryHtmlPagesView({ items = SAMPLE_ROWS }) {
         )
       )
 
-      , React.createElement(PageDetailsDrawer, {
+      , React.createElement(PageDetailsMisspellingsDrawer, {
         open: pageDetailsOpen,
         onClose: () => setPageDetailsOpen(false),
         page: selectedPage ? toPageDetailsPage(selectedPage) : null,

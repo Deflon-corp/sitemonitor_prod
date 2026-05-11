@@ -1,27 +1,18 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import PagesWithImageDrawer from "./PagesWithImageDrawer";
-import PageDetailsDrawer from "./PageDetailsDrawer";
+import PageDetailsMisspellingsDrawer from "./PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import { SAMPLE_IMAGES_INTERNAL } from "./images/InventoryImagesInternalTab";
-import { SAMPLE_IMAGES_EXTERNAL } from "./images/InventoryImagesExternalTab";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const TABS = [
-  { key: "internal", label: "Internal", icon: "isax-image" },
-  { key: "external", label: "External", icon: "isax-link-2" },
-];
-
 const PrioritizedContentImagesView = ({
   title: titleProp = "Images",
-  internalRows = SAMPLE_IMAGES_INTERNAL,
-  externalRows = SAMPLE_IMAGES_EXTERNAL,
+  items = [],
   defaultInventorySubView = "images",
 }) => {
-  const [tab, setTab] = useState("internal");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -36,18 +27,16 @@ const PrioritizedContentImagesView = ({
   };
 
   const openPageDetails = useCallback((row) => {
-    const id = Number.parseInt(row.id.replace(/\D/g, ""), 10) || 0;
-    setSelectedPageForDetails({ id, title: row.title, url: row.url });
+    setSelectedPageForDetails(row);
     setPagesDrawerOpen(false);
     setPageDetailsOpen(true);
   }, []);
 
-  const rows = tab === "internal" ? internalRows : externalRows;
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return rows;
+    if (!search.trim()) return items;
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => r.url.toLowerCase().includes(q));
-  }, [rows, search]);
+    return items.filter((r) => (r.url || "").toLowerCase().includes(q));
+  }, [items, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
   const paginatedRows = useMemo(() => {
@@ -59,13 +48,13 @@ const PrioritizedContentImagesView = ({
 
   const exportCSV = useCallback(() => {
     const header = "URL,Pages\n";
-    const body = filteredRows.map((r) => `"${r.url.replace(/"/g, '""')}",${r.pages}`).join("\n");
+    const body = filteredRows.map((r) => `"${(r.url || "").replace(/"/g, '""')}",${r.pageCount || 0}`).join("\n");
     downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${reportBase}.csv`);
   }, [filteredRows, reportBase]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const ws = XLSX.utils.json_to_sheet(filteredRows.map((r) => ({ URL: r.url, Pages: r.pages })));
+    const ws = XLSX.utils.json_to_sheet(filteredRows.map((r) => ({ URL: r.url || "", Pages: r.pageCount || 0 })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, titleProp);
     XLSX.writeFile(wb, `${reportBase}.xlsx`);
@@ -77,7 +66,7 @@ const PrioritizedContentImagesView = ({
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["URL", "Pages"]],
-      body: filteredRows.map((r) => [r.url, String(r.pages)]),
+      body: filteredRows.map((r) => [r.url || "", String(r.pageCount || 0)]),
       startY: 10,
       styles: { fontSize: 8 },
       columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: 25 } },
@@ -102,26 +91,10 @@ const PrioritizedContentImagesView = ({
         </div>
       </div>
 
-      {/* Tabs + Download + Filter + Search */}
+      {/* Download + Filter + Search */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body py-3">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div className="d-flex align-items-center gap-2">
-              {TABS.map(({ key, label, icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`btn btn-sm d-inline-flex align-items-center gap-1 ${tab === key ? "btn-primary" : "btn-light"}`}
-                  onClick={() => {
-                    setTab(key);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <i className={`isax ${icon}`} aria-hidden="true" />
-                  {label}
-                </button>
-              ))}
-            </div>
             <div className="d-flex align-items-center gap-2">
               <DownloadReportDropdown
                 reportBaseName={reportBase}
@@ -183,7 +156,7 @@ const PrioritizedContentImagesView = ({
                         className="btn btn-link p-0 border-0 text-decoration-none"
                         onClick={() => openPagesDrawer(row)}
                       >
-                        <span className="text-primary fw-semibold me-1">{row.pages}</span>
+                        <span className="text-primary fw-semibold me-1">{row.pageCount}</span>
                         <span className="text-muted"> PAGES</span>
                       </button>
                     </td>
@@ -270,7 +243,7 @@ const PrioritizedContentImagesView = ({
         onOpenPageDetails={openPageDetails}
       />
 
-      <PageDetailsDrawer
+      <PageDetailsMisspellingsDrawer
         open={pageDetailsOpen}
         onClose={() => setPageDetailsOpen(false)}
         page={selectedPageForDetails}

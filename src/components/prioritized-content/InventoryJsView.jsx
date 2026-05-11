@@ -45,7 +45,6 @@ const DEFAULT_INVENTORY_SUB_VIEW = "js";
 
 export default function InventoryJsView({ items = SAMPLE, variant }) {
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("internal");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [pagesDrawerOpen, setPagesDrawerOpen] = useState(false);
@@ -124,9 +123,16 @@ export default function InventoryJsView({ items = SAMPLE, variant }) {
   return (
     <>
       <div className="mb-4"><div className="d-flex align-items-center gap-2 mb-1"><span className="avatar avatar-40 rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style={{ minWidth: 40, height: 40 }}><i className={`isax ${ICON} fs-4`} aria-hidden /></span><h5 className="mb-0 fw-bold text-body">{TITLE}</h5></div><p className="text-muted small mb-0">{filteredItems.length} results</p></div>
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <nav className="nav nav-tabs border-0 gap-2 gap-md-4" aria-label={`${TITLE} scope`}><button type="button" className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${tab === "internal" ? "fw-semibold text-primary border-bottom border-2 border-primary" : "text-muted"}`} style={{ borderBottom: tab === "internal" ? "2px solid var(--bs-primary)" : "2px solid transparent" }} onClick={() => setTab("internal")}>Internal</button><button type="button" className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${tab === "external" ? "fw-semibold text-primary border-bottom border-2 border-primary" : "text-muted"}`} style={{ borderBottom: tab === "external" ? "2px solid var(--bs-primary)" : "2px solid transparent" }} onClick={() => setTab("external")}>External</button></nav>
-        <div className="d-flex align-items-center gap-2 forms-download-report-btn"><DownloadReportDropdown reportBaseName={reportBase} onExportCSV={exportCSV} onExportExcel={exportExcel} onExportPDF={exportPDF} buttonLabel="Download Report" className="btn btn-sm btn-outline-primary rounded-2" /><div className="position-relative" style={{ minWidth: 200, maxWidth: 280 }}><input type="search" className="form-control form-control-sm ps-3 pe-4" placeholder="Search..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} aria-label={`Search ${TITLE.toLowerCase()}`} /><span className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted" style={{ pointerEvents: "none" }}><i className="isax isax-search-normal small" aria-hidden /></span></div></div>
+      <div className="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3">
+        <div className="d-flex align-items-center gap-2 forms-download-report-btn">
+          <DownloadReportDropdown reportBaseName={reportBase} onExportCSV={exportCSV} onExportExcel={exportExcel} onExportPDF={exportPDF} buttonLabel="Download Report" className="btn btn-sm btn-outline-primary rounded-2" />
+          <div className="position-relative" style={{ minWidth: 200, maxWidth: 280 }}>
+            <input type="search" className="form-control form-control-sm ps-3 pe-4" placeholder="Search..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} aria-label={`Search ${TITLE.toLowerCase()}`} />
+            <span className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted" style={{ pointerEvents: "none" }}>
+              <i className="isax isax-search-normal small" aria-hidden />
+            </span>
+          </div>
+        </div>
       </div>
       <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm overflow-hidden">
         <div className="card-body p-0">

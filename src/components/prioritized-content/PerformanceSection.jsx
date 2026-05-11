@@ -645,21 +645,6 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
           </div>
         </div>
 
-        {/* Assign to Performance Module when no data / optional CTA - hidden when embedded in expand drawer */}
-        {!embeddedInDrawer && (
-          <div className="mt-4 pt-3 border-top border-secondary border-opacity-25 text-center">
-            <p className="text-muted mb-2" style={{ fontSize: "0.75rem" }}>
-              Need to assign this page to the Performance Module?
-            </p>
-            <button
-              type="button"
-              className="btn btn-light border border-secondary border-opacity-25 text-primary fw-medium"
-              onClick={() => setDrawerOpen(true)}
-            >
-              Assign to the Performance Module
-            </button>
-          </div>
-        )}
       </div>
 
       <NewPerformancePageDrawer

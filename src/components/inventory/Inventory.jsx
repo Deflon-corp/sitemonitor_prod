@@ -22,7 +22,6 @@ const CONTENT_SUB_VIEWS = [
   { key: "html-pages", label: "HTML Pages", icon: "isax-document-copy" },
   { key: "documents", label: "Documents", icon: "isax-document-text" },
   { key: "images", label: "Images", icon: "isax-image" },
-  { key: "inline-images", label: "Inline Images", icon: "isax-image" },
   { key: "links", label: "Links", icon: "isax-link-2" },
 ] ;
 
@@ -53,7 +52,7 @@ export default function InventoryPage() {
     const fetchDomainAndData = async () => {
       try {
         setLoading(true);
-        const domainId = localStorage.getItem(SELECTED_DOMAIN_KEY);
+        const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
         if (!domainId) {
           toast.error("No domain selected");
           setLoading(false);
@@ -61,22 +60,31 @@ export default function InventoryPage() {
         }
 
         const domainRes = await getDomainsApi();
-        const domain = domainRes.data.find(d => d._id === domainId);
+        const domainList = Array.isArray(domainRes.data) ? domainRes.data : (domainRes.data?.domains || []);
+        const domain = domainList.find(d => d._id === domainId || String(d.dm_id) === domainId);
         if (!domain) {
           toast.error("Domain not found");
           setLoading(false);
           return;
         }
-        setDomainName(domain.dm_name);
+        const hostname = domain.dm_url.toLowerCase().trim().replace(/^https?[:/\\]+/i, '').replace(/[/\\]+.*$/, '');
+        setDomainName(domain.dm_title || hostname);
 
         let res;
         switch (currentView) {
-          case "summary": res = await inventoryApi.getSummary(domain.dm_name); break;
-          case "html-pages": res = await inventoryApi.getHtmlPages(domain.dm_name); break;
-          case "css": res = await inventoryApi.getCss(domain.dm_name); break;
-          case "js": res = await inventoryApi.getJs(domain.dm_name); break;
-          case "images": res = await inventoryApi.getImages(domain.dm_name); break;
-          case "links": res = await inventoryApi.getLinks(domain.dm_name); break;
+          case "summary": res = await inventoryApi.getSummary(hostname); break;
+          case "html-pages": res = await inventoryApi.getHtmlPages(hostname); break;
+          case "css": res = await inventoryApi.getCss(hostname); break;
+          case "js": res = await inventoryApi.getJs(hostname); break;
+          case "images": res = await inventoryApi.getImages(hostname); break;
+          case "links": res = await inventoryApi.getLinks(hostname); break;
+          case "documents": res = await inventoryApi.getDocuments(hostname); break;
+          case "forms": res = await inventoryApi.getForms(hostname); break;
+          case "headlinks": res = await inventoryApi.getHeadlinks(hostname); break;
+          case "iframes": res = await inventoryApi.getIframes(hostname); break;
+          case "frames": res = await inventoryApi.getFrames(hostname); break;
+          case "email-addresses":
+          case "personal": res = await inventoryApi.getEmailAddresses(hostname); break;
           default: res = { success: true, data: [] };
         }
 
@@ -225,7 +233,7 @@ export default function InventoryPage() {
 
         , loading && React.createElement('div', { className: "text-center py-5" }, React.createElement('div', { className: "spinner-border text-primary", role: "status" }, React.createElement('span', { className: "visually-hidden" }, "Loading...")))
         , !loading && currentView === "summary" && React.createElement(InventorySummaryView, { data: data } )
-        , !loading && currentView === "html-pages" && React.createElement(InventoryHtmlPagesView, { items: data || [] } )
+        , !loading && currentView === "html-pages" && React.createElement(InventoryHtmlPagesView, { items: Array.isArray(data) ? data : [] } )
         , !loading && currentView === "documents" && React.createElement(InventoryDocumentsView, { items: data || [] } )
         , !loading && currentView === "images" && React.createElement(PrioritizedContentImagesView, { items: data || [] } )
         , !loading && currentView === "links" && React.createElement(InventoryLinksView, { items: data || [] } )
@@ -235,10 +243,7 @@ export default function InventoryPage() {
         , !loading && currentView === "frames" && React.createElement(InventoryFramesView, { items: data || [] } )
         , !loading && currentView === "css" && React.createElement(InventoryCssView, { items: data || [] } )
         , !loading && currentView === "js" && React.createElement(InventoryJsView, { items: data || [] } )
-        , !loading && currentView === "email-addresses" && React.createElement(InventoryPersonalEmailAddressesView, { items: data || [] } )
-        , !loading && currentView === "inline-images" && (
-          React.createElement(PrioritizedContentImagesView, { title: "Inline Images" , defaultInventorySubView: "inline-images", items: data || []} )
-        )
+        , !loading && (currentView === "email-addresses" || currentView === "personal") && React.createElement(InventoryPersonalEmailAddressesView, { items: data || [] } )
         , (currentView === "content" || currentView === "technical") && (
           React.createElement('div', { className: "card"}
             , React.createElement('div', { className: "card-body py-5 text-center text-muted"   }
@@ -247,7 +252,6 @@ export default function InventoryPage() {
             )
           )
         )
-        , currentView === "personal" && React.createElement(InventoryPersonalEmailAddressesView, {} )
       )
     )
   );

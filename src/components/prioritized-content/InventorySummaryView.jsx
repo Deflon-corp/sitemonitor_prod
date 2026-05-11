@@ -44,6 +44,29 @@ const smoothPath = (points) => {
 const InventorySummaryView = ({ data }) => {
   const [selectedYear, setSelectedYear] = useState(2026);
 
+  const history = data?.history || [];
+  
+  // Prepare dynamic chart data
+  const hasHistory = history.length > 0;
+  
+  const displayLabels = hasHistory 
+    ? history.map(h => {
+        const d = new Date(h.date);
+        return d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+      })
+    : X_LABELS;
+
+  const dynamicCrawledData = hasHistory 
+    ? history.map(h => h.htmlPages)
+    : CRAWLED_PAGES_DATA;
+
+  const dynamicImagesData = hasHistory 
+    ? history.map(h => h.images)
+    : IMAGES_DATA;
+
+  // Ensure we have at least some data for the chart to render properly
+  const n = displayLabels.length;
+
   const technicalItems = [
     { label: "CSS", value: data?.css || 0, icon: "isax-code", active: (data?.css || 0) > 0 },
     { label: "Javascript", value: data?.js || 0, icon: "isax-code-1", active: (data?.js || 0) > 0 },
@@ -62,13 +85,17 @@ const InventorySummaryView = ({ data }) => {
     { label: "Documents", value: data?.documents || 0, icon: "isax-document-text", active: (data?.documents || 0) > 0 },
     { label: "Images", value: data?.images || 0, icon: "isax-image", active: (data?.images || 0) > 0 },
   ];
-  const n = X_LABELS.length;
+
   const xScale = (i) => PADDING.left + (i / Math.max(1, n - 1)) * PLOT_WIDTH;
-  const yScale = (v) => PADDING.top + PLOT_HEIGHT - (v / Y_MAX) * PLOT_HEIGHT;
+  const yScale = (v) => {
+    const maxVal = Math.max(...dynamicCrawledData, ...dynamicImagesData, 10);
+    const scaleMax = Math.ceil(maxVal / 100) * 100;
+    return PADDING.top + PLOT_HEIGHT - (v / (scaleMax || Y_MAX)) * PLOT_HEIGHT;
+  };
   const baselineY = PADDING.top + PLOT_HEIGHT;
 
-  const crawledPoints = CRAWLED_PAGES_DATA.map((v, i) => ({ x: xScale(i), y: yScale(v) }));
-  const imagesPoints = IMAGES_DATA.map((v, i) => ({ x: xScale(i), y: yScale(v) }));
+  const crawledPoints = dynamicCrawledData.map((v, i) => ({ x: xScale(i), y: yScale(v) }));
+  const imagesPoints = dynamicImagesData.map((v, i) => ({ x: xScale(i), y: yScale(v) }));
   const crawledPath = smoothPath(crawledPoints);
   const imagesPath = smoothPath(imagesPoints);
   const crawledAreaPath = `${crawledPath} L ${xScale(n - 1)} ${baselineY} L ${xScale(0)} ${baselineY} Z`;
@@ -129,8 +156,8 @@ const InventorySummaryView = ({ data }) => {
                 const y = yScale(v);
                 return <text key={v} x={PADDING.left - 6} y={y + 4} textAnchor="end" fill="#6b7280" style={{ fontSize: 10 }}>{v}</text>;
               })}
-              {X_LABELS.map((label, i) => (
-                <text key={label} x={xScale(i)} y={CHART_HEIGHT - 12} textAnchor="middle" fill="#6b7280" style={{ fontSize: 10 }}>{label}</text>
+              {displayLabels.map((label, i) => (
+                <text key={`${label}-${i}`} x={xScale(i)} y={CHART_HEIGHT - 12} textAnchor="middle" fill="#6b7280" style={{ fontSize: 10 }}>{label}</text>
               ))}
               <line x1={PADDING.left} y1={baselineY} x2={PADDING.left + PLOT_WIDTH} y2={baselineY} stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
               <path d={crawledAreaPath} fill={CRAWLED_FILL} />

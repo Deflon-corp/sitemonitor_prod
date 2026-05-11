@@ -84,3 +84,23 @@ export const triggerDomainScanApi = async (id) => {
     throw error;
   }
 };
+
+// GET /domains/:id/seo-pages
+export const getDomainSeoPagesApi = async (id, page = 1, limit = 10, search = '', issue = '') => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}/seo-pages?page=${page}&limit=${limit}&search=${search}&issue=${encodeURIComponent(issue)}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /domains/:id/seo-checkpoints
+export const getDomainSeoCheckpointsApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}/seo-checkpoints`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

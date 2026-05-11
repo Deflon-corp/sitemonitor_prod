@@ -17,7 +17,6 @@ const INVENTORY_SIDEBAR = {
     { key: "html-pages", label: "HTML Pages", icon: "isax-document-copy" },
     { key: "documents", label: "Documents", icon: "isax-document-text" },
     { key: "images", label: "Images", icon: "isax-image" },
-    { key: "inline-images", label: "Inline Images", icon: "isax-image" },
     { key: "links", label: "Links", icon: "isax-link-2" },
   ],
   technical: [
@@ -204,12 +203,6 @@ const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
           <InventoryEmailAddressesView />
         ) : activeSidebarKey === "html-pages" ? (
           <InventoryHtmlPagesView />
-        ) : activeSidebarKey === "inline-images" ? (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body py-5 text-center text-muted">
-              Inline Images — content coming soon.
-            </div>
-          </div>
         ) : (
           <>
             {/* Header */}

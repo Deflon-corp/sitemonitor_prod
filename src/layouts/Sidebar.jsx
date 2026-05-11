@@ -387,7 +387,6 @@ export default function Sidebar() {
                                                     <li><Link to="/domain/inventory?view=html-pages" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=html-pages") ? "active" : ""}`}><i className="isax isax-document-copy me-2" aria-hidden />HTML Pages</Link></li>
                                                     <li><Link to="/domain/inventory?view=documents" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=documents") ? "active" : ""}`}><i className="isax isax-document-text me-2" aria-hidden />Documents</Link></li>
                                                     <li><Link to="/domain/inventory?view=images" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Images</Link></li>
-                                                    <li><Link to="/domain/inventory?view=inline-images" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=inline-images") ? "active" : ""}`}><i className="isax isax-image me-2" aria-hidden />Inline Images</Link></li>
                                                     <li><Link to="/domain/inventory?view=links" className={`d-flex align-items-center ${isLinkActive("/domain/inventory?view=links") ? "active" : ""}`}><i className="isax isax-link-2 me-2" aria-hidden />Links</Link></li>
                                                 </ul>
                                             </li>

@@ -5,34 +5,29 @@ const IMPACT_FILTERS = [
   { key: "high", label: "High" },
   { key: "medium", label: "Medium" },
   { key: "low", label: "Low" },
-  { key: "technical", label: "Technical" },
-];
-
-const SEO_ISSUES_SAMPLE = [
-  { id: "1", label: "Missing H1", hasIssue: true, impact: "high" },
-  { id: "2", label: "Too short META description", hasIssue: true, impact: "medium" },
-  { id: "3", label: "Too many internal links", hasIssue: true, impact: "medium" },
-  { id: "4", label: "Missing title", hasIssue: false, impact: "none" },
-  { id: "5", label: "Title found on more than one page", hasIssue: false, impact: "none" },
-  { id: "6", label: "Multiple H1 on page", hasIssue: false, impact: "none" },
-  { id: "7", label: "Pages with - No index", hasIssue: false, impact: "none" },
-  { id: "8", label: "Canonical URL", hasIssue: false, impact: "none" },
-  { id: "9", label: "Open Graph tags", hasIssue: false, impact: "none" },
 ];
 
 const ComplianceRing = ({ percent, size = 48 }) => {
+  const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
   const r = (size - 8) / 2;
   const circumference = 2 * Math.PI * r;
-  const strokeDash = (percent / 100) * circumference;
+  const strokeDash = (safePercent / 100) * circumference;
+  
+  let color = "#0d6efd";
+  if (safePercent >= 90) color = "#22c55e"; 
+  else if (safePercent >= 70) color = "#0ea5e9"; 
+  else if (safePercent >= 40) color = "#f59e0b"; 
+  else color = "#ef4444"; 
+
   return (
     <svg width={size} height={size} className="flex-shrink-0" aria-hidden="true">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bs-light, #e9ecef)" strokeWidth="4" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e9ecef" strokeWidth="4" />
       <circle
         cx={size / 2}
         cy={size / 2}
         r={r}
         fill="none"
-        stroke="var(--bs-primary, #0d6efd)"
+        stroke={color}
         strokeWidth="4"
         strokeDasharray={`${strokeDash} ${circumference}`}
         strokeLinecap="round"
@@ -43,89 +38,102 @@ const ComplianceRing = ({ percent, size = 48 }) => {
 };
 
 const ImpactDots = ({ impact }) => {
-  if (impact === "none") return null;
-  if (impact === "high") {
+  const imp = String(impact || "").toLowerCase();
+  if (imp === "none") return null;
+  if (imp === "high") {
     return (
       <div className="d-flex align-items-center gap-1">
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} aria-hidden="true" />
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} aria-hidden="true" />
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} aria-hidden="true" />
+        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
+        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
+        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
       </div>
     );
   }
-  if (impact === "medium") {
+  if (imp === "medium") {
     return (
       <div className="d-flex align-items-center gap-1">
-        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} aria-hidden="true" />
-        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} aria-hidden="true" />
-        <span className="rounded-circle bg-secondary bg-opacity-50" style={{ width: 6, height: 6 }} aria-hidden="true" />
+        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
+        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
+        <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
       </div>
     );
   }
   return (
     <div className="d-flex align-items-center gap-1">
-      <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} aria-hidden="true" />
-      <span className="rounded-circle bg-secondary bg-opacity-50" style={{ width: 6, height: 6 }} aria-hidden="true" />
-      <span className="rounded-circle bg-secondary bg-opacity-50" style={{ width: 6, height: 6 }} aria-hidden="true" />
+      <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
+      <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
+      <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
     </div>
   );
 };
 
-const SeoSection = () => {
+const SeoSection = ({ issues = [], score = 0 }) => {
   const [impactFilter, setImpactFilter] = useState("all");
-  const [selectedIssueId, setSelectedIssueId] = useState(SEO_ISSUES_SAMPLE?.[0]?.id || null);
+  const [manualSelectedId, setManualSelectedId] = useState(null);
   const [detailTab, setDetailTab] = useState("information");
 
-  const overallPercent = 78.57;
+  const formattedIssues = useMemo(() => {
+    if (!Array.isArray(issues)) return [];
+    return issues.map((issue, idx) => {
+      if (!issue) return null;
+      return {
+        id: `seo-issue-${idx}`,
+        label: String(issue.message || issue.type || "Unnamed issue"),
+        impact: String(issue.priority || "low").toLowerCase(),
+        recommendation: String(issue.recommendation || ""),
+      };
+    }).filter(Boolean);
+  }, [issues]);
 
   const filteredIssues = useMemo(() => {
-    if (impactFilter === "all") return SEO_ISSUES_SAMPLE;
-    if (impactFilter === "technical") return SEO_ISSUES_SAMPLE.filter((r) => r.impact === "none");
-    return SEO_ISSUES_SAMPLE.filter((r) => r.impact === impactFilter);
-  }, [impactFilter]);
+    if (impactFilter === "all") return formattedIssues;
+    return formattedIssues.filter((r) => r.impact === impactFilter);
+  }, [impactFilter, formattedIssues]);
 
-  const selectedIssue = selectedIssueId ? SEO_ISSUES_SAMPLE.find((r) => r.id === selectedIssueId) || null : null;
+  // Derive selection: if manual is in current filtered list, use it. Otherwise use first of filtered.
+  const selectedIssue = useMemo(() => {
+    if (filteredIssues.length === 0) return null;
+    const manual = manualSelectedId ? filteredIssues.find(i => i.id === manualSelectedId) : null;
+    return manual || filteredIssues[0];
+  }, [filteredIssues, manualSelectedId]);
+
+  const selectedIssueId = selectedIssue?.id || null;
 
   return (
-    <>
-      {/* Header */}
-      <div className="card border-0 shadow-sm mb-3">
-        <div className="card-body">
-          <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div className="d-flex align-items-center gap-2">
-              <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
-                <i className="isax isax-chart-215 fs-22" aria-hidden="true" />
-              </span>
-              <div>
-                <h6 className="mb-0 fw-semibold">Search Engine Optimization (SEO)</h6>
-                <p className="text-muted fs-13 mb-0">SEO compliance for this page.</p>
-              </div>
+    <div className="seo-section">
+      <div className="card border shadow-sm mb-3">
+        <div className="card-body d-flex align-items-center justify-content-between py-3">
+          <div className="d-flex align-items-center gap-3">
+            <div className="avatar avatar-40 bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center">
+              <i className="isax isax-chart-215 fs-20" />
             </div>
-            <div className="d-flex align-items-center gap-2">
-              <ComplianceRing percent={overallPercent} size={44} />
-              <div>
-                <span className="fw-semibold fs-15">{overallPercent}%</span>
-                <p className="text-muted fs-12 mb-0" style={{ lineHeight: 1.2 }}>
-                  Overall SEO compliance for this page.
-                </p>
-              </div>
+            <div>
+              <h6 className="mb-0">SEO Compliance</h6>
+              <p className="text-muted small mb-0">Live scan results for this page</p>
+            </div>
+          </div>
+          <div className="d-flex align-items-center gap-2">
+            <ComplianceRing percent={score} size={44} />
+            <div className="text-end">
+              <div className="fw-bold fs-5">{score || 0}%</div>
+              <div className="text-muted" style={{ fontSize: '10px' }}>COMPLIANCE</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs + Two columns */}
-      <div className="card border-0 shadow-sm mb-3">
+      <div className="card border shadow-sm mb-3">
         <div className="card-body py-2">
           <nav className="nav nav-tabs border-0 gap-2">
             {IMPACT_FILTERS.map((f) => (
               <button
                 key={f.key}
                 type="button"
-                className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${
-                  impactFilter === f.key ? "border-primary text-primary" : "border-transparent text-body"
-                }`}
-                onClick={() => setImpactFilter(f.key)}
+                className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${impactFilter === f.key ? "border-primary text-primary" : "border-transparent text-body"}`}
+                onClick={() => {
+                  setImpactFilter(f.key);
+                  setManualSelectedId(null); // Reset selection when filter changes
+                }}
               >
                 {f.label}
               </button>
@@ -135,56 +143,41 @@ const SeoSection = () => {
       </div>
 
       <div className="row g-3">
-        {/* Left: Issues list */}
         <div className="col-lg-6">
-          <div className="card border-0 shadow-sm">
+          <div className="card border shadow-sm h-100">
             <div className="card-body p-0">
-              <div className="table-responsive">
-                <table className="table table-hover table-striped table-borderless align-middle mb-0">
-                  <thead>
-                    <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="fw-semibold text-body py-3">Issue</th>
-                      <th className="fw-semibold text-body py-3">SEO impact</th>
+              <div className="table-responsive" style={{ maxHeight: '400px' }}>
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="bg-light">
+                    <tr>
+                      <th className="ps-4 py-3">Issue</th>
+                      <th className="py-3">Impact</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredIssues.map((row) => (
-                      <tr key={row.id}>
-                        <td className="py-2 border-bottom">
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 text-primary text-decoration-none border-0 text-start d-inline-flex align-items-center gap-2"
-                            onClick={() => setSelectedIssueId(row.id)}
-                          >
-                            {row.hasIssue ? (
-                              <span
-                                className="rounded-circle d-flex align-items-center justify-content-center text-danger flex-shrink-0"
-                                style={{ width: 24, height: 24, backgroundColor: "rgba(220, 53, 69, 0.15)" }}
-                                aria-hidden="true"
-                              >
-                                <i className="isax isax-danger fs-14" />
-                              </span>
-                            ) : (
-                              <span
-                                className="rounded-circle d-flex align-items-center justify-content-center text-success flex-shrink-0"
-                                style={{ width: 24, height: 24, backgroundColor: "rgba(25, 135, 84, 0.15)" }}
-                                aria-hidden="true"
-                              >
-                                <i className="isax isax-tick-circle fs-14" />
-                              </span>
-                            )}
-                            <span className="fw-medium fs-13">{row.label}</span>
-                          </button>
+                      <tr 
+                        key={row.id} 
+                        className={selectedIssueId === row.id ? "table-primary" : ""}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setManualSelectedId(row.id)}
+                      >
+                        <td className="ps-4 py-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <i className="isax isax-danger text-danger fs-16" />
+                            <span className="small fw-medium">{row.label}</span>
+                          </div>
                         </td>
-                        <td className="py-2 border-bottom">
-                          {row.hasIssue ? (
-                            <ImpactDots impact={row.impact} />
-                          ) : (
-                            <span className="text-muted fs-13">No issues found</span>
-                          )}
+                        <td className="py-3">
+                          <ImpactDots impact={row.impact} />
                         </td>
                       </tr>
                     ))}
+                    {filteredIssues.length === 0 && (
+                      <tr>
+                        <td colSpan="2" className="text-center py-5 text-muted">No issues found.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -192,119 +185,51 @@ const SeoSection = () => {
           </div>
         </div>
 
-        {/* Right: Detail panel */}
         <div className="col-lg-6">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border shadow-sm h-100">
             <div className="card-body">
               {selectedIssue ? (
                 <>
-                  <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
-                    <div className="d-flex align-items-center gap-2">
-                      {selectedIssue.hasIssue ? (
-                        <span
-                          className="rounded-circle d-flex align-items-center justify-content-center text-danger flex-shrink-0"
-                          style={{ width: 28, height: 28, backgroundColor: "rgba(220, 53, 69, 0.15)" }}
-                          aria-hidden="true"
-                        >
-                          <i className="isax isax-danger fs-16" />
-                        </span>
-                      ) : (
-                        <span
-                          className="rounded-circle d-flex align-items-center justify-content-center text-success flex-shrink-0"
-                          style={{ width: 28, height: 28, backgroundColor: "rgba(25, 135, 84, 0.15)" }}
-                          aria-hidden="true"
-                        >
-                          <i className="isax isax-tick-circle fs-16" />
-                        </span>
-                      )}
-                      <h6 className="mb-0 fw-semibold">{selectedIssue.label}</h6>
-                    </div>
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="dropdown">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-light dropdown-toggle"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Action
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li>
-                            <button
-                              type="button"
-                              className="dropdown-item d-flex align-items-center text-primary border-0 bg-transparent text-start w-100"
-                            >
-                              <i className="isax isax-eye-slash me-2" />
-                              Ignore on this page
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              type="button"
-                              className="dropdown-item d-flex align-items-center text-primary border-0 bg-transparent text-start w-100"
-                            >
-                              <i className="isax isax-tick-circle me-2" />
-                              Mark as fixed
-                            </button>
-                          </li>
-                          <li>
-                            <hr className="dropdown-divider" />
-                          </li>
-                          <li>
-                            <button
-                              type="button"
-                              className="dropdown-item d-flex align-items-center text-primary border-0 bg-transparent text-start w-100"
-                            >
-                              <i className="isax isax-eye-slash me-2" />
-                              Ignore this check for this domain
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <nav className="nav nav-tabs border-0 gap-2 mb-3">
-                    <button
-                      type="button"
-                      className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${
-                        detailTab === "information" ? "border-primary text-primary" : "border-transparent text-body"
-                      }`}
-                      onClick={() => setDetailTab("information")}
+                  <h6 className="mb-3 d-flex align-items-center gap-2">
+                    <i className="isax isax-info-circle text-primary" /> Issue Details
+                  </h6>
+                  <nav className="nav nav-pills gap-2 mb-3 bg-light p-1 rounded">
+                    <button 
+                      className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'information' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
+                      onClick={() => setDetailTab('information')}
                     >
-                      Information
+                      Info
                     </button>
-                    <button
-                      type="button"
-                      className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${
-                        detailTab === "quick-help" ? "border-primary text-primary" : "border-transparent text-body"
-                      }`}
-                      onClick={() => setDetailTab("quick-help")}
+                    <button 
+                      className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'quick-help' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
+                      onClick={() => setDetailTab('quick-help')}
                     >
-                      Quick help
+                      Quick Help
                     </button>
                   </nav>
-                  <div className="pt-2">
-                    {detailTab === "information" && (
-                      <p className="text-muted fs-13 mb-0">
-                        {selectedIssue.hasIssue
-                          ? `This page has an issue: ${selectedIssue.label}. Review and fix for better SEO compliance.`
-                          : "Good job! No issues were found."}
-                      </p>
-                    )}
-                    {detailTab === "quick-help" && (
-                      <p className="text-muted fs-13 mb-0">Quick help content for {selectedIssue.label}.</p>
+                  <div className="p-3 bg-light rounded border border-opacity-10">
+                    {detailTab === 'information' ? (
+                      <div className="small">
+                        <p className="mb-2"><strong>Issue:</strong> {selectedIssue.label}</p>
+                        <p className="mb-0"><strong>Priority:</strong> <span className="text-capitalize">{selectedIssue.impact}</span></p>
+                      </div>
+                    ) : (
+                      <div className="small">
+                        <p className="mb-0"><strong>Recommendation:</strong> {selectedIssue.recommendation || "No specific recommendation available."}</p>
+                      </div>
                     )}
                   </div>
                 </>
               ) : (
-                <p className="text-muted mb-0">Select an issue from the list to view details.</p>
+                <div className="h-100 d-flex align-items-center justify-content-center text-muted small">
+                  Select an issue to view details
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -112,8 +112,8 @@ const BrokenImagesSection = ({
                 </tr>
               </thead>
               <tbody>
-                {paginatedItems.map((row) => (
-                  <tr key={row.id}>
+                {paginatedItems.map((row, idx) => (
+                  <tr key={row.url || idx}>
                     <td className="ps-4 py-2">
                       <input type="checkbox" className="form-check-input" aria-label={`Select ${row.id}`} />
                     </td>

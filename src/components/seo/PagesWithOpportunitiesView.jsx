@@ -1,34 +1,14 @@
-function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }import React, { useState, useMemo, useCallback  } from "react";
+function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
+import React, { useState, useMemo, useCallback, useEffect  } from "react";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import PageDetailsMisspellingsDrawer, { } from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-
- 
-
-
-
-
-
-
+import { getDomainSeoPagesApi } from "../../api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-const SAMPLE_PAGES = [
-  { title: "Search", url: "https://www.bajajfinserv.in/search", notifications: 3, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", notifications: 6, priority: "High", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-15r-intel-core-i5-3rd-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", notifications: 5, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", notifications: 4, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", notifications: 5, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", notifications: 3, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", notifications: 6, priority: "High", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", notifications: 4, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", notifications: 5, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", notifications: 3, priority: "Medium", views: 0 },
-];
-
-
 
 const PagesWithOpportunitiesView = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,24 +18,41 @@ const PagesWithOpportunitiesView = () => {
   const [sortDir, setSortDir] = useState("asc");
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
+  const [pages, setPages] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchPages = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const response = await getDomainSeoPagesApi(domainId, currentPage, rowsPerPage, searchQuery);
+      if (response.success) {
+        setPages(response.data.pages);
+        setTotalCount(response.data.pagination.total);
+      }
+    } catch (error) {
+      console.error("Failed to fetch SEO pages:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId, currentPage, rowsPerPage, searchQuery]);
+
+  useEffect(() => {
+    fetchPages();
+  }, [fetchPages]);
 
   const openPageDetails = (p, index) => {
-    setSelectedPageForDetails({ id: index, title: p.title, url: p.url });
+    setSelectedPageForDetails(p);
     setPageDetailsDrawerOpen(true);
   };
 
-  const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return SAMPLE_PAGES;
-    const q = searchQuery.toLowerCase();
-    return SAMPLE_PAGES.filter(
-      (p) => (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
-
   const sortedPages = useMemo(() => {
-    if (!sortBy) return filteredPages;
+    if (!sortBy) return pages;
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...filteredPages].sort((a, b) => {
+    return [...pages].sort((a, b) => {
       if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
       if (sortBy === "notifications") return dir * (a.notifications - b.notifications);
       if (sortBy === "priority") {
@@ -64,14 +61,9 @@ const PagesWithOpportunitiesView = () => {
       }
       return dir * (a.views - b.views);
     });
-  }, [filteredPages, sortBy, sortDir]);
+  }, [pages, sortBy, sortDir]);
 
-  const totalPagesCount = sortedPages.length;
-  const totalPages = Math.max(1, Math.ceil(totalPagesCount / rowsPerPage));
-  const paginatedPages = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedPages.slice(start, start + rowsPerPage);
-  }, [sortedPages, currentPage, rowsPerPage]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -147,7 +139,7 @@ const PagesWithOpportunitiesView = () => {
             Pages with Opportunities
           </h5>
           <p className="text-muted fs-13 mb-0">
-            {totalPagesCount} pages with SEO opportunities
+            {totalCount} pages with SEO opportunities
           </p>
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
@@ -184,125 +176,140 @@ const PagesWithOpportunitiesView = () => {
       <div className="card border-0 shadow-sm">
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-hover table-striped table-borderless align-middle mb-0">
-              <thead>
-                <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                  <th className="py-3 ps-4 text-body fs-13 fw-semibold">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("title")}
-                    >
-                      Title and URL
-                      {sortBy === "title" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                      ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("notifications")}
-                    >
-                      Notifications
-                      {sortBy === "notifications" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                      ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("priority")}
-                    >
-                      Priority
-                      <span className="ms-1 d-inline-flex" title="Priority level" aria-label="Info">
-                        <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                      </span>
-                      {sortBy === "priority" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                      ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("views")}
-                    >
-                      Views
-                      <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                        <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                      </span>
-                      {sortBy === "views" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                      ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedPages.map((p, idx) => (
-                  <tr key={`${p.url}-${idx}`}>
-                    <td className="py-3 ps-4">
-                      <div className="d-flex flex-column">
-                        <span className="text-body fs-13">{p.title}</span>
-                        <a
-                          href={p.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
-                        >
-                          <span className="flex-shrink-0 d-inline-flex text-primary">
-                            <ExternalLinkIcon size={12} />
-                          </span>
-                          {p.url}
-                        </a>
-                      </div>
-                    </td>
-                    <td className="py-3 fs-13 text-body">{p.notifications}</td>
-                    <td className="py-3">
-                      <span
-                        className={`badge rounded-pill ${
-                          p.priority === "High"
-                            ? "bg-danger bg-opacity-10 text-danger"
-                            : p.priority === "Medium"
-                              ? "bg-warning bg-opacity-10 text-warning"
-                              : "bg-secondary bg-opacity-10 text-secondary"
-                        }`}
+            {isLoading ? (
+              <div className="d-flex justify-content-center p-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
+              <table className="table table-hover table-striped table-borderless align-middle mb-0">
+                <thead>
+                  <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
+                    <th className="py-3 ps-4 text-body fs-13 fw-semibold">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                        onClick={() => handleSort("title")}
                       >
-                        {p.priority}
-                      </span>
-                    </td>
-                    <td className="py-3 fs-13 text-body">{p.views}</td>
-                    <td className="py-3 pe-4">
-                      <div className="d-inline-flex align-items-center gap-1">
-                        <button
-                          type="button"
-                          className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"
-                          title="Open page details"
-                          aria-label="Open page details"
-                          onClick={() => openPageDetails(p, idx)}
-                        >
-                          <i className="isax isax-document-text fs-14" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </td>
+                        Title and URL
+                        {sortBy === "title" ? (
+                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        ) : (
+                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                        onClick={() => handleSort("notifications")}
+                      >
+                        Notifications
+                        {sortBy === "notifications" ? (
+                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        ) : (
+                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                        onClick={() => handleSort("priority")}
+                      >
+                        Priority
+                        <span className="ms-1 d-inline-flex" title="Priority level" aria-label="Info">
+                          <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
+                        </span>
+                        {sortBy === "priority" ? (
+                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        ) : (
+                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                        onClick={() => handleSort("views")}
+                      >
+                        Views
+                        <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
+                          <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
+                        </span>
+                        {sortBy === "views" ? (
+                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        ) : (
+                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {sortedPages.map((p, idx) => (
+                    <tr key={`${p.url}-${idx}`}>
+                      <td className="py-3 ps-4">
+                        <div className="d-flex flex-column">
+                          <span className="text-body fs-13">{p.title}</span>
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
+                          >
+                            <span className="flex-shrink-0 d-inline-flex text-primary">
+                              <ExternalLinkIcon size={12} />
+                            </span>
+                            {p.url}
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3 fs-13 text-body">{p.notifications}</td>
+                      <td className="py-3">
+                        <span
+                          className={`badge rounded-pill ${
+                            p.priority === "High"
+                              ? "bg-danger bg-opacity-10 text-danger"
+                              : p.priority === "Medium"
+                                ? "bg-warning bg-opacity-10 text-warning"
+                                : "bg-secondary bg-opacity-10 text-secondary"
+                          }`}
+                        >
+                          {p.priority}
+                        </span>
+                      </td>
+                      <td className="py-3 fs-13 text-body">{p.views}</td>
+                      <td className="py-3 pe-4">
+                        <div className="d-inline-flex align-items-center gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"
+                            title="Open page details"
+                            aria-label="Open page details"
+                            onClick={() => openPageDetails(p, idx)}
+                          >
+                            <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {!isLoading && sortedPages.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="text-center py-5 text-muted">
+                        No pages found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25">
             <div className="d-flex align-items-center gap-2">
@@ -325,8 +332,8 @@ const PagesWithOpportunitiesView = () => {
               </select>
               <span className="text-muted small">
                 {(currentPage - 1) * rowsPerPage + 1}-
-                {Math.min(currentPage * rowsPerPage, totalPagesCount)} of{" "}
-                {totalPagesCount}
+                {Math.min(currentPage * rowsPerPage, totalCount)} of{" "}
+                {totalCount}
               </span>
             </div>
             <nav aria-label="Pagination">

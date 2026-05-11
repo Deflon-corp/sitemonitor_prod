@@ -1,28 +1,12 @@
-import React, { useCallback  } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
+import { getDomainLatestSummaryApi, triggerDomainScanApi } from "../../api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
+import { showToast } from "../common/alerts/ToastAlert";
 
 const TEAL = "#14b8a6";
-
-const OPPORTUNITIES = [
-  { label: "Too many internal links", count: 499, dot: "blue"  },
-  { label: "Missing title", count: 497, dot: "red"  },
-  { label: "Too long META description", count: 475, dot: "blue"  },
-  { label: "H1 found on more than one page", count: 455, dot: "orange"  },
-  { label: "Multiple H1 on page", count: 455, dot: "orange"  },
-  { label: "Missing H1", count: 2, dot: "red"  },
-  { label: "Images missing ALT", count: 2, dot: "orange"  },
-];
-
-const MAX_OPP_COUNT = Math.max(...OPPORTUNITIES.map((o) => o.count), 1);
-
-const PRIORITY_DONUTS = [
-  { label: "High priority", percent: 0.2, pages: 1, issues: 499, color: "#dc3545" },
-  { label: "Medium priority", percent: 8.8, pages: 44, issues: 456, color: "#fd7e14" },
-  { label: "Low priority", percent: 0, pages: 0, issues: 500, color: "#0d6efd" },
-  { label: "Technical SEO Issues", percent: 100, pages: 500, issues: 0, color: TEAL },
-];
 
 const SmallDonut = ({ percent, label, pages, issues, color }) => {
   const r = 36;
@@ -77,49 +61,89 @@ const ComplianceDonut = ({ percent, label, size = 120 }) => {
 const REPORT_BASE = safeFilename("SEO-Summary-Report");
 
 const SeoSummaryView = () => {
+  const [summary, setSummary] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchSummary = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const response = await getDomainLatestSummaryApi(domainId);
+      if (response.success) {
+        setSummary(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch SEO summary:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  const handleTriggerScan = async () => {
+    if (!domainId) return;
+    setIsScanning(true);
+    try {
+      const response = await triggerDomainScanApi(domainId);
+      if (response.success) {
+        showToast("Scan triggered successfully. This may take a few minutes.", "success");
+      }
+    } catch (error) {
+      console.error("Failed to trigger scan:", error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const exportCSV = useCallback(() => {
+    if (!summary) return;
+    const totalIssues = (summary.issueBreakdown?.high || 0) + (summary.issueBreakdown?.medium || 0) + (summary.issueBreakdown?.low || 0);
     const lines = [
       "Section,Label,Count/Value",
       "Most common opportunities found,,",
-      ...OPPORTUNITIES.map((o) => `Opportunity,"${o.label.replace(/"/g, '""')}",${o.count}`),
+      ...(summary.topIssues || []).map((o) => `Opportunity,"${o.message.replace(/"/g, '""')}",${o.count}`),
       "",
       "Affected pages by priority,,,",
-      "Priority,Percent,Pages,Issues",
-      ...PRIORITY_DONUTS.map((p) => `"${p.label}",${p.percent},${p.pages},${p.issues}`),
+      "Priority,Pages,Issues",
+      `High,,${summary.issueBreakdown?.high || 0}`,
+      `Medium,,${summary.issueBreakdown?.medium || 0}`,
+      `Low,,${summary.issueBreakdown?.low || 0}`,
       "",
       "SEO Diagnostics,,,",
       "Metric,Value",
-      "SEO Compliance %,63.26",
-      "Industry average %,94.16",
-      "SEO opportunities found,2388",
-      "Pages with SEO opportunities,500",
+      `SEO Compliance %,${summary.finalSeoScore || 0}`,
+      "Industry average %,94",
+      `SEO opportunities found,${totalIssues}`,
+      `Pages with SEO opportunities,${summary.totalPages || 0}`,
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${REPORT_BASE}.csv`);
-  }, []);
+  }, [summary]);
 
   const exportExcel = useCallback(async () => {
+    if (!summary) return;
     const XLSX = await import("xlsx");
     const oppSheet = XLSX.utils.json_to_sheet(
-      OPPORTUNITIES.map((o) => ({ Opportunity: o.label, Count: o.count }))
-    );
-    const prioritySheet = XLSX.utils.json_to_sheet(
-      PRIORITY_DONUTS.map((p) => ({ Priority: p.label, "Percent %": p.percent, Pages: p.pages, Issues: p.issues }))
+      (summary.topIssues || []).map((o) => ({ Opportunity: o.message, Count: o.count }))
     );
     const summarySheet = XLSX.utils.json_to_sheet([
-      { Metric: "SEO Compliance %", Value: 63.26 },
-      { Metric: "Industry average %", Value: 94.16 },
-      { Metric: "SEO opportunities found", Value: 2388 },
-      { Metric: "Pages with SEO opportunities", Value: 500 },
+      { Metric: "SEO Compliance %", Value: summary.finalSeoScore || 0 },
+      { Metric: "Pages with SEO opportunities", Value: summary.totalPages || 0 },
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, oppSheet, "Opportunities");
-    XLSX.utils.book_append_sheet(wb, prioritySheet, "By Priority");
     XLSX.utils.book_append_sheet(wb, summarySheet, "Diagnostics");
     XLSX.writeFile(wb, `${REPORT_BASE}.xlsx`);
-  }, []);
+  }, [summary]);
 
   const exportPDF = useCallback(async () => {
+    if (!summary) return;
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "portrait" });
@@ -129,19 +153,42 @@ const SeoSummaryView = () => {
     autoTable(doc, {
       startY: 22,
       head: [["Opportunity", "Count"]],
-      body: OPPORTUNITIES.map((o) => [o.label, String(o.count)]),
+      body: (summary.topIssues || []).map((o) => [o.message, String(o.count)]),
       styles: { fontSize: 9 },
     });
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Priority", "Percent %", "Pages", "Issues"]],
-      body: PRIORITY_DONUTS.map((p) => [p.label, String(p.percent), String(p.pages), String(p.issues)]),
-      styles: { fontSize: 9 },
-    });
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.text("SEO Compliance: 63.26%  |  Industry average: 94.16%  |  SEO opportunities: 2,388  |  Pages with opportunities: 500", 14, finalY + 6);
     doc.save(`${REPORT_BASE}.pdf`);
-  }, []);
+  }, [summary]);
+
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center p-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!summary) {
+    return (
+      <div className="text-center p-5">
+        <div className="mb-4">
+          <i className="isax isax-chart-215 text-muted" style={{ fontSize: "4rem" }} />
+        </div>
+        <h5>No SEO Data Available</h5>
+        <p className="text-muted">Start a scan to see SEO insights for this domain.</p>
+        <button 
+          className="btn btn-primary" 
+          onClick={handleTriggerScan}
+          disabled={isScanning}
+        >
+          {isScanning ? "Triggering..." : "Start SEO Scan"}
+        </button>
+      </div>
+    );
+  }
+
+  const MAX_OPP_COUNT = Math.max(...(summary.topIssues || []).map((o) => o.count), 1);
 
   return (
     <div className="seo-summary-view">
@@ -151,6 +198,13 @@ const SeoSummaryView = () => {
           <h5 className="mb-0 fw-semibold text-body">Search Engine Optimization</h5>
         </div>
         <div className="d-flex align-items-center gap-2">
+          <button 
+            className="btn btn-sm btn-outline-primary me-2"
+            onClick={handleTriggerScan}
+            disabled={isScanning}
+          >
+            {isScanning ? "Scanning..." : "Re-scan"}
+          </button>
           <DownloadReportDropdown
             reportBaseName={REPORT_BASE}
             onExportCSV={exportCSV}
@@ -167,22 +221,22 @@ const SeoSummaryView = () => {
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Most common opportunities found</h6>
-              <p className="text-muted fs-13 mb-3">You have 7 to dos</p>
+              <p className="text-muted fs-13 mb-3">You have {(summary.topIssues || []).length} to dos</p>
               <div className="d-flex flex-column gap-3">
-                {OPPORTUNITIES.map((item) => (
-                  <div key={item.label} className="d-flex align-items-center gap-2">
+                {(summary.topIssues || []).map((item) => (
+                  <div key={item.message} className="d-flex align-items-center gap-2">
                     <span
                       className="rounded-circle flex-shrink-0"
                       style={{
                         width: 10,
                         height: 10,
-                        backgroundColor: item.dot === "red" ? "#dc3545" : item.dot === "orange" ? "#fd7e14" : "#0d6efd",
+                        backgroundColor: item.priority === "high" ? "#dc3545" : item.priority === "medium" ? "#fd7e14" : "#0d6efd",
                       }}
                       aria-hidden="true"
                     />
                     <div className="flex-grow-1 min-w-0">
                       <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
-                        <span className="fs-13 text-body text-truncate">{item.label}</span>
+                        <span className="fs-13 text-body text-truncate">{item.message}</span>
                         <span className="fs-13 text-body flex-shrink-0 d-inline-flex align-items-center gap-1">
                           {item.count}
                           <i className="isax isax-arrow-down-1 fs-12 text-muted" aria-hidden="true" />
@@ -207,11 +261,33 @@ const SeoSummaryView = () => {
               <h6 className="fw-semibold text-body mb-1">Affected pages by priority</h6>
               <p className="text-muted fs-13 mb-3">Distribution of SEO levels</p>
               <div className="row g-3">
-                {PRIORITY_DONUTS.map((d) => (
-                  <div key={d.label} className="col-6">
-                    <SmallDonut percent={d.percent} label={d.label} pages={d.pages} issues={d.issues} color={d.color} />
+                  <div className="col-6">
+                    <SmallDonut 
+                        percent={summary.issueBreakdown?.high > 0 ? Math.round((summary.issueBreakdown?.high / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
+                        label="High priority" 
+                        pages={summary.issueBreakdown?.high || 0} 
+                        issues={summary.issueBreakdown?.high || 0} 
+                        color="#dc3545" 
+                    />
                   </div>
-                ))}
+                  <div className="col-6">
+                    <SmallDonut 
+                        percent={summary.issueBreakdown?.medium > 0 ? Math.round((summary.issueBreakdown?.medium / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
+                        label="Medium priority" 
+                        pages={summary.issueBreakdown?.medium || 0} 
+                        issues={summary.issueBreakdown?.medium || 0} 
+                        color="#fd7e14" 
+                    />
+                  </div>
+                  <div className="col-6">
+                    <SmallDonut 
+                        percent={summary.issueBreakdown?.low > 0 ? Math.round((summary.issueBreakdown?.low / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
+                        label="Low priority" 
+                        pages={summary.issueBreakdown?.low || 0} 
+                        issues={summary.issueBreakdown?.low || 0} 
+                        color="#0d6efd" 
+                    />
+                  </div>
               </div>
             </div>
           </div>
@@ -225,9 +301,9 @@ const SeoSummaryView = () => {
               <p className="text-muted fs-13 mb-4">Percentage shows number of pages that are compliant with all SEO checks</p>
 
               <div className="d-flex flex-wrap align-items-start justify-content-around gap-4 mb-4">
-                <ComplianceDonut percent={63.26} label="SEO Compliance" size={140} />
+                <ComplianceDonut percent={summary.finalSeoScore || 0} label="SEO Compliance" size={140} />
                 <div className="d-flex align-items-center gap-1">
-                  <ComplianceDonut percent={94.16} label="Industry average" size={100} />
+                  <ComplianceDonut percent={94} label="Industry average" size={100} />
                   <span className="text-muted ms-1" title="Info">
                     <i className="isax isax-information fs-16" aria-hidden="true" />
                   </span>
@@ -242,18 +318,14 @@ const SeoSummaryView = () => {
                   </span>
                 </div>
                 <p className="fs-4 fw-bold text-body mb-0 d-inline-flex align-items-center gap-2">
-                  2,388
-                  <span className="badge bg-danger bg-opacity-10 text-danger fs-13 fw-normal d-inline-flex align-items-center gap-1">
-                    <i className="isax isax-arrow-up-1" aria-hidden="true" /> 52.97%
-                  </span>
+                  {(summary.issueBreakdown?.high || 0) + (summary.issueBreakdown?.medium || 0) + (summary.issueBreakdown?.low || 0)}
                 </p>
               </div>
 
               <div className="mb-4">
                 <p className="fs-13 text-body mb-0">
                   <span className="text-muted">Pages with SEO opportunities:</span>{" "}
-                  <span className="fw-medium">500</span>
-                  <span className="ms-1">0%</span>
+                  <span className="fw-medium">{summary.totalPages || 0}</span>
                 </p>
               </div>
 
@@ -269,18 +341,15 @@ const SeoSummaryView = () => {
                   <line x1="40" y1="140" x2="480" y2="140" stroke="#e5e7eb" strokeWidth="1" />
                   <polyline points="60,120 120,80 180,100 240,60 300,70 360,50 420,40 460,45" fill="none" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <polyline points="60,130 120,125 180,128 240,122 300,125 360,120 420,118 460,120" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <text x="20" y="85" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>500</text>
+                  <text x="20" y="85" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>100</text>
                   <text x="20" y="140" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>0</text>
-                  <text x="100" y="155" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>Dec 10</text>
-                  <text x="460" y="155" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>Feb 14</text>
+                  <text x="100" y="155" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>Latest Scan</text>
                 </svg>
                 <div className="d-flex flex-wrap gap-3 mt-2 fs-12 text-muted justify-content-center">
                   <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#dc3545" }} /> High</span>
                   <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#fd7e14" }} /> Medium</span>
                   <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#0d6efd" }} /> Low</span>
                   <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: TEAL }} /> Technical</span>
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#c4956a" }} /> Pages with issues</span>
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#93c5fd" }} /> Scanned pages</span>
                 </div>
                 <Link to="#" className="small text-primary text-decoration-none mt-2 d-inline-block">Show history</Link>
               </div>

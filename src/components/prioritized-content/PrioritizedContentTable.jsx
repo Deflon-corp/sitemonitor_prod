@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-import PageDetailsDrawer from "@/components/prioritized-content/PageDetailsDrawer";
+import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import PrioritizedContentPagesView from "@/components/prioritized-content/PrioritizedContentPagesView";
 import PrioritizedContentPdfView from "@/components/prioritized-content/PrioritizedContentPdfView";
 import PrioritizedContentOtherDocumentsView from "@/components/prioritized-content/PrioritizedContentOtherDocumentsView";
@@ -257,28 +257,28 @@ const PrioritizedContentPage = () => {
             {currentFilter === "all" ? (
                 <>
                     <PrioritizedContentTable onOpenPageDetails={openPageDetails} />
-                    <PageDetailsDrawer
+                    <PageDetailsMisspellingsDrawer
                         open={pageDetailsOpen}
                         onClose={() => setPageDetailsOpen(false)}
-                        page={selectedPage ? { id: selectedPage.id, title: selectedPage.title, url: selectedPage.url } : null}
+                        page={selectedPage}
                     />
                 </>
             ) : currentFilter === "pages" ? (
                 <>
                     <PrioritizedContentPagesView rows={SAMPLE_PRIORITIZED_CONTENT} onOpenPageDetails={openPageDetails} />
-                    <PageDetailsDrawer
+                    <PageDetailsMisspellingsDrawer
                         open={pageDetailsOpen}
                         onClose={() => setPageDetailsOpen(false)}
-                        page={selectedPage ? { id: selectedPage.id, title: selectedPage.title, url: selectedPage.url } : null}
+                        page={selectedPage}
                     />
                 </>
             ) : currentFilter === "pdf" ? (
                 <>
                     <PrioritizedContentPdfView rows={SAMPLE_PDF_DOCUMENTS} onOpenPageDetails={openPageDetails} />
-                    <PageDetailsDrawer
+                    <PageDetailsMisspellingsDrawer
                         open={pageDetailsOpen}
                         onClose={() => setPageDetailsOpen(false)}
-                        page={selectedPage ? { id: selectedPage.id, title: selectedPage.title, url: selectedPage.url } : null}
+                        page={selectedPage}
                     />
                 </>
             ) : currentFilter === "images" ? (
@@ -286,10 +286,10 @@ const PrioritizedContentPage = () => {
             ) : currentFilter === "other" ? (
                 <>
                     <PrioritizedContentOtherDocumentsView rows={SAMPLE_OTHER_DOCUMENTS} onOpenPageDetails={openPageDetails} />
-                    <PageDetailsDrawer
+                    <PageDetailsMisspellingsDrawer
                         open={pageDetailsOpen}
                         onClose={() => setPageDetailsOpen(false)}
-                        page={selectedPage ? { id: selectedPage.id, title: selectedPage.title, url: selectedPage.url } : null}
+                        page={selectedPage}
                     />
                 </>
             ) : null}

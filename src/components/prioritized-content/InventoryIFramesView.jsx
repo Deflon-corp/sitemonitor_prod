@@ -14,32 +14,13 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE = [
-  { id: 1, url: "https://www.youtube.com/embed/example", pageCount: 1 },
-  { id: 2, url: "https://www.bajajfinserv.in/widgets/calculator", pageCount: 2 },
-  { id: 3, url: "https://www.bajajfinserv.in/embed/contact-form", pageCount: 1 },
-  { id: 4, url: "https://maps.google.com/maps/embed", pageCount: 1 },
-  { id: 5, url: "https://www.bajajfinserv.in/third-party-chat", pageCount: 1 },
-  { id: 6, url: "https://www.bajajfinserv.in/embed/terms", pageCount: 1 },
-];
-
-const DETAILS_SAMPLE = [
-  { id: 1, link: "https://www.youtube.com/embed/example", type: "IFrame", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/widgets/calculator", type: "IFrame", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/embed/contact-form", type: "IFrame", responseCode: "200" },
-  { id: 4, link: "https://maps.google.com/maps/embed", type: "IFrame", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/third-party-chat", type: "IFrame", responseCode: "200" },
-  { id: 6, link: "https://www.bajajfinserv.in/embed/terms", type: "IFrame", responseCode: "200" },
-];
-
 const TITLE = "IFrames";
 const ICON = "isax-code-circle";
 const REPORT_BASE = "IFrames-Report";
 const DEFAULT_INVENTORY_SUB_VIEW = "iframes";
 
-export default function InventoryIFramesView({ items = SAMPLE, variant }) {
+export default function InventoryIFramesView({ items = [], variant }) {
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("internal");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [pagesDrawerOpen, setPagesDrawerOpen] = useState(false);
@@ -80,7 +61,7 @@ export default function InventoryIFramesView({ items = SAMPLE, variant }) {
   }, [filteredItems, reportBase]);
 
   if (variant === "details") {
-    const detailsFiltered = !search.trim() ? DETAILS_SAMPLE : DETAILS_SAMPLE.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
+    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
     const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);
@@ -148,11 +129,7 @@ export default function InventoryIFramesView({ items = SAMPLE, variant }) {
         </div>
         <p className="text-muted small mb-0">{filteredItems.length} results</p>
       </div>
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <nav className="nav nav-tabs border-0 gap-2 gap-md-4" aria-label={`${TITLE} scope`}>
-          <button type="button" className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${tab === "internal" ? "fw-semibold text-primary border-bottom border-2 border-primary" : "text-muted"}`} style={{ borderBottom: tab === "internal" ? "2px solid var(--bs-primary)" : "2px solid transparent" }} onClick={() => setTab("internal")}>Internal</button>
-          <button type="button" className={`nav-link border-0 p-0 pb-2 rounded-0 bg-transparent ${tab === "external" ? "fw-semibold text-primary border-bottom border-2 border-primary" : "text-muted"}`} style={{ borderBottom: tab === "external" ? "2px solid var(--bs-primary)" : "2px solid transparent" }} onClick={() => setTab("external")}>External</button>
-        </nav>
+      <div className="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3">
         <div className="d-flex align-items-center gap-2 forms-download-report-btn">
           <DownloadReportDropdown reportBaseName={reportBase} onExportCSV={exportCSV} onExportExcel={exportExcel} onExportPDF={exportPDF} buttonLabel="Download Report" className="btn btn-sm btn-outline-primary rounded-2" />
           <div className="position-relative" style={{ minWidth: 200, maxWidth: 280 }}>

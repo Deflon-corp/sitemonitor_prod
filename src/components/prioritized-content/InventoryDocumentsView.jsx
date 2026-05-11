@@ -18,13 +18,7 @@ const TABS = [
 
 
 
-function getRowsForTab(tab) {
-  if (tab === "all") return SAMPLE_DOCUMENTS_ALL;
-  if (tab === "pdf") return SAMPLE_DOCUMENTS_PDF;
-  return SAMPLE_DOCUMENTS_OTHER;
-}
-
-export default function InventoryDocumentsView() {
+export default function InventoryDocumentsView({ items = [] }) {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,12 +28,16 @@ export default function InventoryDocumentsView() {
   const [documentDetailsDrawerOpen, setDocumentDetailsDrawerOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
-  const tabRows = useMemo(() => getRowsForTab(activeTab), [activeTab]);
+  const tabRows = useMemo(() => {
+    if (activeTab === "all") return items;
+    if (activeTab === "pdf") return items.filter(r => (r.link || "").toLowerCase().endsWith(".pdf"));
+    return items.filter(r => !(r.link || "").toLowerCase().endsWith(".pdf"));
+  }, [items, activeTab]);
 
   const filteredRows = useMemo(() => {
     if (!search.trim()) return tabRows;
     const q = search.trim().toLowerCase();
-    return tabRows.filter((r) => r.link.toLowerCase().includes(q));
+    return tabRows.filter((r) => (r.link || "").toLowerCase().includes(q));
   }, [tabRows, search]);
 
   const sortedRows = useMemo(() => {
