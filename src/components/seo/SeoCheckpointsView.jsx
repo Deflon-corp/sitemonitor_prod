@@ -4,7 +4,7 @@ import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 import SeoCheckpointPagesDrawer from "@/components/seo/SeoCheckpointPagesDrawer";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
-import { getDomainSeoCheckpointsApi } from "../../api/domainApi";
+import { getDomainByIdApi, getDomainSeoCheckpointsApi } from "../../api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const TEAL = "#14b8a6";
@@ -13,7 +13,7 @@ const ComplianceRing = ({ percent, status }) => {
   const r = 20;
   const circumference = 2 * Math.PI * r;
   const filled = Math.min(100, Math.max(0, percent)) / 100 * circumference;
-  
+
   let color = "#e5e7eb"; // Default gray
   if (status === "ok" || percent === 100) {
     color = "#22c55e"; // Green
@@ -87,7 +87,7 @@ const CheckpointSection = ({
                           <i className="isax isax-information text-primary" style={{ fontSize: 10 }} aria-hidden="true" />
                         </span>
                       )}
-                      <Link to="#" className="fs-13 text-primary text-decoration-none">Ignore</Link>
+                      <button type="button" className="btn btn-link p-0 fs-13 text-primary text-decoration-none shadow-none">Ignore</button>
                     </div>
                   </td>
                   <td className="py-3">
@@ -117,7 +117,7 @@ const CheckpointSection = ({
               ))}
               {rows.length === 0 && (
                 <tr>
-                    <td colSpan="3" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
+                  <td colSpan="3" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
                 </tr>
               )}
             </tbody>
@@ -145,23 +145,31 @@ const SeoCheckpointsView = () => {
   const [checkpointDrawerIssue, setCheckpointDrawerIssue] = useState(null);
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
+  const [selectedIssueForPage, setSelectedIssueForPage] = useState(null);
   const [checkpoints, setCheckpoints] = useState({ high: [], medium: [], low: [] });
+  const [domain, setDomain] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
-  const fetchCheckpoints = useCallback(async () => {
+  const fetchCheckpoints = useCallback(async (showLoading = true) => {
     if (!domainId) return;
-    setIsLoading(true);
+    if (showLoading) setIsLoading(true);
     try {
-      const response = await getDomainSeoCheckpointsApi(domainId);
-      if (response.success) {
-        setCheckpoints(response.data);
+      const [cpRes, domRes] = await Promise.all([
+        getDomainSeoCheckpointsApi(domainId),
+        getDomainByIdApi(domainId)
+      ]);
+      if (cpRes.success) {
+        setCheckpoints(cpRes.data);
+      }
+      if (domRes.success) {
+        setDomain(domRes.data);
       }
     } catch (error) {
       console.error("Failed to fetch SEO checkpoints:", error);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [domainId]);
 
@@ -169,19 +177,32 @@ const SeoCheckpointsView = () => {
     fetchCheckpoints();
   }, [fetchCheckpoints]);
 
+  useEffect(() => {
+    let interval;
+    if (domain && (domain.dm_seo_status === 'pending' || domain.dm_seo_status === 'scanning')) {
+      interval = setInterval(() => {
+        fetchCheckpoints(false);
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [domain, fetchCheckpoints]);
+
   const openCheckpointPagesDrawer = useCallback((row) => {
     if (parsePageCount(row.pagesLabel) <= 0) return;
     setCheckpointDrawerIssue(row);
     setCheckpointDrawerOpen(true);
   }, []);
 
-  const openPageDetails = useCallback((page) => {
+  const openPageDetails = useCallback((page, issue) => {
     setSelectedPageForDetails(page);
+    setSelectedIssueForPage(issue);
     setPageDetailsDrawerOpen(true);
   }, []);
 
   const allRows = [
-    ...checkpoints.high.map((r) => ({ ...r, priority: "High" })), 
+    ...checkpoints.high.map((r) => ({ ...r, priority: "High" })),
     ...checkpoints.medium.map((r) => ({ ...r, priority: "Medium" })),
     ...checkpoints.low.map((r) => ({ ...r, priority: "Low" }))
   ];
@@ -230,12 +251,35 @@ const SeoCheckpointsView = () => {
     );
   }
 
+  const isActuallyScanning = domain?.dm_seo_status === 'pending' || domain?.dm_seo_status === 'scanning';
+  const hasData = checkpoints.high.length > 0 || checkpoints.medium.length > 0 || checkpoints.low.length > 0;
+
+  if (isActuallyScanning && !hasData) {
+    return (
+      <div className="text-center p-5">
+        <div className="mb-4">
+          <div className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }} role="status">
+            <span className="visually-hidden">Scanning...</span>
+          </div>
+        </div>
+        <h5>SEO Scan in Progress...</h5>
+        <p className="text-muted">Please wait while we analyze your checkpoints.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="seo-checkpoints-view">
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <h5 className="mb-0 fw-semibold text-body d-flex align-items-center gap-2">
           <i className="isax isax-tick-circle text-primary fs-22" aria-hidden="true" />
           SEO Checkpoints
+          {isActuallyScanning && (
+            <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-2 px-3 ms-2">
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span className="fs-12 fw-medium">Scanning for updates...</span>
+            </span>
+          )}
         </h5>
         <div className="d-flex align-items-center gap-2">
           <DownloadReportDropdown
@@ -278,7 +322,7 @@ const SeoCheckpointsView = () => {
           setCheckpointDrawerOpen(false);
           setCheckpointDrawerIssue(null);
         }}
-        issueName={checkpointDrawerIssue?.issue ?? ""}
+        issueName={checkpointDrawerIssue?.issue || checkpointDrawerIssue?.message || ""}
         pageCount={checkpointDrawerIssue ? parsePageCount(checkpointDrawerIssue.pagesLabel) : 0}
         compliancePercent={checkpointDrawerIssue?.compliancePercent ?? 0}
         quickHelpLines={checkpointDrawerIssue ? QUICK_HELP_BY_ISSUE[checkpointDrawerIssue.issue] : undefined}
@@ -290,9 +334,20 @@ const SeoCheckpointsView = () => {
         onClose={() => {
           setPageDetailsDrawerOpen(false);
           setSelectedPageForDetails(null);
+          setSelectedIssueForPage(null);
         }}
         page={selectedPageForDetails}
-        defaultTab="seo"
+        defaultTab={
+          selectedIssueForPage?.toLowerCase().includes("link") || 
+          selectedIssueForPage?.toLowerCase().includes("image") || 
+          selectedIssueForPage?.toLowerCase().includes("misspelling") 
+            ? "qa" : "seo"
+        }
+        defaultQaSubView={
+          selectedIssueForPage?.toLowerCase().includes("link") ? "broken-links" :
+          selectedIssueForPage?.toLowerCase().includes("image") ? "broken-images" :
+          selectedIssueForPage?.toLowerCase().includes("misspelling") ? "misspellings" : "misspellings"
+        }
         backdropZIndex={1075}
         panelZIndex={1080}
       />

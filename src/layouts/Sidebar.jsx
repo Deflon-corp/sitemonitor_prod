@@ -238,10 +238,14 @@ export default function Sidebar() {
                                     const domain = domains.find(d => d._id === dashboardDomainId);
                                     if (!domain) return null;
                                     return (
-                                        <div className="sidebar-selected-domain d-flex align-items-center gap-2 py-2 px-3 border-bottom">
-                                            <i className="isax isax-global flex-shrink-0" style={{ fontSize: "1.2rem" }} aria-hidden />
+                                        <Link 
+                                            to="/domain" 
+                                            className="sidebar-selected-domain d-flex align-items-center gap-2 py-2 px-3 border-bottom text-decoration-none hover-bg-light"
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            <i className="isax isax-global flex-shrink-0 text-body" style={{ fontSize: "1.2rem" }} aria-hidden />
                                             <span className="text-truncate fw-medium text-body sidebar-selected-domain-label">{getDomainLabel(domain.dm_url)}</span>
-                                        </div>
+                                        </Link>
                                     );
                                 })()}
                                 <ul>

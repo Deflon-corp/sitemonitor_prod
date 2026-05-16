@@ -4,6 +4,8 @@ import React, { useCallback, useMemo  } from "react";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
+import { getDomainLatestSummaryApi, getDomainByIdApi } from "../../api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 import ContentWithQAErrorsView from "./ContentWithQAErrorsView";
 import ContentWithBrokenLinksView from "./ContentWithBrokenLinksView";
 import BrokenLinksView from "./BrokenLinksView";
@@ -158,6 +160,33 @@ function QATrendChart() {
 
 export default function QualityAssuranceView() {
   const [searchParams] = useSearchParams();
+  const [summary, setSummary] = React.useState(null);
+  const [domain, setDomain] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchSummary = React.useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const [summaryRes, domainRes] = await Promise.all([
+        getDomainLatestSummaryApi(domainId),
+        getDomainByIdApi(domainId)
+      ]);
+      if (summaryRes.success) setSummary(summaryRes.data);
+      if (domainRes.success) setDomain(domainRes.data);
+    } catch (error) {
+      console.error("Failed to fetch QA summary:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  React.useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
   const currentView = searchParams.get("view") || "summary";
   const isLinksView =
     LINK_VIEW_KEYS.includes(currentView) ||
@@ -204,6 +233,19 @@ export default function QualityAssuranceView() {
     });
     doc.save(`${qaSummaryBaseName}.pdf`);
   }, [qaSummaryBaseName, qaSummaryExportRows]);
+
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center p-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const qaScore = summary?.performanceMetrics?.avgPerformanceScore || 0;
+  const totalIssues = (summary?.issueBreakdown?.high || 0) + (summary?.issueBreakdown?.medium || 0) + (summary?.issueBreakdown?.low || 0);
 
   return (
     <div>
@@ -322,8 +364,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Unique broken links</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">12</div>
-                            <span className="fs-12 text-muted">Affects 499 pages</span>
+                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.high || 0}</div>
+                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.highPages || 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -336,8 +378,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Potential misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">388</div>
-                            <span className="fs-12 text-muted">Affects 499 pages</span>
+                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.medium || 0}</div>
+                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.mediumPages || 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -350,8 +392,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Broken images</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">1</div>
-                            <span className="fs-12 text-muted">Affects 2 pages</span>
+                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.low || 0}</div>
+                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.lowPages || 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -364,8 +406,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">5</div>
-                            <span className="fs-12 text-muted">Affects 498 pages</span>
+                            <div className="fs-4 fw-bold text-body">0</div>
+                            <span className="fs-12 text-muted">Affects 0 pages</span>
                           </div>
                         </Link>
                       </div>
@@ -443,8 +485,8 @@ export default function QualityAssuranceView() {
                     <p className="fs-13 text-muted mb-3">Percentage shows number of pages that are compliant with all QA checks.</p>
 
                     <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
-                      <DonutChart percent={QA_COMPLIANCE_PERCENT} label="QA Compliance" strokeColor="#6366f1" />
-                      <DonutChart percent={INDUSTRY_AVERAGE_PERCENT} label="Industry average" strokeColor="#0d9488" showInfo={true} />
+                      <DonutChart percent={qaScore} label="QA Compliance" strokeColor="#6366f1" />
+                      <DonutChart percent={93.52} label="Industry average" strokeColor="#0d9488" showInfo={true} />
                     </div>
 
                     <div className="row g-2 mb-3">
@@ -454,10 +496,10 @@ export default function QualityAssuranceView() {
                             Total QA issues
                             <i className="isax isax-info-circle fs-12 text-muted opacity-75" aria-hidden="true" title="Total count of QA issues" />
                           </p>
-                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{TOTAL_QA_ISSUES}</p>
+                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{totalIssues}</p>
                           <span className="d-inline-flex align-items-center gap-1 text-success fs-12">
                             <i className="isax isax-arrow-down-1" aria-hidden="true" />
-                            {Math.abs(TOTAL_QA_ISSUES_CHANGE)}%
+                            0%
                             <i className="isax isax-arrow-down-1 fs-10 opacity-75" aria-hidden="true" />
                           </span>
                         </div>
@@ -468,10 +510,10 @@ export default function QualityAssuranceView() {
                             Content with issues
                             <i className="isax isax-info-circle fs-12 text-muted opacity-75" aria-hidden="true" title="Pages with at least one issue" />
                           </p>
-                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{CONTENT_WITH_ISSUES}</p>
+                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{summary?.totalPages || 0}</p>
                           <span className="d-inline-flex align-items-center gap-1 text-success fs-12">
                             <i className="isax isax-arrow-down-1" aria-hidden="true" />
-                            {Math.abs(CONTENT_WITH_ISSUES_CHANGE)}%
+                            0%
                             <i className="isax isax-arrow-down-1 fs-10 opacity-75" aria-hidden="true" />
                           </span>
                         </div>
@@ -480,7 +522,7 @@ export default function QualityAssuranceView() {
 
                     <QATrendChart />
                     <div className="d-flex justify-content-end mt-2 pt-2 border-top border-secondary border-opacity-25">
-                      <Link to="#" className="btn btn-sm btn-link text-primary text-decoration-none d-inline-flex align-items-center gap-1 p-0">
+                      <Link to="/home/history-center" className="btn btn-sm btn-link text-primary text-decoration-none d-inline-flex align-items-center gap-1 p-0">
                         Show history
                         <i className="isax isax-arrow-right-1 fs-14" aria-hidden="true" />
                       </Link>

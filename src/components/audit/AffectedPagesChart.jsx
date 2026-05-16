@@ -1,11 +1,16 @@
-import React, { useEffect, useRef  } from "react";
+import React, { useEffect, useRef } from "react";
 
-const CHART_DATA = {
-  categories: ["11/2/25", "11/12/25", "11/24/25", "12/5/25", "12/16/25", "12/27/25", "1/7/26", "1/18/26"],
-  series: [180, 245, 238, 210, 195, 175, 165, 150],
-};
-
-const AffectedPagesChart = ({ chartId = "seo-affected-chart" }) => {
+const AffectedPagesChart = ({ 
+  chartId = "seo-affected-chart", 
+  series = [], 
+  categories = [], 
+  height = 280, 
+  colors = ["#9ca3af"],
+  showLegend = false,
+  type = "area",
+  max = undefined,
+  tooltipLabel = "Pages"
+}) => {
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -16,34 +21,90 @@ const AffectedPagesChart = ({ chartId = "seo-affected-chart" }) => {
     const init = () => {
       const ApexCharts = (window).ApexCharts;
       if (!ApexCharts || !mounted) return;
-      if (chartRef.current) return;
+      
+      // Destroy existing chart if it exists to allow re-render with new data
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+
       const opts = {
         chart: {
-          type: "bar",
-          height: 280,
+          type: type,
+          height: height,
           toolbar: { show: false },
+          animations: {
+            enabled: true,
+            easing: 'easeinout',
+            speed: 800,
+          }
+        },
+        legend: {
+          show: showLegend
+        },
+        stroke: {
+          curve: 'smooth',
+          width: type === 'bar' ? 0 : 3
         },
         plotOptions: {
           bar: {
             horizontal: false,
             columnWidth: "60%",
             borderRadius: 4,
+            distributed: type === 'bar' && colors.length > 1
           },
         },
-        dataLabels: { enabled: false },
-        colors: ["#9ca3af"],
-        series: [{ name: "Affected pages", data: CHART_DATA.series }],
-        xaxis: { categories: CHART_DATA.categories },
+        fill: {
+          type: type === 'bar' ? 'solid' : (type === 'area' ? 'gradient' : 'solid'),
+          opacity: 1,
+          gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.45,
+            opacityTo: 0.05,
+            stops: [20, 100]
+          }
+        },
+        dataLabels: { 
+          enabled: type === 'bar',
+          style: {
+            fontSize: '10px',
+            colors: ['#fff']
+          }
+        },
+        colors: colors,
+        series: series,
+        xaxis: { 
+          categories: categories,
+          labels: {
+            style: {
+              fontSize: '11px',
+              colors: '#6b7280'
+            }
+          },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
         yaxis: {
           min: 0,
-          max: 300,
-          tickAmount: 4,
+          max: max,
+          labels: { 
+            formatter: (val) => Math.round(val),
+            style: {
+              fontSize: '11px',
+              colors: '#6b7280'
+            }
+          },
         },
         grid: {
           borderColor: "#e5e7eb",
           strokeDashArray: 4,
           padding: { top: 0, right: 8, bottom: 0, left: 8 },
         },
+        tooltip: {
+          theme: 'light',
+          x: { show: true },
+          y: { formatter: (val) => `${val} ${tooltipLabel}` }
+        }
       };
       chartRef.current = new ApexCharts(el, opts);
       chartRef.current.render();
@@ -73,9 +134,9 @@ const AffectedPagesChart = ({ chartId = "seo-affected-chart" }) => {
         chartRef.current = null;
       }
     };
-  }, [chartId]);
+  }, [chartId, series, categories, height, colors, showLegend, type, max, tooltipLabel]);
 
-  return <div id={chartId} style={{ minHeight: "280px" }} />;
+  return <div id={chartId} style={{ width: "100%", minHeight: `${height}px` }} />;
 };
 
 export default AffectedPagesChart;

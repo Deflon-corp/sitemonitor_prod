@@ -58,9 +58,9 @@ export default function PageDetailsMisspellingsDrawer({
   const brokenImagesCount = effectivePage.brokenImages?.length || 0;
   const misspellingsCount = effectivePage.misspellings?.length || 0;
   const seoIssuesCount = (effectivePage.seo?.length || 0) || (effectivePage.seoImprovements?.length || 0);
-  const accessibilityScore = effectivePage.accessibility?.score || 0;
-  const performanceScore = effectivePage.performance?.score || 0;
-  const seoScore = effectivePage.seoScore || 0;
+  const accessibilityScore = effectivePage.lighthouseAccessibilityScore || effectivePage.accessibility?.score || 0;
+  const performanceScore = effectivePage.lighthousePerformanceScore || effectivePage.performance?.score || 0;
+  const seoScore = effectivePage.lighthouseSeoScore || effectivePage.seoScore || 0;
 
   const tabs = useMemo(() => [
     { key: "dashboard", label: "Page dashboard", icon: "isax-document-text" },
@@ -329,16 +329,24 @@ export default function PageDetailsMisspellingsDrawer({
                             </tr>
                           </thead>
                           <tbody>
-                            {brokenLinksPaginated.map((row, idx) => (
-                              <tr key={`bl-${idx}`}>
-                                <td className="ps-4 small text-break"><a href={row.url} target="_blank" rel="noreferrer" className="text-primary">{row.url}</a></td>
-                                <td>{row.responseCode}</td>
-                                <td><span className="badge bg-secondary bg-opacity-10 text-secondary">{row.type}</span></td>
-                                <td className="text-end pe-4">
-                                   <button className="btn btn-icon btn-sm btn-light" onClick={() => setSelectedBrokenLinkId(idx)}><i className="isax isax-info-circle" /></button>
-                                </td>
-                              </tr>
-                            ))}
+                            {brokenLinksPaginated.map((row, idx) => {
+                              const url = typeof row === 'string' ? row : (row.url || row.link || "");
+                              const code = typeof row === 'string' ? "404" : (row.responseCode || row.status || "404");
+                              const type = typeof row === 'string' ? "External" : (row.type || "Broken");
+                              
+                              return (
+                                <tr key={`bl-${idx}`}>
+                                  <td className="ps-4 small text-break">
+                                    <a href={url} target="_blank" rel="noreferrer" className="text-primary">{url}</a>
+                                  </td>
+                                  <td>{code}</td>
+                                  <td><span className="badge bg-secondary bg-opacity-10 text-secondary">{type}</span></td>
+                                  <td className="text-end pe-4">
+                                     <button className="btn btn-icon btn-sm btn-light" onClick={() => setSelectedBrokenLinkId(idx)}><i className="isax isax-info-circle" /></button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                             {brokenLinksList.length === 0 && <tr><td colSpan="4" className="text-center py-4 text-muted">No broken links found.</td></tr>}
                           </tbody>
                         </table>
@@ -356,8 +364,8 @@ export default function PageDetailsMisspellingsDrawer({
             <SeoSection issues={effectivePage.seoImprovements} score={effectivePage.seoScore} />
           )}
 
-          {activeTab === "accessibility" && <AccessibilitySection />}
-          {activeTab === "inventory" && <InventorySection />}
+          {activeTab === "accessibility" && <AccessibilitySection data={effectivePage.accessibility} score={accessibilityScore} />}
+          {activeTab === "inventory" && <InventorySection page={effectivePage} />}
           {activeTab === "performance" && <PerformanceSection page={effectivePage} />}
         </div>
       </div>

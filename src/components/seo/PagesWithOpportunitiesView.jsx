@@ -1,10 +1,10 @@
 function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
-import React, { useState, useMemo, useCallback, useEffect  } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import PageDetailsMisspellingsDrawer, { } from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-import { getDomainSeoPagesApi } from "../../api/domainApi";
+import { getDomainByIdApi, getDomainSeoPagesApi } from "../../api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
@@ -19,30 +19,49 @@ const PagesWithOpportunitiesView = () => {
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
   const [pages, setPages] = useState([]);
+  const [domain, setDomain] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
-  const fetchPages = useCallback(async () => {
+  const fetchPages = useCallback(async (showLoading = true) => {
     if (!domainId) return;
-    setIsLoading(true);
+    if (showLoading) setIsLoading(true);
     try {
-      const response = await getDomainSeoPagesApi(domainId, currentPage, rowsPerPage, searchQuery);
-      if (response.success) {
-        setPages(response.data.pages);
-        setTotalCount(response.data.pagination.total);
+      const [pagesRes, domRes] = await Promise.all([
+        getDomainSeoPagesApi(domainId, currentPage, rowsPerPage, searchQuery),
+        getDomainByIdApi(domainId)
+      ]);
+      if (pagesRes.success) {
+        setPages(pagesRes.data.pages);
+        setTotalCount(pagesRes.data.pagination.total);
+      }
+      if (domRes.success) {
+        setDomain(domRes.data);
       }
     } catch (error) {
       console.error("Failed to fetch SEO pages:", error);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [domainId, currentPage, rowsPerPage, searchQuery]);
 
   useEffect(() => {
     fetchPages();
   }, [fetchPages]);
+
+  useEffect(() => {
+    let interval;
+    if (domain && (domain.dm_seo_status === 'pending' || domain.dm_seo_status === 'scanning')) {
+      interval = setInterval(() => {
+        fetchPages(false);
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [domain, fetchPages]);
 
   const openPageDetails = (p, index) => {
     setSelectedPageForDetails(p);
@@ -54,12 +73,12 @@ const PagesWithOpportunitiesView = () => {
     const dir = sortDir === "asc" ? 1 : -1;
     return [...pages].sort((a, b) => {
       if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
-      if (sortBy === "notifications") return dir * (a.notifications - b.notifications);
+      if (sortBy === "issues") return dir * (a.notifications - b.notifications);
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
-        return dir * ((_nullishCoalesce(order[a.priority], () => ( 0))) - (_nullishCoalesce(order[b.priority], () => ( 0))));
+        return dir * ((_nullishCoalesce(order[a.priority], () => (0))) - (_nullishCoalesce(order[b.priority], () => (0))));
       }
-      return dir * (a.views - b.views);
+      return 0;
     });
   }, [pages, sortBy, sortDir]);
 
@@ -77,7 +96,7 @@ const PagesWithOpportunitiesView = () => {
   const reportBaseName = safeFilename("Pages-With-Opportunities-Report");
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Notifications,Priority,Views\n";
+    const header = "Title,URL,Issues,Priority\n";
     const body = sortedPages
       .map((p) =>
         [
@@ -85,7 +104,6 @@ const PagesWithOpportunitiesView = () => {
           `"${p.url.replace(/"/g, '""')}"`,
           p.notifications,
           `"${p.priority}"`,
-          p.views,
         ].join(",")
       )
       .join("\n");
@@ -98,9 +116,8 @@ const PagesWithOpportunitiesView = () => {
     const rows = sortedPages.map((p) => ({
       Title: p.title || "",
       URL: p.url,
-      Notifications: p.notifications,
+      Issues: p.notifications,
       Priority: p.priority,
-      Views: p.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -112,20 +129,19 @@ const PagesWithOpportunitiesView = () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Notifications", "Priority", "Views"]];
+    const head = [["Title", "URL", "Issues", "Priority"]];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 35),
       p.url.slice(0, 50),
       String(p.notifications),
       p.priority,
-      String(p.views),
     ]);
     autoTable(doc, {
       head,
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 55 }, 2: { cellWidth: 28 }, 3: { cellWidth: 22 }, 4: { cellWidth: 18 } },
+      columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 }, 3: { cellWidth: 30 } },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
@@ -138,8 +154,14 @@ const PagesWithOpportunitiesView = () => {
             <i className="isax isax-document-copy text-primary fs-22" aria-hidden="true" />
             Pages with Opportunities
           </h5>
-          <p className="text-muted fs-13 mb-0">
+          <p className="text-muted fs-13 mb-0 d-flex align-items-center gap-2">
             {totalCount} pages with SEO opportunities
+            {domain?.dm_seo_status === 'scanning' || domain?.dm_seo_status === 'pending' ? (
+              <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-1 px-2">
+                <span className="spinner-border spinner-border-sm" style={{ width: 10, height: 10 }} role="status" aria-hidden="true"></span>
+                <span style={{ fontSize: 10 }}>Scanning for updates...</span>
+              </span>
+            ) : null}
           </p>
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
@@ -182,6 +204,16 @@ const PagesWithOpportunitiesView = () => {
                   <span className="visually-hidden">Loading...</span>
                 </div>
               </div>
+            ) : (domain?.dm_seo_status === 'pending' || domain?.dm_seo_status === 'scanning') && pages.length === 0 ? (
+              <div className="text-center p-5">
+                <div className="mb-4">
+                  <div className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }} role="status">
+                    <span className="visually-hidden">Scanning...</span>
+                  </div>
+                </div>
+                <h5>SEO Scan in Progress...</h5>
+                <p className="text-muted">Analyzing pages for opportunities.</p>
+              </div>
             ) : (
               <table className="table table-hover table-striped table-borderless align-middle mb-0">
                 <thead>
@@ -204,10 +236,10 @@ const PagesWithOpportunitiesView = () => {
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                        onClick={() => handleSort("notifications")}
+                        onClick={() => handleSort("issues")}
                       >
-                        Notifications
-                        {sortBy === "notifications" ? (
+                        Issues
+                        {sortBy === "issues" ? (
                           <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                         ) : (
                           <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
@@ -225,23 +257,6 @@ const PagesWithOpportunitiesView = () => {
                           <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
                         </span>
                         {sortBy === "priority" ? (
-                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                        ) : (
-                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                        )}
-                      </button>
-                    </th>
-                    <th className="py-3 text-body fs-13 fw-semibold">
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                        onClick={() => handleSort("views")}
-                      >
-                        Views
-                        <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                          <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                        </span>
-                        {sortBy === "views" ? (
                           <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                         ) : (
                           <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
@@ -273,18 +288,16 @@ const PagesWithOpportunitiesView = () => {
                       <td className="py-3 fs-13 text-body">{p.notifications}</td>
                       <td className="py-3">
                         <span
-                          className={`badge rounded-pill ${
-                            p.priority === "High"
+                          className={`badge rounded-pill ${p.priority === "High"
                               ? "bg-danger bg-opacity-10 text-danger"
                               : p.priority === "Medium"
                                 ? "bg-warning bg-opacity-10 text-warning"
                                 : "bg-secondary bg-opacity-10 text-secondary"
-                          }`}
+                            }`}
                         >
                           {p.priority}
                         </span>
                       </td>
-                      <td className="py-3 fs-13 text-body">{p.views}</td>
                       <td className="py-3 pe-4">
                         <div className="d-inline-flex align-items-center gap-1">
                           <button
@@ -302,14 +315,15 @@ const PagesWithOpportunitiesView = () => {
                   ))}
                   {!isLoading && sortedPages.length === 0 && (
                     <tr>
-                      <td colSpan="5" className="text-center py-5 text-muted">
+                      <td colSpan="4" className="text-center py-5 text-muted">
                         No pages found.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
-            )}
+            )
+}
           </div>
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25">
             <div className="d-flex align-items-center gap-2">

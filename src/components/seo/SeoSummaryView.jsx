@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-import { getDomainLatestSummaryApi, triggerDomainScanApi } from "../../api/domainApi";
+import { getDomainByIdApi, getDomainLatestSummaryApi, getDomainScanHistoryApi, triggerDomainScanApi } from "../../api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 import { showToast } from "../common/alerts/ToastAlert";
+import AffectedPagesChart from "../audit/AffectedPagesChart";
+import SeoCheckpointPagesDrawer from "./SeoCheckpointPagesDrawer";
+import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
 
 const TEAL = "#14b8a6";
 
@@ -62,29 +65,64 @@ const REPORT_BASE = safeFilename("SEO-Summary-Report");
 
 const SeoSummaryView = () => {
   const [summary, setSummary] = useState(null);
+  const [domain, setDomain] = useState(null);
+  const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
 
+  // Issue Detail Drawer State
+  const [issueDrawerOpen, setIssueDrawerOpen] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
+
+  // Page Detail Drawer State
+  const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
+  const [selectedPage, setSelectedPage] = useState(null);
+  const [selectedIssueForPage, setSelectedIssueForPage] = useState(null);
+
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
-  const fetchSummary = useCallback(async () => {
+  const fetchSummary = useCallback(async (showLoading = true) => {
     if (!domainId) return;
-    setIsLoading(true);
+    if (showLoading) setIsLoading(true);
     try {
-      const response = await getDomainLatestSummaryApi(domainId);
-      if (response.success) {
-        setSummary(response.data);
+      const [latestRes, historyRes, domainRes] = await Promise.all([
+        getDomainLatestSummaryApi(domainId),
+        getDomainScanHistoryApi(domainId),
+        getDomainByIdApi(domainId)
+      ]);
+
+      if (latestRes.success) {
+        setSummary(latestRes.data);
+      }
+      if (historyRes.success) {
+        setHistory(historyRes.data);
+      }
+      if (domainRes.success) {
+        setDomain(domainRes.data);
       }
     } catch (error) {
-      console.error("Failed to fetch SEO summary:", error);
+      console.error("Failed to fetch SEO data:", error);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [domainId]);
 
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
+
+  // Polling for scan status
+  useEffect(() => {
+    let interval;
+    if (domain && (domain.dm_seo_status === 'pending' || domain.dm_seo_status === 'scanning')) {
+      interval = setInterval(() => {
+        fetchSummary(false);
+      }, 5000); // Poll every 5 seconds
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [domain, fetchSummary]);
 
   const handleTriggerScan = async () => {
     if (!domainId) return;
@@ -93,12 +131,25 @@ const SeoSummaryView = () => {
       const response = await triggerDomainScanApi(domainId);
       if (response.success) {
         showToast("Scan triggered successfully. This may take a few minutes.", "success");
+        // Update local domain status immediately to trigger polling
+        setDomain(prev => prev ? { ...prev, dm_seo_status: 'pending' } : null);
       }
     } catch (error) {
       console.error("Failed to trigger scan:", error);
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const handleIssueClick = (item) => {
+    setSelectedIssue(item);
+    setIssueDrawerOpen(true);
+  };
+
+  const handleOpenPageDetails = (page, issue) => {
+    setSelectedPage(page);
+    setSelectedIssueForPage(issue);
+    setPageDetailsDrawerOpen(true);
   };
 
   const exportCSV = useCallback(() => {
@@ -169,26 +220,40 @@ const SeoSummaryView = () => {
     );
   }
 
+  const isActuallyScanning = domain?.dm_seo_status === 'pending' || domain?.dm_seo_status === 'scanning';
+
   if (!summary) {
     return (
       <div className="text-center p-5">
         <div className="mb-4">
-          <i className="isax isax-chart-215 text-muted" style={{ fontSize: "4rem" }} />
+          {isActuallyScanning ? (
+            <div className="spinner-border text-primary" style={{ width: "4rem", height: "4rem" }} role="status">
+              <span className="visually-hidden">Scanning...</span>
+            </div>
+          ) : (
+            <i className="isax isax-chart-215 text-muted" style={{ fontSize: "4rem" }} />
+          )}
         </div>
-        <h5>No SEO Data Available</h5>
-        <p className="text-muted">Start a scan to see SEO insights for this domain.</p>
-        <button 
-          className="btn btn-primary" 
-          onClick={handleTriggerScan}
-          disabled={isScanning}
-        >
-          {isScanning ? "Triggering..." : "Start SEO Scan"}
-        </button>
+        <h5>{isActuallyScanning ? "SEO Scan in Progress..." : "No SEO Data Available"}</h5>
+        <p className="text-muted">
+          {isActuallyScanning 
+            ? "We are currently scanning your domain. This may take a few minutes depending on the site size." 
+            : "Start a scan to see SEO insights for this domain."}
+        </p>
+        {!isActuallyScanning && (
+          <button
+            className="btn btn-primary"
+            onClick={handleTriggerScan}
+            disabled={isScanning}
+          >
+            {isScanning ? "Triggering..." : "Start SEO Scan"}
+          </button>
+        )}
       </div>
     );
   }
 
-  const MAX_OPP_COUNT = Math.max(...(summary.topIssues || []).map((o) => o.count), 1);
+  const maxCount = summary.topIssues?.length > 0 ? Math.max(...summary.topIssues.map(i => i.count || 0)) : 100;
 
   return (
     <div className="seo-summary-view">
@@ -196,9 +261,15 @@ const SeoSummaryView = () => {
         <div className="d-flex align-items-center gap-2">
           <i className="isax isax-chart-215 text-primary fs-22" aria-hidden="true" />
           <h5 className="mb-0 fw-semibold text-body">Search Engine Optimization</h5>
+          {isActuallyScanning && (
+            <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-2 px-3">
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span className="fs-12 fw-medium">Scanning for updates...</span>
+            </span>
+          )}
         </div>
         <div className="d-flex align-items-center gap-2">
-          <button 
+          <button
             className="btn btn-sm btn-outline-primary me-2"
             onClick={handleTriggerScan}
             disabled={isScanning}
@@ -221,10 +292,16 @@ const SeoSummaryView = () => {
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Most common opportunities found</h6>
-              <p className="text-muted fs-13 mb-3">You have {(summary.topIssues || []).length} to dos</p>
+              <p className="text-muted fs-13 mb-3">Found {summary.totalUniqueIssues ?? (summary.topIssues || []).length} optimization opportunities</p>
               <div className="d-flex flex-column gap-3">
                 {(summary.topIssues || []).map((item) => (
-                  <div key={item.message} className="d-flex align-items-center gap-2">
+                  <div 
+                    key={item.message} 
+                    className="d-flex align-items-center gap-2 cursor-pointer p-2 rounded hover-bg-light transition-all"
+                    onClick={() => handleIssueClick(item)}
+                    role="button"
+                    tabIndex={0}
+                  >
                     <span
                       className="rounded-circle flex-shrink-0"
                       style={{
@@ -239,13 +316,13 @@ const SeoSummaryView = () => {
                         <span className="fs-13 text-body text-truncate">{item.message}</span>
                         <span className="fs-13 text-body flex-shrink-0 d-inline-flex align-items-center gap-1">
                           {item.count}
-                          <i className="isax isax-arrow-down-1 fs-12 text-muted" aria-hidden="true" />
+                          <i className="isax isax-arrow-right-3 fs-12 text-muted" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="progress rounded-pill" style={{ height: 8 }}>
                         <div
                           className="progress-bar bg-warning"
-                          style={{ width: `${(item.count / MAX_OPP_COUNT) * 100}%` }}
+                          style={{ width: `${maxCount > 0 ? (item.count / maxCount) * 100 : 0}%` }}
                           role="progressbar"
                         />
                       </div>
@@ -258,36 +335,39 @@ const SeoSummaryView = () => {
 
           <div className="card border-0 shadow-sm">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Affected pages by priority</h6>
-              <p className="text-muted fs-13 mb-3">Distribution of SEO levels</p>
-              <div className="row g-3">
-                  <div className="col-6">
-                    <SmallDonut 
-                        percent={summary.issueBreakdown?.high > 0 ? Math.round((summary.issueBreakdown?.high / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
-                        label="High priority" 
-                        pages={summary.issueBreakdown?.high || 0} 
-                        issues={summary.issueBreakdown?.high || 0} 
-                        color="#dc3545" 
-                    />
-                  </div>
-                  <div className="col-6">
-                    <SmallDonut 
-                        percent={summary.issueBreakdown?.medium > 0 ? Math.round((summary.issueBreakdown?.medium / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
-                        label="Medium priority" 
-                        pages={summary.issueBreakdown?.medium || 0} 
-                        issues={summary.issueBreakdown?.medium || 0} 
-                        color="#fd7e14" 
-                    />
-                  </div>
-                  <div className="col-6">
-                    <SmallDonut 
-                        percent={summary.issueBreakdown?.low > 0 ? Math.round((summary.issueBreakdown?.low / (summary.issueBreakdown?.high + summary.issueBreakdown?.medium + summary.issueBreakdown?.low)) * 100) : 0} 
-                        label="Low priority" 
-                        pages={summary.issueBreakdown?.low || 0} 
-                        issues={summary.issueBreakdown?.low || 0} 
-                        color="#0d6efd" 
-                    />
-                  </div>
+              <h6 className="fw-semibold text-body mb-1">Total Issues by priority</h6>
+              <p className="text-muted fs-13 mb-3">Distribution of SEO issues found</p>
+              <AffectedPagesChart 
+                chartId="seo-priority-distribution"
+                type="bar"
+                height={220}
+                series={[{
+                  name: 'Issues',
+                  data: [
+                    summary.issueBreakdown?.high || 0,
+                    summary.issueBreakdown?.medium || 0,
+                    summary.issueBreakdown?.low || 0
+                  ]
+                }]}
+                categories={['High', 'Medium', 'Low']}
+                colors={['#dc3545', '#fd7e14', '#0d6efd']}
+                yAxisLabel={(val) => Math.round(val)}
+                dataLabelsFormatter={(val) => val}
+                tooltipLabel="Issues"
+              />
+              <div className="d-flex justify-content-between mt-2 px-2">
+                <div className="text-center">
+                  <span className="fs-12 text-muted d-block">High</span>
+                  <span className="fw-bold text-danger">{summary.issueBreakdown?.high || 0} issues</span>
+                </div>
+                <div className="text-center">
+                  <span className="fs-12 text-muted d-block">Medium</span>
+                  <span className="fw-bold text-warning">{summary.issueBreakdown?.medium || 0} issues</span>
+                </div>
+                <div className="text-center">
+                  <span className="fs-12 text-muted d-block">Low</span>
+                  <span className="fw-bold text-primary">{summary.issueBreakdown?.low || 0} issues</span>
+                </div>
               </div>
             </div>
           </div>
@@ -312,7 +392,7 @@ const SeoSummaryView = () => {
 
               <div className="mb-4">
                 <div className="d-flex align-items-center gap-2 mb-2">
-                  <span className="text-muted fs-13">SEO opportunities found</span>
+                  <span className="text-muted fs-13">Total issues identified</span>
                   <span className="text-muted" title="Info">
                     <i className="isax isax-information fs-14" aria-hidden="true" />
                   </span>
@@ -324,39 +404,73 @@ const SeoSummaryView = () => {
 
               <div className="mb-4">
                 <p className="fs-13 text-body mb-0">
-                  <span className="text-muted">Pages with SEO opportunities:</span>{" "}
+                  <span className="text-muted">Affected pages:</span>{" "}
                   <span className="fw-medium">{summary.totalPages || 0}</span>
                 </p>
               </div>
 
               <div className="border border-secondary border-opacity-25 rounded-2 p-3 bg-body-tertiary bg-opacity-25">
-                <svg width="100%" viewBox="0 0 500 180" style={{ maxHeight: 200 }} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="seoTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={TEAL} stopOpacity={0.2} />
-                      <stop offset="100%" stopColor={TEAL} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <line x1="40" y1="20" x2="40" y2="140" stroke="#e5e7eb" strokeWidth="1" />
-                  <line x1="40" y1="140" x2="480" y2="140" stroke="#e5e7eb" strokeWidth="1" />
-                  <polyline points="60,120 120,80 180,100 240,60 300,70 360,50 420,40 460,45" fill="none" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="60,130 120,125 180,128 240,122 300,125 360,120 420,118 460,120" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <text x="20" y="85" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>100</text>
-                  <text x="20" y="140" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>0</text>
-                  <text x="100" y="155" textAnchor="middle" fill="#6b7280" style={{ fontSize: 9 }}>Latest Scan</text>
-                </svg>
-                <div className="d-flex flex-wrap gap-3 mt-2 fs-12 text-muted justify-content-center">
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#dc3545" }} /> High</span>
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#fd7e14" }} /> Medium</span>
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: "#0d6efd" }} /> Low</span>
-                  <span className="d-inline-flex align-items-center gap-1"><span className="rounded-circle d-block" style={{ width: 8, height: 8, backgroundColor: TEAL }} /> Technical</span>
-                </div>
-                <Link to="#" className="small text-primary text-decoration-none mt-2 d-inline-block">Show history</Link>
+                <AffectedPagesChart 
+                  chartId="seo-trend-chart"
+                  type="line"
+                  max={100}
+                  height={180}
+                  series={[
+                    {
+                      name: 'SEO Compliance',
+                      data: [...history].reverse().map(h => h.finalSeoScore || 0)
+                    },
+                    {
+                      name: 'Avg Performance',
+                      data: [...history].reverse().map(h => h.performanceMetrics?.avgPerformanceScore || 0)
+                    }
+                  ]}
+                  categories={[...history].reverse().map(h => {
+                    const d = new Date(h.lastScanDate || h.createdAt || new Date());
+                    return `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+                  })}
+                  colors={[TEAL, '#94a3b8']}
+                  showLegend={true}
+                  tooltipLabel="%"
+                />
+                <Link to="/home/history-center" className="small text-primary text-decoration-none mt-2 d-inline-block">Show history</Link>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <SeoCheckpointPagesDrawer
+        open={issueDrawerOpen}
+        onClose={() => setIssueDrawerOpen(false)}
+        issueName={selectedIssue?.issue || selectedIssue?.message || ""}
+        pageCount={selectedIssue?.count || 0}
+        domainTotalPages={summary?.totalPages || 1}
+        onOpenPageDetails={handleOpenPageDetails}
+      />
+
+      <PageDetailsMisspellingsDrawer
+        open={pageDetailsDrawerOpen}
+        onClose={() => {
+          setPageDetailsDrawerOpen(false);
+          setSelectedIssueForPage(null);
+        }}
+        page={selectedPage}
+        defaultTab={
+          selectedIssueForPage?.toLowerCase().includes("link") || 
+          selectedIssueForPage?.toLowerCase().includes("image") || 
+          selectedIssueForPage?.toLowerCase().includes("misspelling") ||
+          selectedIssueForPage?.toLowerCase().includes("spelling")
+            ? "qa" : "seo"
+        }
+        defaultQaSubView={
+          selectedIssueForPage?.toLowerCase().includes("broken link") ? "broken-links" :
+          selectedIssueForPage?.toLowerCase().includes("broken image") ? "broken-images" :
+          (selectedIssueForPage?.toLowerCase().includes("misspelling") || selectedIssueForPage?.toLowerCase().includes("spelling")) ? "misspellings" :
+          undefined
+        }
+        backdropZIndex={1075}
+        panelZIndex={1080}
+      />
     </div>
   );
 };

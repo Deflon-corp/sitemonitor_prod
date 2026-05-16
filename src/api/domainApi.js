@@ -55,6 +55,16 @@ export const hardDeleteDomainApi = async (id) => {
   }
 };
 
+// GET /domains/:id
+export const getDomainByIdApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // GET /domains/:id/scan-history
 export const getDomainScanHistoryApi = async (id) => {
   try {

@@ -148,28 +148,54 @@ const ChecksTable = ({ checks, selectedCheckId, onSelectCheck, iconType }) => (
   </div>
 );
 
-const AccessibilitySection = () => {
+const AccessibilitySection = ({ data, score }) => {
   const [levelFilter, setLevelFilter] = useState("all");
   const [showIgnored, setShowIgnored] = useState(false);
   const [showPassed, setShowPassed] = useState(true);
-  const [selectedCheckId, setSelectedCheckId] = useState(LEVEL_A_CHECKS[0]?.id ?? null);
+  
+  // Use dynamic data if available, otherwise fallback to static samples
+  const dynamicIssues = useMemo(() => {
+    if (!data?.issues || !Array.isArray(data.issues)) return null;
+    return data.issues.map(issue => ({
+      id: issue.id,
+      level: "A", // Default to A if not specified
+      name: issue.title,
+      roles: "Front-end Development",
+      successCriteria: issue.description || "WCAG Check",
+      individualIssues: issue.nodes?.length || 0,
+      nodes: issue.nodes || []
+    }));
+  }, [data]);
+
+  const levelA = dynamicIssues ? dynamicIssues.filter(i => i.level === "A") : LEVEL_A_CHECKS;
+  const levelAA = dynamicIssues ? dynamicIssues.filter(i => i.level === "AA") : LEVEL_AA_CHECKS;
+
+  const [selectedCheckId, setSelectedCheckId] = useState(null);
+
+  useEffect(() => {
+    if (!selectedCheckId) {
+      if (levelFilter === "all" || levelFilter === "a") setSelectedCheckId(levelA[0]?.id);
+      else if (levelFilter === "aa") setSelectedCheckId(levelAA[0]?.id);
+    }
+  }, [levelFilter, levelA, levelAA, selectedCheckId]);
+
+  const overallPercent = score !== undefined ? score : 64.49;
+  const levelAPercent = dynamicIssues ? score : 69.23; // Approximation
+  const levelAAPercent = dynamicIssues ? score : 51.72;
+
   const [issueTab, setIssueTab] = useState("pending");
   const [expandedSnippets, setExpandedSnippets] = useState(new Set());
   const [issueDrawerOpen, setIssueDrawerOpen] = useState(false);
   const [issueDrawerData, setIssueDrawerData] = useState(null);
 
-  const overallPercent = 64.49;
-  const levelAPercent = 69.23;
-  const levelAAPercent = 51.72;
-
   const selectedCheck = selectedCheckId
-    ? ([...LEVEL_A_CHECKS, ...LEVEL_AA_CHECKS].find((c) => c.id === selectedCheckId) ?? null)
+    ? ([...levelA, ...levelAA].find((c) => c.id === selectedCheckId) ?? null)
     : null;
 
   useEffect(() => {
-    if (levelFilter === "a") setSelectedCheckId(LEVEL_A_CHECKS[0]?.id ?? null);
-    else if (levelFilter === "aa") setSelectedCheckId(LEVEL_AA_CHECKS[0]?.id ?? null);
-  }, [levelFilter]);
+    if (levelFilter === "a") setSelectedCheckId(levelA[0]?.id ?? null);
+    else if (levelFilter === "aa") setSelectedCheckId(levelAA[0]?.id ?? null);
+  }, [levelFilter, levelA, levelAA]);
 
   const toggleSnippet = (id) => {
     setExpandedSnippets((prev) => {
@@ -181,10 +207,10 @@ const AccessibilitySection = () => {
   };
 
   const checksForExport = useMemo(() => {
-    if (levelFilter === "all") return [...LEVEL_A_CHECKS, ...LEVEL_AA_CHECKS];
-    if (levelFilter === "a") return LEVEL_A_CHECKS;
-    return LEVEL_AA_CHECKS;
-  }, [levelFilter]);
+    if (levelFilter === "all") return [...levelA, ...levelAA];
+    if (levelFilter === "a") return levelA;
+    return levelAA;
+  }, [levelFilter, levelA, levelAA]);
 
   const reportNameByLevel =
     levelFilter === "all"
@@ -330,14 +356,14 @@ const AccessibilitySection = () => {
           {levelFilter === "a" && (
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <ChecksTable checks={LEVEL_A_CHECKS} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="danger" />
+                <ChecksTable checks={levelA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="danger" />
               </div>
             </div>
           )}
           {levelFilter === "aa" && (
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <ChecksTable checks={LEVEL_AA_CHECKS} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="eye" />
+                <ChecksTable checks={levelAA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="eye" />
               </div>
             </div>
           )}
@@ -346,13 +372,13 @@ const AccessibilitySection = () => {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <LevelHeaderBlock badgeLabel="A" title="Level A accessibility checks." percent={levelAPercent} />
-                  <ChecksTable checks={LEVEL_A_CHECKS} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="danger" />
+                  <ChecksTable checks={levelA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="danger" />
                 </div>
               </div>
               <div className="card border-0 shadow-sm mt-3">
                 <div className="card-body">
                   <LevelHeaderBlock badgeLabel="AA" title="Level AA accessibility checks." percent={levelAAPercent} />
-                  <ChecksTable checks={LEVEL_AA_CHECKS} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="eye" />
+                  <ChecksTable checks={levelAA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="eye" />
                 </div>
               </div>
             </>
@@ -415,8 +441,8 @@ const AccessibilitySection = () => {
                     <button type="button" className="btn btn-sm btn-light text-primary border">Mark check as fixed</button>
                   </div>
                   <div className="border-top pt-3">
-                    {SAMPLE_INSTANCES.map((inst) => (
-                      <div key={inst.id} className="mb-4">
+                    {(selectedCheck?.nodes?.length > 0 ? selectedCheck.nodes : SAMPLE_INSTANCES).map((inst, idx) => (
+                      <div key={inst.id || idx} className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-2">
                           <span className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-light" style={{ width: 40, height: 40 }}>
                             <i className="isax isax-shield-tick text-primary fs-18" aria-hidden="true" />
@@ -434,16 +460,16 @@ const AccessibilitySection = () => {
                               onClick={() => {
                                 if (selectedCheck) {
                                   setIssueDrawerData({
-                                    id: "417662360210",
+                                    id: inst.id || `node-${idx}`,
                                     checkName: selectedCheck.name,
-                                    element: "Image",
-                                    dateFound: "15 Feb. 2026",
+                                    element: inst.selector || "Element",
+                                    dateFound: new Date().toLocaleDateString(),
                                     effectOnCompliance: "0.00 %",
-                                    snippetHtml: ISSUE_DRAWER_SNIPPET_HTML,
+                                    snippetHtml: inst.snippet || ISSUE_DRAWER_SNIPPET_HTML,
                                     pageTitle: "Search",
                                     pageUrl: "https://www.bajajfinserv.in/search",
                                     responsibility: selectedCheck.roles,
-                                    successCriteria: selectedCheck.successCriteria.replace(/^Part of success criteria\s*/i, "").trim() || "1.1.1",
+                                    successCriteria: selectedCheck.successCriteria?.replace(/^Part of success criteria\s*/i, "").trim() || "1.1.1",
                                     difficulty: "Easy",
                                   });
                                   setIssueDrawerOpen(true);
@@ -457,17 +483,17 @@ const AccessibilitySection = () => {
                         <div className="rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 overflow-hidden">
                           <pre
                             className="p-3 text-danger small mb-0 overflow-auto"
-                            style={{ fontSize: "0.75rem", maxHeight: expandedSnippets.has(inst.id) ? "none" : 80 }}
+                            style={{ fontSize: "0.75rem", maxHeight: expandedSnippets.has(inst.id || idx) ? "none" : 80 }}
                           >
                             <code>{inst.snippet}</code>
                           </pre>
                           <div className="px-3 pb-2">
-                            {!expandedSnippets.has(inst.id) ? (
-                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id)}>
+                            {!expandedSnippets.has(inst.id || idx) ? (
+                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id || idx)}>
                                 Show more
                               </button>
                             ) : (
-                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id)}>
+                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id || idx)}>
                                 Show less
                               </button>
                             )}

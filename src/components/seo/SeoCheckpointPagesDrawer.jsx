@@ -11,12 +11,47 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 
 const DEFAULT_QUICK_HELP = ["This page is missing a title.", "We recommend that all your pages has an unique title."];
 
+const getQuickHelp = (name) => {
+  const lower = (name || "").toLowerCase();
+  if (lower.includes("broken link")) {
+    return [
+      "This page has one or more broken links which can harm SEO and user experience.",
+      "Fix these links by updating them to valid URLs or removing them."
+    ];
+  }
+  if (lower.includes("meta title")) {
+    return [
+      "This page is missing a title or has an empty title tag.",
+      "We recommend that all your pages have a unique and descriptive title."
+    ];
+  }
+  if (lower.includes("meta description")) {
+    return [
+      "This page is missing a meta description.",
+      "Descriptions help search engines and users understand the content of your page."
+    ];
+  }
+  if (lower.includes("render-blocking")) {
+    return [
+      "Resources are blocking the first paint of your page.",
+      "Consider delivering critical JS/CSS inline and deferring all non-critical JS/styles."
+    ];
+  }
+  if (lower.includes("spelling") || lower.includes("misspelling")) {
+    return [
+      "One or more words on this page may be misspelled.",
+      "Review the highlighted words and update them if necessary, or add them to your dictionary if they are correct."
+    ];
+  }
+  return DEFAULT_QUICK_HELP;
+};
+
 const SeoCheckpointPagesDrawer = ({
   open,
   onClose,
   issueName,
   pageCount,
-  compliancePercent,
+  domainTotalPages = 1,
   quickHelpLines = DEFAULT_QUICK_HELP,
   onOpenPageDetails,
 }) => {
@@ -51,6 +86,19 @@ const SeoCheckpointPagesDrawer = ({
     fetchPages();
   }, [fetchPages]);
 
+  // Polling for updates if open
+  useEffect(() => {
+    let interval;
+    if (open) {
+      interval = setInterval(() => {
+        fetchPages();
+      }, 10000); // Poll every 10 seconds while drawer is open
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [open, fetchPages]);
+
   const sortedPages = useMemo(() => {
     if (!sortBy) return pages;
     const dir = sortDir === "asc" ? 1 : -1;
@@ -60,7 +108,7 @@ const SeoCheckpointPagesDrawer = ({
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
       }
-      return dir * (a.views - b.views);
+      return dir * (a.targetedIssueCount - b.targetedIssueCount);
     });
   }, [pages, sortBy, sortDir]);
 
@@ -75,22 +123,23 @@ const SeoCheckpointPagesDrawer = ({
     }
   };
 
-  const pagesInCompliance = Math.round((pageCount * compliancePercent) / 100);
-  const pagesToFix = pageCount - pagesInCompliance;
+  const compliancePercent = Math.round(((Math.max(1, domainTotalPages) - totalCount) / Math.max(1, domainTotalPages)) * 100);
+  const pagesInCompliance = Math.max(0, domainTotalPages - totalCount);
+  const pagesToFix = totalCount;
   const complianceDisplay = Math.min(100, Math.max(0, compliancePercent));
-  const toFixPercent = pageCount > 0 ? Math.round((pagesToFix / pageCount) * 100) : 0;
+  const toFixPercent = Math.round((totalCount / Math.max(1, domainTotalPages)) * 100);
 
   const reportBaseName = safeFilename(`${issueName.replace(/\s+/g, "-")}-Pages-Report`);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Priority,Views\n";
+    const header = "Title,URL,Priority,Issues\n";
     const body = sortedPages
       .map((p) =>
         [
           `"${(p.title || "").replace(/"/g, '""')}"`,
           `"${p.url.replace(/"/g, '""')}"`,
           `"${p.priority}"`,
-          p.views,
+          p.targetedIssueCount,
         ].join(",")
       )
       .join("\n");
@@ -104,7 +153,7 @@ const SeoCheckpointPagesDrawer = ({
       Title: p.title || "",
       URL: p.url,
       Priority: p.priority,
-      Views: p.views,
+      Issues: p.targetedIssueCount,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -114,21 +163,72 @@ const SeoCheckpointPagesDrawer = ({
 
   const exportPDF = useCallback(async () => {
     const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-    const doc = new jsPDF({ orientation: "landscape" });
+    const doc = new jsPDF();
+    let yPos = 20;
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(33, 37, 41);
+    doc.text("SEO ISSUE REPORT", 105, yPos, { align: "center" });
+    yPos += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos, 190, yPos);
+    yPos += 15;
+
+    // Summary
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Issue Type: ${issueName}`, 20, yPos);
+    yPos += 7;
+    doc.text(`Total Pages Affected: ${totalCount}`, 20, yPos);
+    yPos += 15;
+
+    doc.line(20, yPos, 190, yPos);
+    yPos += 10;
+
+    // Content
     doc.setFontSize(12);
-    doc.text(`${issueName} – Pages`, 14, 10);
-    const head = [["Title", "URL", "Priority", "Views"]];
-    const body = sortedPages.map((p) => [(p.title || "").slice(0, 35), p.url.slice(0, 50), p.priority, String(p.views)]);
-    autoTable(doc, {
-      head,
-      body,
-      startY: 16,
-      styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 55 }, 2: { cellWidth: 22 }, 3: { cellWidth: 18 } },
+    sortedPages.forEach((p, index) => {
+      if (yPos > 260) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.text(`${index + 1}. URL: ${p.url.slice(0, 75)}${p.url.length > 75 ? "..." : ""}`, 20, yPos);
+      yPos += 7;
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`   Issues Found: ${p.targetedIssueCount}`, 20, yPos);
+      yPos += 7;
+      doc.text(`   Severity: ${p.priority}`, 20, yPos);
+      yPos += 10;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("   Problem:", 20, yPos);
+      yPos += 7;
+      doc.setFont("helvetica", "normal");
+      const problem = getQuickHelp(issueName)[0];
+      const splitProblem = doc.splitTextToSize(`   - ${problem}`, 160);
+      doc.text(splitProblem, 20, yPos);
+      yPos += (splitProblem.length * 6);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("   Recommendation:", 20, yPos);
+      yPos += 7;
+      doc.setFont("helvetica", "normal");
+      const recommendation = getQuickHelp(issueName)[1];
+      const splitRec = doc.splitTextToSize(`   - ${recommendation}`, 160);
+      doc.text(splitRec, 20, yPos);
+      yPos += (splitRec.length * 6) + 10;
+
+      doc.setDrawColor(240, 240, 240);
+      doc.line(25, yPos - 5, 185, yPos - 5);
+      yPos += 5;
     });
+
     doc.save(`${reportBaseName}.pdf`);
-  }, [reportBaseName, sortedPages, issueName]);
+  }, [reportBaseName, sortedPages, issueName, totalCount]);
 
   useEffect(() => {
     if (!open) return;
@@ -179,12 +279,19 @@ const SeoCheckpointPagesDrawer = ({
                 <i className="isax isax-close-circle text-body" aria-hidden="true" />
               </button>
               <div>
-                <h5 className="mb-0 fw-semibold text-body" id="seo-checkpoint-pages-drawer-title">
-                  {issueName}
+                <h5 className="mb-1 fw-semibold text-body" id="seo-checkpoint-pages-drawer-title">
+                  {issueName || "Issue Details"}
                 </h5>
-                <p className="text-muted fs-13 mb-0 mt-1">
-                  {pageCount.toLocaleString()} pages with this issue
-                </p>
+                <div className="d-flex align-items-center gap-2 mt-2">
+                  <span className="badge bg-warning bg-opacity-10 text-warning rounded-pill fs-12 fw-medium px-3 py-2">
+                    <i className="isax isax-document-text me-1"></i>
+                    {totalCount.toLocaleString()} page{totalCount !== 1 ? "s" : ""} affected
+                  </span>
+                  <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill fs-12 fw-medium px-3 py-2">
+                    <i className="isax isax-danger me-1"></i>
+                    Total {pageCount.toLocaleString()} issue{pageCount !== 1 ? "s" : ""}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="d-flex flex-wrap align-items-center gap-2">
@@ -223,25 +330,25 @@ const SeoCheckpointPagesDrawer = ({
           {/* Quick help */}
           <div className="bg-body-tertiary bg-opacity-50 rounded-2 p-3 mb-4">
             <h6 className="fw-semibold text-body fs-13 mb-2">Quick help</h6>
-            {quickHelpLines.map((line, i) => (
-              <p key={i} className="text-body fs-13 mb-1">
-                {line}
-              </p>
-            ))}
+            <ul className="text-muted fs-13 mb-0 ps-3">
+              {getQuickHelp(issueName).map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
           </div>
 
           {/* Compliance */}
           <div className="mb-4">
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-              <span className="fs-13 text-body fw-medium">Compliance {complianceDisplay}%</span>
-              <div className="d-flex align-items-center gap-3">
-                <span className="fs-13 text-muted">
-                  {pagesInCompliance} Pages ({complianceDisplay}%) in compliance
+              <span className="fs-13 text-body fw-medium">SEO Health Score {complianceDisplay}%</span>
+            </div>
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+              <span className="fs-13 text-muted">
+                  {pagesInCompliance} Page{pagesInCompliance !== 1 ? 's' : ''} ({complianceDisplay}%) Passed
                 </span>
                 <span className="fs-13 text-body fw-medium">
-                  {pagesToFix} Pages ({toFixPercent}%) to fix
+                  {pagesToFix} Page{pagesToFix !== 1 ? 's' : ''} ({toFixPercent}%) Affected
                 </span>
-              </div>
             </div>
             <div className="progress rounded-pill" style={{ height: 8 }}>
               <div
@@ -302,10 +409,10 @@ const SeoCheckpointPagesDrawer = ({
                           <button
                             type="button"
                             className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                            onClick={() => handleSort("views")}
+                            onClick={() => handleSort("issues")}
                           >
-                            Views
-                            {sortBy === "views" ? (
+                            Issue Count
+                            {sortBy === "issues" ? (
                               <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                             ) : (
                               <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
@@ -320,7 +427,7 @@ const SeoCheckpointPagesDrawer = ({
                         <tr key={`${p.url}-${idx}`}>
                           <td className="py-3 ps-4">
                             <div className="d-flex flex-column">
-                              <span className="text-muted fs-13">{p.title}</span>
+                              <span className="text-body fw-medium fs-13">{p.title || "(No title found)"}</span>
                               <a
                                 href={p.url}
                                 target="_blank"
@@ -348,10 +455,9 @@ const SeoCheckpointPagesDrawer = ({
                             </span>
                           </td>
                           <td className="py-3">
-                            <div className="d-flex flex-column gap-1">
-                              <span className="fs-13 text-body">{p.views}</span>
-                              <div className="bg-secondary bg-opacity-25 rounded" style={{ height: 4, width: 40 }} aria-hidden="true" />
-                            </div>
+                            <span className="fs-13 fw-semibold text-danger bg-danger bg-opacity-10 px-2 py-1 rounded-pill">
+                              Count {p.targetedIssueCount} issue{p.targetedIssueCount !== 1 ? 's' : ''}
+                            </span>
                           </td>
                           <td className="py-3 pe-4">
                             <div className="d-flex gap-1">
@@ -360,7 +466,7 @@ const SeoCheckpointPagesDrawer = ({
                                 className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
                                 title="Open page details"
                                 aria-label="Open page details"
-                                onClick={() => onOpenPageDetails?.(p)}
+                                onClick={() => onOpenPageDetails?.(p, issueName)}
                               >
                                 <i className="isax isax-document-text fs-14 text-primary" aria-hidden="true" />
                               </button>

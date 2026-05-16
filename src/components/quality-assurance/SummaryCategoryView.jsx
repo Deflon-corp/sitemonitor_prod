@@ -16,7 +16,7 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
+const SAMPLE_ROWS = Array.from({ length: 4 }, (_, i) => ({
   id: `qa-${i + 1}`,
   title: i % 5 === 0 ? "(No title found)" : "Search",
   url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,

@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { getDomainLatestSummaryApi, getDomainByIdApi } from "../../api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const TEAL = "#14b8a6";
 const LEVEL_A = { passed: 44, total: 76, done: 32, toFix: 16, building: 10, person: 4, eye: 12 };
@@ -95,6 +97,46 @@ const LevelComplianceCard = ({
 };
 
 const AccessibilitySummaryView = () => {
+  const [summary, setSummary] = useState(null);
+  const [domain, setDomain] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchSummary = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const [summaryRes, domainRes] = await Promise.all([
+        getDomainLatestSummaryApi(domainId),
+        getDomainByIdApi(domainId)
+      ]);
+      if (summaryRes.success) setSummary(summaryRes.data);
+      if (domainRes.success) setDomain(domainRes.data);
+    } catch (error) {
+      console.error("Failed to fetch Accessibility summary:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center p-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const accessibilityScore = summary?.performanceMetrics?.avgAccessibilityScore || 0;
+  const totalIssues = (summary?.issueBreakdown?.high || 0) + (summary?.issueBreakdown?.medium || 0) + (summary?.issueBreakdown?.low || 0);
+
   const complianceTotal = COMPLIANCE_BY_LEVEL.done + COMPLIANCE_BY_LEVEL.pink + COMPLIANCE_BY_LEVEL.purple;
   const complianceDonePct = complianceTotal > 0 ? (COMPLIANCE_BY_LEVEL.done / complianceTotal) * 100 : 0;
   const compliancePinkPct = complianceTotal > 0 ? (COMPLIANCE_BY_LEVEL.pink / complianceTotal) * 100 : 0;
@@ -186,18 +228,18 @@ const AccessibilitySummaryView = () => {
               <h6 className="fw-semibold text-body mb-1">Accessibility Diagnostics</h6>
               <p className="text-muted fs-13 mb-3">Percentage above the average compliance score across all pages on the domain</p>
               <div className="d-flex justify-content-around mb-4">
-                <Donut percent={COMPLIANCE_PERCENT} label="Accessibility Compliance" />
-                <Donut percent={INDUSTRY_AVG_PERCENT} label="Industry average" />
+                <Donut percent={accessibilityScore} label="Accessibility Compliance" />
+                <Donut percent={81.1} label="Industry average" />
               </div>
               <div className="mb-3">
                 <p className="fs-13 text-body mb-1">
                   <span className="text-muted">Falling accessibility checks:</span>{" "}
-                  <span className="fw-medium">{FALLING_CHECKS.current} / {FALLING_CHECKS.total}</span>
-                  <span className="text-success ms-1 fs-13">{FALLING_CHECKS.change}</span>
+                  <span className="fw-medium">{totalIssues} / 0</span>
+                  <span className="text-success ms-1 fs-13">0%</span>
                 </p>
                 <p className="fs-13 text-body mb-0">
                   <span className="text-muted">Pages with falling checks:</span>{" "}
-                  <span className="fw-medium">{PAGES_WITH_FALLING}</span>
+                  <span className="fw-medium">{summary?.totalPages || 0}</span>
                 </p>
               </div>
               <div className="position-relative rounded-2 bg-body-tertiary p-3" style={{ minHeight: 180 }}>
@@ -231,7 +273,7 @@ const AccessibilitySummaryView = () => {
                     <span className="rounded" style={{ width: 8, height: 8, backgroundColor: "#94a3b8" }} /> Pages with issue
                   </span>
                 </div>
-                <Link to="#" className="small text-primary text-decoration-none mt-2 d-inline-block">Show History</Link>
+                <Link to="/home/history-center" className="small text-primary text-decoration-none mt-2 d-inline-block">Show History</Link>
               </div>
             </div>
           </div>
@@ -243,11 +285,11 @@ const AccessibilitySummaryView = () => {
               <div className="row g-3">
                 <div className="col-6">
                   <Donut percent={PDF_INTERNAL.percent} label="Internal PDFs reviewed" />
-                  <Link to="#" className="small text-primary text-decoration-none d-block mt-1">Pending PDF reviews ({PDF_INTERNAL.pending})</Link>
+                  <Link to="/domain/accessibility?view=internal-pdfs" className="small text-primary text-decoration-none d-block mt-1">Pending PDF reviews ({PDF_INTERNAL.pending})</Link>
                 </div>
                 <div className="col-6">
                   <Donut percent={PDF_EXTERNAL.percent} label="External PDFs reviewed" />
-                  <Link to="#" className="small text-primary text-decoration-none d-block mt-1">Pending PDF reviews ({PDF_EXTERNAL.pending})</Link>
+                  <Link to="/domain/accessibility?view=external-pdfs" className="small text-primary text-decoration-none d-block mt-1">Pending PDF reviews ({PDF_EXTERNAL.pending})</Link>
                 </div>
               </div>
             </div>

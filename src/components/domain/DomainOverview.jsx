@@ -119,7 +119,7 @@ const DomainOverview = () => {
     window.dispatchEvent(
       new CustomEvent("sitemonitor:select-domain", { detail: { id: domainId } })
     );
-    navigate("/dashboard");
+    navigate("/domain");
   };
 
   const openScriptSetupGuide = (domain) => {

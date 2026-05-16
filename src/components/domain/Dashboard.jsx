@@ -257,7 +257,7 @@ const Dashboard = () => {
                             </div>
                             <div id="scan_history_chart" style={{ minHeight: "200px" }}></div>
                             <div className="d-flex justify-content-end mt-2 pb-2">
-                                <Link to="#" className="text-primary fs-13 fw-medium">Show history</Link>
+                                <Link to="/home/history-center" className="text-primary fs-13 fw-medium text-decoration-none">Show history</Link>
                             </div>
                         </div>
                     </div>

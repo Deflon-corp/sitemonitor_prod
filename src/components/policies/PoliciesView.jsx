@@ -389,7 +389,7 @@ const PoliciesView = ({ isLanding = false }) => {
                       <PolicyTrendChart trend={stats.trend} />
 
                       <div className="d-flex justify-content-end mt-2 pt-2 border-top">
-                        <Link to="#" className="text-primary fs-13 d-inline-flex align-items-center">
+                        <Link to="/home/history-center" className="text-primary fs-13 d-inline-flex align-items-center text-decoration-none">
                           Show history
                           <i className="isax isax-arrow-right-1 ms-1" aria-hidden="true" />
                         </Link>

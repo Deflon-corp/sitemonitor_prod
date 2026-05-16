@@ -84,7 +84,7 @@ const MainRouter = () => {
         path="/domain/prioritized-content"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Prioritized Content">
+            <DashboardLayout breadcrumbTitle="Prioritized Content" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <PrioritizedContentPage />
             </DashboardLayout>
           </ProtectedRouter>
@@ -94,7 +94,7 @@ const MainRouter = () => {
         path="/domain/policies"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Policies">
+            <DashboardLayout breadcrumbTitle="Policies" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <Policies />
             </DashboardLayout>
           </ProtectedRouter>
@@ -104,7 +104,7 @@ const MainRouter = () => {
         path="/domain/quality-assurance"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Quality Assurance">
+            <DashboardLayout breadcrumbTitle="Quality Assurance" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <QualityAssurance />
             </DashboardLayout>
           </ProtectedRouter>
@@ -114,7 +114,7 @@ const MainRouter = () => {
         path="/domain/seo"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="SEO">
+            <DashboardLayout breadcrumbTitle="SEO" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <Seo />
             </DashboardLayout>
           </ProtectedRouter>
@@ -124,7 +124,7 @@ const MainRouter = () => {
         path="/domain/accessibility"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Accessibility">
+            <DashboardLayout breadcrumbTitle="Accessibility" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <Accessibility />
             </DashboardLayout>
           </ProtectedRouter>
@@ -166,7 +166,7 @@ const MainRouter = () => {
         path="/domain/heartbeat"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Heartbeat">
+            <DashboardLayout breadcrumbTitle="Heartbeat" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <HeartbeatView />
             </DashboardLayout>
           </ProtectedRouter>
@@ -176,7 +176,7 @@ const MainRouter = () => {
         path="/domain/performance"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Performance">
+            <DashboardLayout breadcrumbTitle="Performance" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
               <PerformanceView />
             </DashboardLayout>
           </ProtectedRouter>

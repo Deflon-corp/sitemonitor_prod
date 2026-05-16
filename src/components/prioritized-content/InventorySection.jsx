@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import InventoryDocumentsView from "./InventoryDocumentsView";
 import InventoryOutgoingLinksView from "./InventoryOutgoingLinksView";
 import InventoryFormsView from "./InventoryFormsView";
@@ -62,7 +62,7 @@ const MetricBlock = ({ label, value, icon, borderEnd, borderBottom }) => (
   </div>
 );
 
-const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
+const InventorySection = ({ defaultView, embeddedInDrawer, page } = {}) => {
   const [activeSidebarKey, setActiveSidebarKey] = useState(defaultView ?? "summary");
   const [contentOpen, setContentOpen] = useState(true);
   const [technicalOpen, setTechnicalOpen] = useState(true);
@@ -72,6 +72,28 @@ const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
       setActiveSidebarKey(defaultView);
     }
   }, [embeddedInDrawer, defaultView]);
+
+  const contentMetrics = useMemo(() => {
+    if (!page) return CONTENT_METRICS;
+    return [
+      { label: "Images", value: page.images?.total || 0, icon: "isax-image" },
+      { label: "Incoming Links", value: page.links?.internal || 0, icon: "isax-link-square" },
+      { label: "Outgoing Links", value: page.links?.external || 0, icon: "isax-arrow-right" },
+      { label: "PDF Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.pdf')).length, icon: "isax-document-text" },
+      { label: "Excel Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.xlsx') || f.url?.toLowerCase()?.endsWith('.xls')).length, icon: "isax-document-copy" },
+      { label: "Text Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.txt')).length, icon: "isax-document" },
+    ];
+  }, [page]);
+
+  const technicalMetrics = useMemo(() => {
+    if (!page) return TECHNICAL_METRICS;
+    return [
+      { label: "CSS", value: page.networkMetrics?.resourceCount?.css || page.cssAnalysis?.internalCssCount || 0, icon: "isax-code" },
+      { label: "Javascript", value: page.networkMetrics?.resourceCount?.js || page.jsAnalysis?.internalJsCount || 0, icon: "isax-code-1" },
+      { label: "Frames", value: page.additionalChecks?.frameCount || 0, icon: "isax-code-circle" },
+      { label: "IFrames", value: page.additionalChecks?.iframeCount || 0, icon: "isax-code-circle" },
+    ];
+  }, [page]);
 
   return (
     <div className="d-flex gap-0 overflow-hidden rounded-3">
@@ -182,27 +204,27 @@ const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
       {/* Main content */}
       <div className="flex-grow-1 min-w-0 p-3 bg-body-tertiary rounded-end-3 overflow-auto">
         {activeSidebarKey === "documents" ? (
-          <InventoryDocumentsView />
+          <InventoryDocumentsView items={page?.files?.others?.map((f, idx) => ({ id: idx, link: f?.url || "", notifications: 0, views: 0 })) || []} />
         ) : activeSidebarKey === "images" ? (
-          <PrioritizedContentImagesView />
+          <PrioritizedContentImagesView items={page?.images?.imageLoadDetails?.map((img, idx) => ({ id: idx, url: img?.src || "", pageCount: 1, ...img })) || []} />
         ) : activeSidebarKey === "links" || activeSidebarKey === "outgoing-links" ? (
-          <InventoryOutgoingLinksView />
+          <InventoryOutgoingLinksView items={page?.links?.outboundUrls?.map((url, idx) => ({ id: idx, link: url || "", type: "Outgoing link", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "forms" ? (
-          <InventoryFormsView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryFormsView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.formDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "Form", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "headlinks" ? (
-          <InventoryHeadlinksView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryHeadlinksView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.headLinks?.map((l, idx) => ({ id: idx, link: l?.url || l || "", type: "Head Link", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "iframes" ? (
-          <InventoryIFramesView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryIFramesView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.iframeDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "IFrame", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "frames" ? (
-          <InventoryFramesView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryFramesView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.frameDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "Frame", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "css" ? (
-          <InventoryCssView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryCssView variant={embeddedInDrawer ? "details" : undefined} items={page?.files?.css?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "CSS", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "js" ? (
-          <InventoryJsView variant={embeddedInDrawer ? "details" : undefined} />
+          <InventoryJsView variant={embeddedInDrawer ? "details" : undefined} items={page?.files?.js?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "JavaScript", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "email-addresses" ? (
-          <InventoryEmailAddressesView />
+          <InventoryEmailAddressesView items={page?.textMetrics?.emails?.map((e, idx) => ({ id: idx, link: e || "", type: "Email", responseCode: "200" })) || []} />
         ) : activeSidebarKey === "html-pages" ? (
-          <InventoryHtmlPagesView />
+          <InventoryHtmlPagesView items={page ? [page] : []} />
         ) : (
           <>
             {/* Header */}
@@ -227,14 +249,14 @@ const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
                   <div className="card-body">
                     <h6 className="fw-semibold mb-3">Content</h6>
                     <div className="row g-0">
-                      {CONTENT_METRICS.map((m, idx) => (
+                      {contentMetrics.map((m, idx) => (
                         <div key={m.label} className="col-6">
                           <MetricBlock
                             label={m.label}
                             value={m.value}
                             icon={m.icon}
                             borderEnd={idx % 2 === 0}
-                            borderBottom={idx < CONTENT_METRICS.length - 2}
+                            borderBottom={idx < contentMetrics.length - 2}
                           />
                         </div>
                       ))}
@@ -249,14 +271,14 @@ const InventorySection = ({ defaultView, embeddedInDrawer } = {}) => {
                   <div className="card-body">
                     <h6 className="fw-semibold mb-3">Technical</h6>
                     <div className="row g-0">
-                      {TECHNICAL_METRICS.map((m, idx) => (
+                      {technicalMetrics.map((m, idx) => (
                         <div key={m.label} className="col-6">
                           <MetricBlock
                             label={m.label}
                             value={m.value}
                             icon={m.icon}
                             borderEnd={idx % 2 === 0}
-                            borderBottom={idx < TECHNICAL_METRICS.length - 2}
+                            borderBottom={idx < technicalMetrics.length - 2}
                           />
                         </div>
                       ))}
