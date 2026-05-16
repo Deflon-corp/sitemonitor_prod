@@ -1,7 +1,8 @@
-import React, { useState  } from "react";
+import React, { useState, useEffect } from "react";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
-import NewPerformancePageDrawer from "@/components/prioritized-content/NewPerformancePageDrawer";
 import PageDetailsDrawer, { } from "@/components/prioritized-content/PageDetailsDrawer";
+import { getDomainSeoPagesApi } from "@/api/domainApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const SAMPLE_PAGES = [
   {
@@ -15,9 +16,34 @@ const PerformanceView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
-  const [newPageDrawerOpen, setNewPageDrawerOpen] = useState(false);
+  const [pages, setPages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPages = SAMPLE_PAGES.filter((p) => {
+  useEffect(() => {
+    const fetchPages = async () => {
+      const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+      if (!domainId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await getDomainSeoPagesApi(domainId, 1, 100);
+        if (response.success && response.data?.pages) {
+          setPages(response.data.pages);
+        }
+      } catch (error) {
+        console.error("Error fetching performance pages:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPages();
+  }, []);
+
+  const filteredPages = pages.filter((p) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q);
@@ -40,19 +66,13 @@ const PerformanceView = () => {
         <div>
           <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
             <i className="isax isax-shield-tick5 text-primary fs-22" aria-hidden="true" />
-            Performance
+            Page Performance
           </h5>
           <p className="text-muted fs-13 mb-1">Powered by Google Lighthouse</p>
-          <p className="text-muted fs-13 mb-0">Overview of the measured performance scores per page. Add a new page from the button on the right.</p>
+          <p className="text-muted fs-13 mb-0">Monitor and optimize your website's speed, responsiveness, and visual stability to ensure a top-tier user experience.</p>
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
-          <button
-            type="button"
-            className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2"
-            onClick={() => setNewPageDrawerOpen(true)}
-          >
-            <i className="isax isax-add fs-18" aria-hidden="true" /> Add new page
-          </button>
+
           <div
             className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
             style={{ minWidth: 220 }}
@@ -76,8 +96,15 @@ const PerformanceView = () => {
       {/* Page list */}
       <div className="card border-0 shadow-sm">
         <div className="card-body p-0">
-          {filteredPages.length === 0 ? (
-            <div className="text-center text-muted py-5">No pages match your search.</div>
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2 text-muted fs-13">Loading pages...</p>
+            </div>
+          ) : filteredPages.length === 0 ? (
+            <div className="text-center text-muted py-5">No pages match your search or no scans found.</div>
           ) : (
             <ul className="list-group list-group-flush">
               {filteredPages.map((p, i) => (
@@ -97,7 +124,11 @@ const PerformanceView = () => {
                   <div className="d-flex align-items-center gap-2">
                     <span className="fs-13 text-body">
                       Performance score{" "}
-                      <span className="badge rounded-pill bg-secondary bg-opacity-25 text-body">
+                      <span className={`badge rounded-pill ${
+                        p.performanceScore >= 90 ? "bg-success bg-opacity-10 text-success" : 
+                        p.performanceScore >= 50 ? "bg-warning bg-opacity-10 text-warning" : 
+                        "bg-danger bg-opacity-10 text-danger"
+                      }`}>
                         {p.performanceScore != null ? p.performanceScore : "N/A"}
                       </span>
                     </span>
@@ -118,10 +149,7 @@ const PerformanceView = () => {
         </div>
       </div>
 
-      <NewPerformancePageDrawer
-        open={newPageDrawerOpen}
-        onClose={() => setNewPageDrawerOpen(false)}
-      />
+
 
       <PageDetailsDrawer
         open={pageDetailsDrawerOpen}

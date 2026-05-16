@@ -178,3 +178,20 @@ export const getAuditBrokenLinksApi = async (id) => {
     throw error;
   }
 };
+
+// GET /heartbeat/:domainId
+export const getHeartbeatDataApi = async (domainId, startDate, endDate) => {
+  try {
+    let url = `/heartbeat/${domainId}`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    const response = await axiosInstance.get(url);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
