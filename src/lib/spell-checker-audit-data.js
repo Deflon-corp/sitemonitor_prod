@@ -35,48 +35,53 @@ function makeRows(pathPrefix, count, queryKey) {
 export const SPELL_CHECKER_AUDIT_CONFIG = {
   "title-meta-spelling": {
     title: "Title & Meta spelling",
-    affectedCount: 426,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/title-meta", 18, "s"),
   },
   "headings-spelling": {
     title: "Headings (H1–H6) spelling",
-    affectedCount: 23,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/headings", 14, "h"),
   },
   "image-alt-spelling": {
     title: "Image alt text spelling",
-    affectedCount: 9,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/image-alt", 10, "a"),
   },
   "anchor-cta-spelling": {
     title: "Anchor & CTA text spelling",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/anchor-cta", 12, "c"),
   },
   "navigation-footer-spelling": {
     title: "Navigation & footer spelling",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/nav-footer", 11, "n"),
   },
   "form-labels-placeholders": {
     title: "Form labels & placeholders",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/forms", 13, "f"),
   },
   "language-consistency": {
     title: "Language consistency check",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/language", 15, "l"),
   },
   "accessibility-text-spelling": {
     title: "Accessibility text spelling",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/a11y-text", 12, "x"),
   },
   "content-spelling": {
     title: "Content spelling",
-    affectedCount: 12,
+    affectedCount: 0,
     rows: makeRows("/spellcheck/content", 16, "t"),
+  },
+  "broken-links": {
+    title: "Broken links",
+    affectedCount: 0,
+    rows: makeRows("/spellcheck/broken-links", 10, "b"),
   },
 };
 
@@ -91,6 +96,7 @@ export const SPELL_CHECKER_SLUGS_ORDER = [
   "language-consistency",
   "accessibility-text-spelling",
   "content-spelling",
+  "broken-links",
 ];
 
 export function getSpellCheckerAuditBySlug(slug) {

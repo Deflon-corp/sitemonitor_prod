@@ -1,24 +1,11 @@
 import React, { useState, useMemo, useCallback  } from "react";
 
-const SAMPLE_ROWS = [
-  { url: "https://uat.aarogyaabharat.com/categories/home-care/aarogyaa-bharat-tpe-threshold-ramp-rx973rx974rx975rx976", lastCrawled: "Dec 11, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/2388/what-is-i-v-cannula-and-how-is-it-used", lastCrawled: "Nov 15, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/1108/how-can-sedentary-patients-prevent-bedsores", lastCrawled: "Nov 13, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/2102/benefits-of-physiotherapy-after-surgery", lastCrawled: "Nov 12, 2025" },
-  { url: "https://uat.aarogyaabharat.com/products/health-monitors", lastCrawled: "Nov 12, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/1890/importance-of-rehabilitation", lastCrawled: "Nov 12, 2025" },
-  { url: "https://uat.aarogyaabharat.com/categories/personal-care", lastCrawled: "Nov 11, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/1500/patient-care-guidelines", lastCrawled: "Nov 10, 2025" },
-  { url: "https://uat.aarogyaabharat.com/blog/wellness-tips", lastCrawled: "Nov 9, 2025" },
-  { url: "https://community.aarogyaabharat.com/discussion/3200/physiotherapy-exercises", lastCrawled: "Nov 8, 2025" },
-];
-
 const buildRows = (totalCount) => {
   const dates = ["Dec 11, 2025", "Nov 15, 2025", "Nov 13, 2025", "Nov 12, 2025", "Nov 11, 2025", "Nov 10, 2025", "Nov 9, 2025", "Nov 8, 2025", "Oct 28, 2025", "Oct 20, 2025"];
-  const baseUrls = SAMPLE_ROWS.map((r) => r.url);
   return Array.from({ length: totalCount }, (_, i) => ({
-    url: baseUrls[i % baseUrls.length],
+    url: `https://example.com/page-${i+1}`,
     lastCrawled: dates[i % dates.length],
+    targetedIssueCount: 1
   }));
 };
 
@@ -36,35 +23,51 @@ const downloadBlob = (blob, filename) => {
 };
 
 const SeoHealthExamplesCard = ({
-  totalCount = 91,
+  totalCount = 0,
   reportTitle = "Report",
-  /** When set, use these rows instead of generating from totalCount (e.g. Response Status reports). */
   rows: rowsProp = null,
+  isLoading = false,
+  onPageChange = null,
+  currentPage = 1,
+  pageSize = 10,
+  serverSide = false
 }) => {
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [localPage, setLocalPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(pageSize);
   const [sortDesc, setSortDesc] = useState(true);
 
   const allRows = useMemo(() => {
-    if (Array.isArray(rowsProp) && rowsProp.length > 0) return rowsProp;
+    if (Array.isArray(rowsProp)) return rowsProp;
     return buildRows(totalCount);
   }, [rowsProp, totalCount]);
+
   const sortedRows = useMemo(() => {
+    if (serverSide) return allRows;
     const byDate = [...allRows].sort((a, b) => {
       const d = (s) => new Date(s).getTime();
       return sortDesc ? d(b.lastCrawled) - d(a.lastCrawled) : d(a.lastCrawled) - d(b.lastCrawled);
     });
     return byDate;
-  }, [allRows, sortDesc]);
+  }, [allRows, sortDesc, serverSide]);
 
-  const start = (page - 1) * rowsPerPage;
-  const pageRows = sortedRows.slice(start, start + rowsPerPage);
-  const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
+  const effectivePage = serverSide ? currentPage : localPage;
+  const start = (effectivePage - 1) * rowsPerPage;
+  const pageRows = serverSide ? sortedRows : sortedRows.slice(start, start + rowsPerPage);
+  const totalRowsCount = serverSide ? totalCount : sortedRows.length;
+  const totalPagesCount = Math.ceil(totalRowsCount / rowsPerPage);
   const baseName = safeFilename(reportTitle);
 
+  const handlePageChange = (newPage) => {
+    if (serverSide && onPageChange) {
+      onPageChange(newPage, rowsPerPage);
+    } else {
+      setLocalPage(newPage);
+    }
+  };
+
   const exportCSV = useCallback(() => {
-    const header = "URL,Last crawled\n";
-    const body = sortedRows.map((r) => `"${r.url.replace(/"/g, '""')}","${r.lastCrawled}"`).join("\n");
+    const header = "URL,Issues,Last crawled\n";
+    const body = sortedRows.map((r) => `"${r.url.replace(/"/g, '""')}","${r.targetedIssueCount || 0}","${r.lastCrawled}"`).join("\n");
     const csv = header + body;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -73,7 +76,7 @@ const SeoHealthExamplesCard = ({
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
-      sortedRows.map((r) => ({ URL: r.url, "Last crawled": r.lastCrawled }))
+      sortedRows.map((r) => ({ URL: r.url, Issues: r.targetedIssueCount || 0, "Last crawled": r.lastCrawled }))
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Examples");
@@ -84,22 +87,22 @@ const SeoHealthExamplesCard = ({
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["URL", "Last crawled"]];
-    const body = sortedRows.map((r) => [r.url, r.lastCrawled]);
+    const head = [["URL", "Issues", "Last crawled"]];
+    const body = sortedRows.map((r) => [r.url, r.targetedIssueCount || 0, r.lastCrawled]);
     autoTable(doc, {
       head,
       body,
       startY: 10,
       styles: { fontSize: 8 },
-      columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: 28 } },
+      columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: 20 }, 2: { cellWidth: 28 } },
     });
     doc.save(`${baseName}.pdf`);
   }, [sortedRows, baseName]);
 
   return (
-    <div className="card">
-      <div className="card-header border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h6 className="mb-0 d-flex align-items-center">
+    <div className="card border-0 shadow-sm">
+      <div className="card-header border-0 d-flex align-items-center justify-content-between flex-wrap gap-2 bg-transparent py-3">
+        <h6 className="mb-0 d-flex align-items-center fw-semibold">
           Examples
           <span className="ms-1 opacity-75" title="Pages where this issue was found">
             <i className="isax isax-info-circle fs-14" />
@@ -108,7 +111,7 @@ const SeoHealthExamplesCard = ({
         <div className="dropdown">
           <button
             type="button"
-            className="btn btn-sm btn-light d-flex align-items-center"
+            className="btn btn-sm btn-outline-secondary d-flex align-items-center"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
@@ -135,14 +138,15 @@ const SeoHealthExamplesCard = ({
       </div>
       <div className="card-body p-0">
         <div className="table-responsive">
-          <table className="table table-hover table-borderless mb-0">
-            <thead>
+          <table className="table table-hover mb-0">
+            <thead className="bg-light">
               <tr>
-                <th className="fw-semibold text-body">URL</th>
-                <th className="fw-semibold text-body text-end" style={{ minWidth: "140px" }}>
+                <th className="fw-semibold text-body fs-13 border-0 py-3">URL</th>
+                <th className="fw-semibold text-body fs-13 border-0 py-3 text-center" style={{ width: "100px" }}>Issues</th>
+                <th className="fw-semibold text-body text-end fs-13 border-0 py-3" style={{ minWidth: "140px" }}>
                   <button
                     type="button"
-                    className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center ms-auto"
+                    className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center ms-auto fw-semibold fs-13"
                     onClick={() => setSortDesc((v) => !v)}
                   >
                     Last crawled
@@ -152,20 +156,34 @@ const SeoHealthExamplesCard = ({
               </tr>
             </thead>
             <tbody>
-              {pageRows.map((row, i) => (
-                <tr key={start + i}>
-                  <td>
-                    <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline text-break">
+              {isLoading ? (
+                <tr>
+                    <td colSpan="3" className="text-center py-5">
+                        <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                        <span className="text-muted fs-13">Loading pages...</span>
+                    </td>
+                </tr>
+              ) : pageRows.length === 0 ? (
+                <tr>
+                    <td colSpan="3" className="text-center py-5 text-muted fs-13">No pages found matching this issue.</td>
+                </tr>
+              ) : pageRows.map((row, i) => (
+                <tr key={i}>
+                  <td className="py-3">
+                    <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none text-break fs-13">
                       {row.url}
                     </a>
                   </td>
-                  <td className="text-end text-body">{row.lastCrawled}</td>
+                  <td className="py-3 text-center">
+                      <span className="badge bg-danger-subtle text-danger rounded-pill px-2">{row.targetedIssueCount || 0}</span>
+                  </td>
+                  <td className="text-end text-muted fs-13 py-3">{row.lastCrawled ? new Date(row.lastCrawled).toLocaleDateString() : 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 border-top">
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 border-top bg-transparent">
           <div className="d-flex align-items-center gap-2">
             <span className="fs-13 text-muted">Rows per page:</span>
             <select
@@ -173,35 +191,35 @@ const SeoHealthExamplesCard = ({
               style={{ width: "auto" }}
               value={rowsPerPage}
               onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setPage(1);
+                const newLimit = Number(e.target.value);
+                setRowsPerPage(newLimit);
+                if (onPageChange) onPageChange(1, newLimit);
+                else setLocalPage(1);
               }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={500}>500</option>
             </select>
           </div>
           <span className="fs-13 text-muted">
-            {start + 1}-{Math.min(start + rowsPerPage, sortedRows.length)} of {sortedRows.length}
+            {totalRowsCount > 0 ? start + 1 : 0}-{Math.min(start + rowsPerPage, totalRowsCount)} of {totalRowsCount}
           </span>
           <div className="d-flex align-items-center gap-1">
             <button
               type="button"
-              className="btn btn-icon btn-sm btn-light"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              className="btn btn-icon btn-sm btn-light border-0"
+              disabled={effectivePage <= 1}
+              onClick={() => handlePageChange(effectivePage - 1)}
               aria-label="Previous page"
             >
               <i className="isax isax-arrow-left-1" />
             </button>
             <button
               type="button"
-              className="btn btn-icon btn-sm btn-light"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              className="btn btn-icon btn-sm btn-light border-0"
+              disabled={effectivePage >= totalPagesCount}
+              onClick={() => handlePageChange(effectivePage + 1)}
               aria-label="Next page"
             >
               <i className="isax isax-arrow-right-1" />

@@ -114,3 +114,67 @@ export const getDomainSeoCheckpointsApi = async (id) => {
     throw error;
   }
 };
+
+// GET /domains/:id/audit-data
+export const getDomainAuditDataApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/domains/${id}/audit-data`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Modular Audit APIs
+ */
+
+// GET /audit/summary/:id
+export const getAuditSummaryApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/summary/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /audit/seo/:id
+export const getAuditSeoApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/seo/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /audit/performance/:id
+export const getAuditPerformanceApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/performance/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /audit/security/:id
+export const getAuditSecurityApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/security/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET /audit/broken-links/:id
+export const getAuditBrokenLinksApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/broken-links/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
