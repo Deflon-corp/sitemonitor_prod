@@ -13,6 +13,10 @@ const inventoryApi = {
     getIframes: (domain) => axiosInstance.get(`/inventory/iframes?domain=${domain}`).then(res => res.data),
     getFrames: (domain) => axiosInstance.get(`/inventory/frames?domain=${domain}`).then(res => res.data),
     getEmailAddresses: (domain) => axiosInstance.get(`/inventory/email-addresses?domain=${domain}`).then(res => res.data),
+    startScan: (domainId, domainUrl) => axiosInstance.post("/domain/inventory/scan", { domain_id: domainId, domain_url: domainUrl }).then(res => res.data),
+    getScanStatus: (scanId) => axiosInstance.get(`/domain/inventory/status/${scanId}`).then(res => res.data),
+    getInventorySummary: (domainId) => axiosInstance.get(`/domain/inventory/summary/${domainId}`).then(res => res.data),
+    getInventoryDetails: (domainId, params) => axiosInstance.get(`/domain/inventory/details/${domainId}`, { params }).then(res => res.data),
 };
 
 export default inventoryApi;

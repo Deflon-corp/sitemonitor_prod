@@ -152,10 +152,10 @@ const PagesWithOpportunitiesView = () => {
         <div>
           <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
             <i className="isax isax-document-copy text-primary fs-22" aria-hidden="true" />
-            Pages with Opportunities
+            Pages Needing Attention
           </h5>
           <p className="text-muted fs-13 mb-0 d-flex align-items-center gap-2">
-            {totalCount} pages with SEO opportunities
+            We've identified {totalCount} pages that could rank higher with some SEO improvements.
             {domain?.dm_seo_status === 'scanning' || domain?.dm_seo_status === 'pending' ? (
               <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-1 px-2">
                 <span className="spinner-border spinner-border-sm" style={{ width: 10, height: 10 }} role="status" aria-hidden="true"></span>
@@ -224,7 +224,7 @@ const PagesWithOpportunitiesView = () => {
                         className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
                         onClick={() => handleSort("title")}
                       >
-                        Title and URL
+                        Page Title & URL
                         {sortBy === "title" ? (
                           <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                         ) : (

@@ -157,7 +157,7 @@ const SeoSummaryView = () => {
     const totalIssues = (summary.issueBreakdown?.high || 0) + (summary.issueBreakdown?.medium || 0) + (summary.issueBreakdown?.low || 0);
     const lines = [
       "Section,Label,Count/Value",
-      "Most common opportunities found,,",
+      "Priority Improvements,,",
       ...(summary.topIssues || []).map((o) => `Opportunity,"${o.message.replace(/"/g, '""')}",${o.count}`),
       "",
       "Affected pages by priority,,,",
@@ -170,7 +170,7 @@ const SeoSummaryView = () => {
       "Metric,Value",
       `SEO Compliance %,${summary.finalSeoScore || 0}`,
       "Industry average %,94",
-      `SEO opportunities found,${totalIssues}`,
+      `Opportunities to improve,${totalIssues}`,
       `Pages with SEO opportunities,${summary.totalPages || 0}`,
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
@@ -181,7 +181,7 @@ const SeoSummaryView = () => {
     if (!summary) return;
     const XLSX = await import("xlsx");
     const oppSheet = XLSX.utils.json_to_sheet(
-      (summary.topIssues || []).map((o) => ({ Opportunity: o.message, Count: o.count }))
+      (summary.topIssues || []).map((o) => ({ Improvement: o.message, Count: o.count }))
     );
     const summarySheet = XLSX.utils.json_to_sheet([
       { Metric: "SEO Compliance %", Value: summary.finalSeoScore || 0 },
@@ -203,7 +203,7 @@ const SeoSummaryView = () => {
     doc.setFontSize(10);
     autoTable(doc, {
       startY: 22,
-      head: [["Opportunity", "Count"]],
+      head: [["Improvement", "Occurrences"]],
       body: (summary.topIssues || []).map((o) => [o.message, String(o.count)]),
       styles: { fontSize: 9 },
     });
@@ -260,7 +260,7 @@ const SeoSummaryView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <div className="d-flex align-items-center gap-2">
           <i className="isax isax-chart-215 text-primary fs-22" aria-hidden="true" />
-          <h5 className="mb-0 fw-semibold text-body">Search Engine Optimization</h5>
+          <h5 className="mb-0 fw-semibold text-body">SEO Performance Overview</h5>
           {isActuallyScanning && (
             <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-2 px-3">
               <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -291,10 +291,10 @@ const SeoSummaryView = () => {
         <div className="col-lg-5">
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Most common opportunities found</h6>
-              <p className="text-muted fs-13 mb-3">Found {summary.totalUniqueIssues ?? (summary.topIssues || []).length} optimization opportunities</p>
+              <h6 className="fw-semibold text-body mb-1">Priority Improvements</h6>
+              <p className="text-muted fs-13 mb-3">Focus on these top 10 improvements to boost your search visibility.</p>
               <div className="d-flex flex-column gap-3">
-                {(summary.topIssues || []).map((item) => (
+                {(summary.topIssues || []).slice(0, 10).map((item) => (
                   <div 
                     key={item.message} 
                     className="d-flex align-items-center gap-2 cursor-pointer p-2 rounded hover-bg-light transition-all"
@@ -335,8 +335,8 @@ const SeoSummaryView = () => {
 
           <div className="card border-0 shadow-sm">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Total Issues by priority</h6>
-              <p className="text-muted fs-13 mb-3">Distribution of SEO issues found</p>
+              <h6 className="fw-semibold text-body mb-1">Issue Breakdown by Priority</h6>
+              <p className="text-muted fs-13 mb-3">Visual breakdown of issues based on their impact on your site's health.</p>
               <AffectedPagesChart 
                 chartId="seo-priority-distribution"
                 type="bar"
@@ -377,11 +377,11 @@ const SeoSummaryView = () => {
         <div className="col-lg-7">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">SEO Diagnostics</h6>
-              <p className="text-muted fs-13 mb-4">Percentage shows number of pages that are compliant with all SEO checks</p>
+              <h6 className="fw-semibold text-body mb-1">SEO Health Score</h6>
+              <p className="text-muted fs-13 mb-4">Track your website's optimization progress across all audited pages.</p>
 
               <div className="d-flex flex-wrap align-items-start justify-content-around gap-4 mb-4">
-                <ComplianceDonut percent={summary.finalSeoScore || 0} label="SEO Compliance" size={140} />
+                <ComplianceDonut percent={summary.finalSeoScore || 0} label="SEO Health" size={140} />
                 <div className="d-flex align-items-center gap-1">
                   <ComplianceDonut percent={94} label="Industry average" size={100} />
                   <span className="text-muted ms-1" title="Info">
@@ -417,7 +417,7 @@ const SeoSummaryView = () => {
                   height={180}
                   series={[
                     {
-                      name: 'SEO Compliance',
+                      name: 'SEO Health',
                       data: [...history].reverse().map(h => h.finalSeoScore || 0)
                     },
                     {

@@ -5,9 +5,9 @@ import PagesWithOpportunitiesView from "./PagesWithOpportunitiesView";
 import SeoCheckpointsView from "./SeoCheckpointsView";
 
 const SEO_NAV = [
-    { key: "summary", label: "Summary", icon: "isax-home-2", href: "/domain/seo?view=summary" },
-    { key: "opportunities", label: "Pages with Opportunities", icon: "isax-document-copy", href: "/domain/seo?view=opportunities" },
-    { key: "checkpoints", label: "SEO Checkpoints", icon: "isax-tick-circle", href: "/domain/seo?view=checkpoints" },
+    { key: "summary", label: "SEO Overview", description: "Performance summary and top issues", icon: "isax-chart-215", href: "/domain/seo?view=summary" },
+    { key: "opportunities", label: "Pages to Optimize", description: "Pages requiring SEO improvements", icon: "isax-document-copy", href: "/domain/seo?view=opportunities" },
+    { key: "checkpoints", label: "Audit Checklist", description: "Detailed breakdown of all SEO rules", icon: "isax-tick-circle", href: "/domain/seo?view=checkpoints" },
 ];
 
 const Seo = () => {
@@ -16,17 +16,21 @@ const Seo = () => {
 
     return (
         <div className="seo-page">
-            <div className="card mb-4">
+            <div className="card border-0 shadow-sm mb-4">
                 <div className="card-body py-3">
-                    <nav className="d-flex flex-wrap gap-1 gap-md-4 align-items-center" aria-label="SEO navigation">
+                    <nav className="d-flex flex-wrap gap-3 align-items-stretch" aria-label="SEO navigation">
                         {SEO_NAV.map((item) => (
                             <Link
                                 key={item.key}
                                 to={item.href}
-                                className={`d-inline-flex align-items-center text-decoration-none py-2 px-2 rounded ${currentView === item.key ? "bg-light text-primary" : "text-body"}`}
+                                className={`d-flex flex-column text-decoration-none py-2 px-3 rounded transition-all ${currentView === item.key ? "bg-primary bg-opacity-10 text-primary shadow-sm border border-primary border-opacity-10" : "text-body hover-bg-light border border-transparent"}`}
+                                style={{ minWidth: "180px", flex: "1 1 0" }}
                             >
-                                <i className={`isax ${item.icon} me-2`} aria-hidden="true"></i>
-                                <span>{item.label}</span>
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                    <i className={`isax ${item.icon} fs-18 ${currentView === item.key ? "text-primary" : "text-muted"}`} aria-hidden="true"></i>
+                                    <span className="fw-semibold fs-14">{item.label}</span>
+                                </div>
+                                <span className={`fs-11 ${currentView === item.key ? "text-primary opacity-75" : "text-muted"}`}>{item.description}</span>
                             </Link>
                         ))}
                     </nav>

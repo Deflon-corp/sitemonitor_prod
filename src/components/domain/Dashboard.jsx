@@ -466,7 +466,7 @@ const Dashboard = () => {
                         <div className="card-body">
                             <div className="d-flex align-items-center justify-content-between mb-3">
                                 <h6 className="mb-0 d-flex align-items-center gap-2">
-                                    <i className="isax isax-chart-215 dashboard-metric-icon fs-18 text-primary"></i> Search Engine Optimization (SEO)
+                                    <i className="isax isax-chart-215 dashboard-metric-icon fs-18 text-primary"></i> SEO Performance Overview
                                 </h6>
                                 <Link to="/domain/seo" className="text-primary">
                                     <i className="isax isax-arrow-right-1"></i>
@@ -487,7 +487,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
                                     <h6 className="fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1">
-                                        SEO opportunities
+                                        Improvement Opportunities
                                         <i className="isax isax-info-circle text-muted fs-14" title="More information"></i>
                                     </h6>
                                     <p className="fs-2 fw-bold text-body mb-0">{latestSummary?.topIssues?.length || 0}</p>

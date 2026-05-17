@@ -18,7 +18,7 @@ const TOP_NAV_TABS = [
   { key: "policies", label: "Policies", icon: "isax-shield-tick" },
   { key: "qa", label: "Quality Assurance", icon: "isax-tick-circle" },
   { key: "accessibility", label: "Accessibility", icon: "isax-people5" },
-  { key: "seo", label: "SEO", icon: "isax-chart-215" },
+  { key: "seo", label: "SEO Audit", icon: "isax-chart-215" },
   { key: "inventory", label: "Inventory", icon: "isax-book5" },
   { key: "performance", label: "Performance", icon: "isax-chart-215" },
 ];
@@ -151,7 +151,7 @@ function PageDashboardContent() {
           , React.createElement('div', { className: "card-body"}
             , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3"   }
               , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2"   }
-                , React.createElement('i', { className: "isax isax-chart-215 fs-18 text-primary"   , 'aria-hidden': true} ), "Search Engine Optimization (SEO)"
+                , React.createElement('i', { className: "isax isax-chart-215 fs-18 text-primary"   , 'aria-hidden': true} ), "SEO Performance Overview"
 
               )
               , React.createElement(Link, { to: "#", className: "text-primary"}, React.createElement('i', { className: "isax isax-arrow-right-1" , 'aria-hidden': true} ))
@@ -170,7 +170,7 @@ function PageDashboardContent() {
                 )
               )
               , React.createElement('div', { className: "col-12 col-md-7 min-w-0"  }
-                , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1"   }, "SEO opportunities" )
+                , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1"   }, "Improvement opportunities" )
                 , React.createElement('p', { className: "fs-2 fw-bold text-body mb-0"   }, "2")
               )
             )

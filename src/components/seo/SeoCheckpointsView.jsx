@@ -64,9 +64,9 @@ const CheckpointSection = ({
           <table className="table table-borderless align-middle mb-0">
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25">
-                <th className="py-2 ps-0 text-body fs-13 fw-semibold">Issue</th>
-                <th className="py-2 text-body fs-13 fw-semibold">Compliance</th>
-                <th className="py-2 pe-0 text-body fs-13 fw-semibold">Pages</th>
+                <th className="py-2 ps-0 text-body fs-13 fw-semibold">SEO Check</th>
+                <th className="py-2 text-body fs-13 fw-semibold">Compliance Rate</th>
+                <th className="py-2 pe-0 text-body fs-13 fw-semibold">Affected Pages</th>
               </tr>
             </thead>
             <tbody>
@@ -273,7 +273,7 @@ const SeoCheckpointsView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <h5 className="mb-0 fw-semibold text-body d-flex align-items-center gap-2">
           <i className="isax isax-tick-circle text-primary fs-22" aria-hidden="true" />
-          SEO Checkpoints
+          SEO Audit Checklist
           {isActuallyScanning && (
             <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-2 px-3 ms-2">
               <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -293,25 +293,25 @@ const SeoCheckpointsView = () => {
       </div>
 
       <CheckpointSection
-        title="High priority"
+        title="Critical Issues"
         iconClass="isax-chart-2 text-danger"
-        description="These alerts can make it difficult for search engines to crawl, index and rank pages."
+        description="Fix these immediately to ensure your site can be properly indexed and ranked by search engines."
         rows={checkpoints.high}
         onPagesClick={openCheckpointPagesDrawer}
       />
 
       <CheckpointSection
-        title="Medium priority"
+        title="Recommended Improvements"
         iconClass="isax-chart-2 text-warning"
-        description="These warnings can have a negative effect on search engine rankings."
+        description="Addressing these issues will help improve your overall search visibility and user experience."
         rows={checkpoints.medium}
         onPagesClick={openCheckpointPagesDrawer}
       />
 
       <CheckpointSection
-        title="Low priority"
+        title="Minor Optimizations"
         iconClass="isax-chart-2 text-primary"
-        description="These minor issues should be addressed for better overall SEO health."
+        description="These smaller adjustments will further polish your site's SEO performance."
         rows={checkpoints.low}
         onPagesClick={openCheckpointPagesDrawer}
       />

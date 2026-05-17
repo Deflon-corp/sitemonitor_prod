@@ -1,17 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import InventorySummaryView from "@/components/prioritized-content/InventorySummaryView";
-import InventoryDocumentsView from "@/components/prioritized-content/InventoryDocumentsView";
-import InventoryLinksView from "@/components/prioritized-content/InventoryLinksView";
-import InventoryFormsView from "@/components/prioritized-content/InventoryFormsView";
-import InventoryHeadlinksView from "@/components/prioritized-content/InventoryHeadlinksView";
-import InventoryIFramesView from "@/components/prioritized-content/InventoryIFramesView";
-import InventoryFramesView from "@/components/prioritized-content/InventoryFramesView";
-import InventoryCssView from "@/components/prioritized-content/InventoryCssView";
-import InventoryJsView from "@/components/prioritized-content/InventoryJsView";
-import InventoryPersonalEmailAddressesView from "@/components/prioritized-content/InventoryPersonalEmailAddressesView";
-import InventoryHtmlPagesView from "@/components/prioritized-content/InventoryHtmlPagesView";
-import PrioritizedContentImagesView from "@/components/prioritized-content/PrioritizedContentImagesView";
+import InventoryDetailsView from "@/components/prioritized-content/InventoryDetailsView";
 import { Link, useSearchParams } from "react-router-dom";
 import inventoryApi from "@/api/inventoryApi";
 import { getDomainsApi } from "@/api/domainApi";
@@ -42,73 +32,140 @@ export default function InventoryPage() {
   const currentView = searchParams.get("view") || "summary";
   const [contentOpen, setContentOpen] = useState(false);
   const [technicalOpen, setTechnicalOpen] = useState(false);
-  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [domainId, setDomainId] = useState("");
+  const [domainUrl, setDomainUrl] = useState("");
   const [domainName, setDomainName] = useState("");
+
+  // Real-time scanner states
+  const [scanStatus, setScanStatus] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [progressPercent, setProgressPercent] = useState(0);
+
   const contentRef = useRef(null);
   const technicalRef = useRef(null);
 
-  useEffect(() => {
-    const fetchDomainAndData = async () => {
-      try {
-        setLoading(true);
-        const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
-        if (!domainId) {
-          toast.error("No domain selected");
-          setLoading(false);
-          return;
-        }
-
-        const domainRes = await getDomainsApi();
-        const domainList = Array.isArray(domainRes.data) ? domainRes.data : (domainRes.data?.domains || []);
-        const domain = domainList.find(d => d._id === domainId || String(d.dm_id) === domainId);
-        if (!domain) {
-          toast.error("Domain not found");
-          setLoading(false);
-          return;
-        }
-        const hostname = domain.dm_url.toLowerCase().trim().replace(/^https?[:/\\]+/i, '').replace(/[/\\]+.*$/, '');
-        setDomainName(domain.dm_title || hostname);
-
-        let res;
-        switch (currentView) {
-          case "summary": res = await inventoryApi.getSummary(hostname); break;
-          case "html-pages": res = await inventoryApi.getHtmlPages(hostname); break;
-          case "css": res = await inventoryApi.getCss(hostname); break;
-          case "js": res = await inventoryApi.getJs(hostname); break;
-          case "images": res = await inventoryApi.getImages(hostname); break;
-          case "links": res = await inventoryApi.getLinks(hostname); break;
-          case "documents": res = await inventoryApi.getDocuments(hostname); break;
-          case "forms": res = await inventoryApi.getForms(hostname); break;
-          case "headlinks": res = await inventoryApi.getHeadlinks(hostname); break;
-          case "iframes": res = await inventoryApi.getIframes(hostname); break;
-          case "frames": res = await inventoryApi.getFrames(hostname); break;
-          case "email-addresses":
-          case "personal": res = await inventoryApi.getEmailAddresses(hostname); break;
-          default: res = { success: true, data: [] };
-        }
-
-        if (res.success) {
-          setData(res.data);
-        } else {
-          toast.error(res.message || "Failed to fetch inventory data");
-        }
-      } catch (error) {
-        console.error("Inventory fetch error:", error);
-        toast.error("Error fetching inventory data");
-      } finally {
+  // Fetch domain meta & latest scan status
+  const fetchDomainAndStatus = async () => {
+    try {
+      setLoading(true);
+      const selDomainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+      if (!selDomainId) {
+        toast.error("No domain selected");
         setLoading(false);
+        return;
       }
-    };
+      setDomainId(selDomainId);
 
-    fetchDomainAndData();
-  }, [currentView]);
+      const domainRes = await getDomainsApi();
+      const domainList = Array.isArray(domainRes.data) ? domainRes.data : (domainRes.data?.domains || []);
+      const domain = domainList.find(d => d._id === selDomainId || String(d.dm_id) === selDomainId);
+      if (!domain) {
+        toast.error("Domain not found");
+        setLoading(false);
+        return;
+      }
+
+      const hostname = domain.dm_url.toLowerCase().trim().replace(/^https?[:/\\]+/i, '').replace(/[/\\]+.*$/, '');
+      setDomainUrl(domain.dm_url);
+      setDomainName(domain.dm_title || hostname);
+
+      // Load summary & scan status from our new high-performance APIs
+      const sumRes = await inventoryApi.getInventorySummary(selDomainId);
+      if (sumRes && sumRes.success && sumRes.summary) {
+        setScanStatus(sumRes.summary);
+        if (sumRes.summary.status === "pending" || sumRes.summary.status === "scanning") {
+          setIsScanning(true);
+          setProgressPercent(sumRes.summary.progress || 0);
+        } else {
+          setIsScanning(false);
+        }
+      }
+    } catch (error) {
+      console.error("Inventory summary fetch error:", error);
+      toast.error("Error loading inventory summary");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDomainAndStatus();
+  }, [domainId]);
+
+  // Poll for active scan status
+  useEffect(() => {
+    let intervalId;
+    if (isScanning && scanStatus?.scanId) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await inventoryApi.getScanStatus(scanStatus.scanId);
+          if (res && res.success && res.scan) {
+            const scan = res.scan;
+            setScanStatus(prev => ({
+              ...prev,
+              status: scan.status,
+              progress: scan.progress_percent,
+              totalPages: scan.total_pages,
+              totalImages: scan.total_images,
+              totalCss: scan.total_css,
+              totalJs: scan.total_js,
+              totalDocuments: scan.total_documents,
+              totalEmails: scan.total_emails,
+              totalHeadlinks: scan.total_headlinks,
+            }));
+            setProgressPercent(scan.progress_percent || 0);
+
+            if (scan.status === "completed" || scan.status === "failed") {
+              setIsScanning(false);
+              clearInterval(intervalId);
+              toast.success(scan.status === "completed" ? "Domain inventory crawl completed!" : "Domain inventory crawl failed.");
+              fetchDomainAndStatus();
+            }
+          }
+        } catch (err) {
+          console.error("Status check failed:", err);
+        }
+      }, 2500);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isScanning, scanStatus?.scanId]);
+
+  // Initiate a new inventory crawl
+  const handleStartScan = async () => {
+    if (!domainId || !domainUrl) {
+      toast.error("Crawl initialization failed: Invalid domain.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await inventoryApi.startScan(domainId, domainUrl);
+      if (res && res.success) {
+        toast.success("Inventory crawl job enqueued!");
+        setIsScanning(true);
+        // Refresh domain status instantly to set the pending status
+        const sumRes = await inventoryApi.getInventorySummary(domainId);
+        if (sumRes && sumRes.success && sumRes.summary) {
+          setScanStatus(sumRes.summary);
+          setProgressPercent(0);
+        }
+      } else {
+        toast.error(res.message || "An active crawl is already in progress.");
+      }
+    } catch (err) {
+      toast.error("Crawl service currently offline.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const close = (e) => {
       if (
-        contentRef.current && !contentRef.current.contains(e.target ) &&
-        technicalRef.current && !technicalRef.current.contains(e.target )
+        contentRef.current && !contentRef.current.contains(e.target) &&
+        technicalRef.current && !technicalRef.current.contains(e.target)
       ) {
         setContentOpen(false);
         setTechnicalOpen(false);
@@ -133,23 +190,107 @@ export default function InventoryPage() {
     setContentOpen(false);
   };
 
+  // Map scanStatus counts to old format compatible with InventorySummaryView
+  const summaryDataMapped = scanStatus ? {
+    htmlPages: scanStatus.totalPages || 0,
+    documents: scanStatus.totalDocuments || 0,
+    images: scanStatus.totalImages || 0,
+    css: scanStatus.totalCss || 0,
+    js: scanStatus.totalJs || 0,
+    frames: 0,
+    iframes: 0,
+    links: 0,
+    emails: scanStatus.totalEmails || 0,
+    headlinks: scanStatus.totalHeadlinks || 0,
+    history: []
+  } : null;
+
+  const supportedDetailViews = ["html-pages", "documents", "images", "css", "js", "emails", "personal", "headlinks", "links", "forms", "iframes", "frames"];
+  const finalDetailViewKey = currentView === "personal" ? "emails" : currentView;
+
   return (
     React.createElement(DashboardLayout, {
       breadcrumbTitle: "Inventory"}
 
       , React.createElement('div', { className: "inventory-page"}
-        , React.createElement('div', { className: "d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4"      }
-          , React.createElement('h6', { className: "mb-0"}, "Inventory")
+        /* Control Panel Header */
+        , React.createElement('div', { className: "d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4" }
+          , React.createElement('h5', { className: "mb-0 fw-semibold text-body" }, `Domain Asset Scanner: ${domainName}`)
+          
+          , React.createElement('button', {
+            type: "button",
+            className: "btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm rounded-2",
+            disabled: isScanning || loading,
+            onClick: handleStartScan
+          }, 
+            isScanning 
+              ? React.createElement(React.Fragment, null, 
+                  React.createElement('div', { className: "spinner-border spinner-border-sm me-1" }),
+                  "Crawling Domain..."
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement('i', { className: "isax isax-refresh fs-18" }),
+                  "Run New Inventory Scan"
+                )
+          )
         )
 
+        /* Gorgeous Live Scanner Progress banner */
+        , scanStatus && (scanStatus.status === "pending" || scanStatus.status === "scanning" || isScanning) && (
+          React.createElement('div', { 
+            className: "card mb-4 border border-primary border-opacity-25 rounded-3 shadow-sm animate__animated animate__fadeIn",
+            style: {
+              background: "rgba(255, 255, 255, 0.7)",
+              backdropFilter: "blur(8px)",
+              backgroundImage: "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%)"
+            }
+          }
+            , React.createElement('div', { className: "card-body p-4" }
+              , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
+                , React.createElement('div', { className: "d-flex align-items-center gap-3" }
+                  , React.createElement('span', { className: "spinner-grow spinner-grow-sm text-primary" })
+                  , React.createElement('div', {}
+                    , React.createElement('h6', { className: "fw-semibold text-primary mb-1" }, "Recursive Site Crawl In Progress")
+                    , React.createElement('p', { className: "text-muted fs-13 mb-0" }, `Scanned ${scanStatus.totalPages || 0} pages recursively. Collecting images, code snippets, emails, and head links.`)
+                  )
+                )
+                , React.createElement('span', { className: "badge bg-primary fs-14 fw-bold py-2 px-3 rounded-pill" }, `${progressPercent}%`)
+              )
+
+              /* Progress Bar */
+              , React.createElement('div', { className: "progress mb-3", style: { height: 10, borderRadius: 5 } }
+                , React.createElement('div', { 
+                  className: "progress-bar progress-bar-striped progress-bar-animated bg-primary",
+                  role: "progressbar",
+                  style: { width: `${progressPercent}%` },
+                  "aria-valuenow": progressPercent,
+                  "aria-valuemin": 0,
+                  "aria-valuemax": 100
+                })
+              )
+
+              /* Counts Summary */
+              , React.createElement('div', { className: "d-flex flex-wrap gap-4 mt-3" }
+                , React.createElement('div', { className: "small text-muted" }, "Pages Crawled: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalPages || 0))
+                , React.createElement('div', { className: "small text-muted" }, "Images: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalImages || 0))
+                , React.createElement('div', { className: "small text-muted" }, "Stylesheets: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalCss || 0))
+                , React.createElement('div', { className: "small text-muted" }, "JS Files: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalJs || 0))
+                , React.createElement('div', { className: "small text-muted" }, "Documents: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalDocuments || 0))
+                , React.createElement('div', { className: "small text-muted" }, "Emails: ", React.createElement('strong', { className: "text-body" }, scanStatus.totalEmails || 0))
+              )
+            )
+          )
+        )
+
+        /* Navigation Tabs */
         , React.createElement('div', { className: "card mb-4" }
           , React.createElement('div', { className: "card-body py-3" }
-            , React.createElement('div', { className: "d-flex flex-wrap gap-1 gap-md-4 align-items-center position-relative"     }
+            , React.createElement('div', { className: "d-flex flex-wrap gap-1 gap-md-4 align-items-center position-relative" }
               , React.createElement(Link, {
                 to: "/domain/inventory?view=summary",
-                className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-2 rounded ${currentView === "summary" ? "bg-primary text-white" : "text-body"}`}
+                className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-3 rounded-2 fw-medium transition ${currentView === "summary" ? "bg-primary text-white shadow-sm" : "text-body hover-bg-light"}`}
 
-                , React.createElement('i', { className: "isax isax-home-2 me-1"  , 'aria-hidden': true})
+                , React.createElement('i', { className: "isax isax-home-2 me-1", 'aria-hidden': true})
                 , React.createElement('span', {}, "Summary")
               )
 
@@ -157,13 +298,13 @@ export default function InventoryPage() {
                 , React.createElement('button', {
                   type: "button",
                   onClick: handleContentClick,
-                  className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-2 rounded border-0 bg-transparent ${isContentActive ? "bg-primary text-white" : "text-body"}`,
+                  className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-3 rounded-2 border-0 bg-transparent transition ${isContentActive ? "bg-primary text-white shadow-sm" : "text-body hover-bg-light"}`,
                   'aria-expanded': contentOpen,
                   'aria-haspopup': "true"}
 
-                  , React.createElement('i', { className: "isax isax-document-copy me-1"  , 'aria-hidden': true})
+                  , React.createElement('i', { className: "isax isax-document-copy me-1", 'aria-hidden': true})
                   , React.createElement('span', {}, "Content")
-                  , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 opacity-75"   , style: { fontSize: "0.75rem", transform: contentOpen ? "rotate(180deg)" : undefined }, 'aria-hidden': true})
+                  , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 opacity-75", style: { fontSize: "0.75rem", transform: contentOpen ? "rotate(180deg)" : undefined }, 'aria-hidden': true})
                 )
                 , contentOpen && (
                   React.createElement('div', {
@@ -176,7 +317,7 @@ export default function InventoryPage() {
                         key: item.key,
                         to: `/domain/inventory?view=${item.key}`,
                         role: "menuitem",
-                        className: `d-flex align-items-center gap-2 px-3 py-2 text-decoration-none ${currentView === item.key ? "bg-light text-primary fw-medium" : "text-body"}`,
+                        className: `d-flex align-items-center gap-2 px-3 py-2 text-decoration-none transition ${currentView === item.key ? "bg-light text-primary fw-medium" : "text-body hover-bg-light"}`,
                         onClick: () => setContentOpen(false)}
 
                         , React.createElement('i', { className: `isax ${item.icon} flex-shrink-0`, style: { fontSize: "1rem" }, 'aria-hidden': true})
@@ -191,13 +332,13 @@ export default function InventoryPage() {
                 , React.createElement('button', {
                   type: "button",
                   onClick: handleTechnicalClick,
-                  className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-2 rounded border-0 bg-transparent ${isTechnicalActive ? "bg-primary text-white" : "text-body"}`,
+                  className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-3 rounded-2 border-0 bg-transparent transition ${isTechnicalActive ? "bg-primary text-white shadow-sm" : "text-body hover-bg-light"}`,
                   'aria-expanded': technicalOpen,
                   'aria-haspopup': "true"}
 
-                  , React.createElement('i', { className: "isax isax-setting-2 me-1"  , 'aria-hidden': true})
+                  , React.createElement('i', { className: "isax isax-setting-2 me-1", 'aria-hidden': true})
                   , React.createElement('span', {}, "Technical")
-                  , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 opacity-75"   , style: { fontSize: "0.75rem", transform: technicalOpen ? "rotate(180deg)" : undefined }, 'aria-hidden': true})
+                  , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 opacity-75", style: { fontSize: "0.75rem", transform: technicalOpen ? "rotate(180deg)" : undefined }, 'aria-hidden': true})
                 )
                 , technicalOpen && (
                   React.createElement('div', {
@@ -210,7 +351,7 @@ export default function InventoryPage() {
                         key: item.key,
                         to: `/domain/inventory?view=${item.key}`,
                         role: "menuitem",
-                        className: `d-flex align-items-center gap-2 px-3 py-2 text-decoration-none ${currentView === item.key ? "bg-light text-primary fw-medium" : "text-body"}`,
+                        className: `d-flex align-items-center gap-2 px-3 py-2 text-decoration-none transition ${currentView === item.key ? "bg-light text-primary fw-medium" : "text-body hover-bg-light"}`,
                         onClick: () => setTechnicalOpen(false)}
 
                         , React.createElement('i', { className: `isax ${item.icon} flex-shrink-0`, style: { fontSize: "1rem" }, 'aria-hidden': true})
@@ -221,34 +362,35 @@ export default function InventoryPage() {
                 )
               )
 
-              , React.createElement(Link, { to: "/domain/inventory?view=personal",
-                className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-2 rounded ${currentView === "personal" || currentView === "email-addresses" ? "bg-primary text-white" : "text-body"}`}
+              , React.createElement(Link, { to: "/domain/inventory?view=emails",
+                className: `d-inline-flex align-items-center gap-1 text-decoration-none py-2 px-3 rounded-2 fw-medium transition ${currentView === "emails" || currentView === "personal" ? "bg-primary text-white shadow-sm" : "text-body hover-bg-light"}`}
 
-                , React.createElement('i', { className: "isax isax-people5 me-1"  , 'aria-hidden': true})
-                , React.createElement('span', {}, "Personal")
+                , React.createElement('i', { className: "isax isax-people5 me-1", 'aria-hidden': true})
+                , React.createElement('span', {}, "Emails")
               )
             )
           )
         )
 
+        /* Loader & View render */
         , loading && React.createElement('div', { className: "text-center py-5" }, React.createElement('div', { className: "spinner-border text-primary", role: "status" }, React.createElement('span', { className: "visually-hidden" }, "Loading...")))
-        , !loading && currentView === "summary" && React.createElement(InventorySummaryView, { data: data } )
-        , !loading && currentView === "html-pages" && React.createElement(InventoryHtmlPagesView, { items: Array.isArray(data) ? data : [] } )
-        , !loading && currentView === "documents" && React.createElement(InventoryDocumentsView, { items: data || [] } )
-        , !loading && currentView === "images" && React.createElement(PrioritizedContentImagesView, { items: data || [] } )
-        , !loading && currentView === "links" && React.createElement(InventoryLinksView, { items: data || [] } )
-        , !loading && currentView === "forms" && React.createElement(InventoryFormsView, { items: data || [] } )
-        , !loading && currentView === "headlinks" && React.createElement(InventoryHeadlinksView, { items: data || [] } )
-        , !loading && currentView === "iframes" && React.createElement(InventoryIFramesView, { items: data || [] } )
-        , !loading && currentView === "frames" && React.createElement(InventoryFramesView, { items: data || [] } )
-        , !loading && currentView === "css" && React.createElement(InventoryCssView, { items: data || [] } )
-        , !loading && currentView === "js" && React.createElement(InventoryJsView, { items: data || [] } )
-        , !loading && (currentView === "email-addresses" || currentView === "personal") && React.createElement(InventoryPersonalEmailAddressesView, { items: data || [] } )
-        , (currentView === "content" || currentView === "technical") && (
-          React.createElement('div', { className: "card"}
-            , React.createElement('div', { className: "card-body py-5 text-center text-muted"   }
-              , currentView === "content" && "Select a Content item from the dropdown above."
-              , currentView === "technical" && "Select a Technical item from the dropdown above."
+        
+        , !loading && currentView === "summary" && React.createElement(InventorySummaryView, { data: summaryDataMapped })
+        
+        , !loading && supportedDetailViews.includes(currentView) && React.createElement(InventoryDetailsView, { domainId: domainId, currentView: finalDetailViewKey })
+        
+        , !loading && !supportedDetailViews.includes(currentView) && currentView !== "summary" && (
+          React.createElement('div', { className: "card border-0 shadow-sm" }
+            , React.createElement('div', { className: "card-body py-5 text-center text-muted" }
+              , currentView === "content" && "Select a Content item from the dropdown menu above."
+              , currentView === "technical" && "Select a Technical item from the dropdown menu above."
+              , !["content", "technical"].includes(currentView) && (
+                  React.createElement('div', { className: "p-4" }
+                    , React.createElement('i', { className: "isax isax-info-circle text-primary fs-32 mb-2 d-block" })
+                    , React.createElement('h6', { className: "fw-semibold text-body mb-2" }, "Asset Type Grouping")
+                    , React.createElement('p', { className: "mb-0 text-muted" }, "This asset type is compiled during scans. Forms, frames, and iframes are analyzed directly as part of the individual page specifications. Access the 'HTML Pages' detailed view to inspect page asset distributions.")
+                  )
+                )
             )
           )
         )

@@ -20,7 +20,7 @@ const TABS = [
   { key: "policies", label: "Policies", icon: "isax-shield-tick" },
   { key: "qa", label: "Quality Assurance", icon: "isax-tick-circle" },
   { key: "accessibility", label: "Accessibility", icon: "isax-people5" },
-  { key: "seo", label: "SEO", icon: "isax-chart-215" },
+  { key: "seo", label: "SEO Audit", icon: "isax-chart-215" },
   { key: "inventory", label: "Inventory", icon: "isax-book5" },
   { key: "performance", label: "Performance", icon: "isax-chart-215" },
 ];
@@ -396,7 +396,7 @@ export default function PageDetailsDrawer({
                   , React.createElement('div', { className: "card-body" }
                     , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
                       , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-chart-215 dashboard-metric-icon fs-18" }), "Search Engine Optimization (SEO)"
+                        , React.createElement('i', { className: "isax isax-chart-215 dashboard-metric-icon fs-18" }), "SEO Performance Overview"
 
                       )
                       , React.createElement(Link, { to: "#" }
@@ -417,7 +417,7 @@ export default function PageDetailsDrawer({
                         )
                       )
                       , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1" }, "SEO opportunities"
+                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1" }, "Improvement opportunities"
 
                           , React.createElement('i', { className: "isax isax-info-circle text-muted fs-14", title: "More information" })
                         )

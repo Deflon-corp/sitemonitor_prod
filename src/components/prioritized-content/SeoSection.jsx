@@ -108,7 +108,7 @@ const SeoSection = ({ issues = [], score = 0 }) => {
               <i className="isax isax-chart-215 fs-20" />
             </div>
             <div>
-              <h6 className="mb-0">SEO Compliance</h6>
+              <h6 className="mb-0">SEO Audit Score</h6>
               <p className="text-muted small mb-0">Live scan results for this page</p>
             </div>
           </div>
@@ -150,7 +150,7 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                 <table className="table table-hover align-middle mb-0">
                   <thead className="bg-light">
                     <tr>
-                      <th className="ps-4 py-3">Issue</th>
+                      <th className="ps-4 py-3">Audit Rule</th>
                       <th className="py-3">Impact</th>
                     </tr>
                   </thead>
