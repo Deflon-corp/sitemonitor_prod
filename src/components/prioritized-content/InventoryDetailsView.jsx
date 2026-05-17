@@ -801,9 +801,11 @@ export default function InventoryDetailsView({ domainId, currentView }) {
                                       <div className="col-6 col-md-4">
                                         <strong>Alternate Tag:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">{row.alt_text || "None"}</span>
                                       </div>
-                                      <div className="col-6 col-md-4">
-                                        <strong>Estimated Weight:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">{row.image_size || "Unknown"}</span>
-                                      </div>
+                                      {row.image_size && row.image_size !== "Unknown" && (
+                                        <div className="col-6 col-md-4">
+                                          <strong>Image Size:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">{row.image_size}</span>
+                                        </div>
+                                      )}
                                     </>
                                   )}
 
