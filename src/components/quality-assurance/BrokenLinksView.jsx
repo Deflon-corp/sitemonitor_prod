@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useCallback  } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import BrokenLinksIgnoredView from "./BrokenLinksIgnoredView";
-import BrokenLinksMarkedAsFixedView from "./BrokenLinksMarkedAsFixedView";
 import ContentWithBrokenLinkDrawer from "./ContentWithBrokenLinkDrawer";
 import DocumentsWithBrokenLinkDrawer from "./DocumentsWithBrokenLinkDrawer";
+import { useQaBrokenLinks } from "../../hooks/useQaBrokenLinks";
 
 const TABS = [
   { key: "all", label: "All broken links", icon: "isax-link-2" },
@@ -16,27 +15,28 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = [
-  { id: 1, url: "https://bflcareers.peoplestrong.com/home", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 499 },
-  { id: 2, url: "https://example.com/missing-page", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 498 },
-  { id: 3, url: "https://example.com/old-link", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 312 },
-  { id: 4, url: "https://www.bajajfinserv.in/legacy/old-page", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 256 },
-  { id: 5, url: "https://www.bajajfinserv.in/removed", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 189 },
-  { id: 6, url: "https://external-site.com/deleted", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 102 },
-  { id: 7, url: "https://www.bajajfinserv.in/outdated", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 87 },
-  { id: 8, url: "https://cdn.example.com/asset-gone", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 45 },
-  { id: 9, url: "https://www.bajajfinserv.in/archive/old", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 33 },
-  { id: 10, url: "https://partner.com/discontinued", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 21 },
-  { id: 11, url: "https://www.bajajfinserv.in/redirect-target", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 12 },
-  { id: 12, url: "https://www.bajajfinserv.in/expired-offer", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 8 },
-];
-
 export default function BrokenLinksView() {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortByUrl, setSortByUrl] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const apiTab = activeTab === "pages" ? "all" : activeTab;
+  const { links, pagination, loading } = useQaBrokenLinks({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    sortBy: sortByUrl ? "url" : "pages",
+    sortOrder: sortByUrl || "desc",
+    tab: apiTab,
+  });
   const [contentDrawerOpen, setContentDrawerOpen] = useState(false);
   const [contentDrawerUrl, setContentDrawerUrl] = useState(null);
   const [documentsDrawerOpen, setDocumentsDrawerOpen] = useState(false);
@@ -52,27 +52,10 @@ export default function BrokenLinksView() {
     setDocumentsDrawerOpen(true);
   }
 
-  const filteredRows = useMemo(() => {
-    let rows = SAMPLE_ROWS;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      rows = rows.filter((r) => r.url.toLowerCase().includes(q));
-    }
-    return rows;
-  }, [search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortByUrl) return filteredRows;
-    return [...filteredRows].sort((a, b) =>
-      sortByUrl === "asc" ? a.url.localeCompare(b.url) : b.url.localeCompare(a.url)
-    );
-  }, [filteredRows, sortByUrl]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedRows.slice(start, start + rowsPerPage);
-  }, [sortedRows, currentPage, rowsPerPage]);
+  const sortedRows = links;
+  const paginatedRows = links;
+  const totalPages = pagination.pages || 1;
+  const totalCount = pagination.total ?? links.length;
 
   function handleSortUrl() {
     setCurrentPage(1);
@@ -129,7 +112,7 @@ export default function BrokenLinksView() {
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
           <i className="isax isax-link-2 fs-20 text-primary" aria-hidden="true"></i>Broken links
         </h5>
-        <p className="text-muted fs-13 mb-0">{sortedRows.length} links</p>
+        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${totalCount} links`}</p>
       </div>
 
       {/* Tabs + Toolbar */}
@@ -190,9 +173,7 @@ export default function BrokenLinksView() {
           </div>
         </div>
       )}
-      {activeTab === "ignored" && <BrokenLinksIgnoredView onOpenContentDrawer={openContentDrawer} onOpenDocumentsDrawer={openDocumentsDrawer} />}
-      {activeTab === "fixed" && <BrokenLinksMarkedAsFixedView onOpenContentDrawer={openContentDrawer} onOpenDocumentsDrawer={openDocumentsDrawer} />}
-      {activeTab === "all" && (
+      {(activeTab === "all" || activeTab === "ignored" || activeTab === "fixed") && (
         <>
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
             <div className="table-responsive flex-grow-1">
@@ -227,7 +208,17 @@ export default function BrokenLinksView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRows.map((row) => (
+                  {loading && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-5 text-muted">Loading broken links…</td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-5 text-muted">No broken links found.</td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.map((row) => (
                     <tr key={row.id}>
                       <td className="ps-4 py-3">
                         <input type="checkbox" className="form-check-input" aria-label={`Select link ${row.id}`} />

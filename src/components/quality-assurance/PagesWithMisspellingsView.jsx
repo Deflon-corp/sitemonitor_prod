@@ -6,8 +6,7 @@ import PageIssuesIcon from "../icons/PageIssuesIcon";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import PagesWithMisspellingsMisspellingsTabView from "./PagesWithMisspellingsMisspellingsTabView";
-import PagesWithMisspellingsPotentialTabView from "./PagesWithMisspellingsPotentialTabView";
+import { useQaPagesList } from "../../hooks/useQaPagesList";
 
 const TABS = [
   { key: "all", label: "All", icon: "document" },
@@ -40,24 +39,6 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 const TAB_PARAM = "tab";
 
-const SAMPLE_ROWS = [
-  { id: "1", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", language: "English (Australian)", misspellings: 2, potentialMisspellings: 113, views: 0 },
-  { id: "2", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-15s-dua-3560-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-15-6-inch-laptop/p/29186", language: "English (Australian)", misspellings: 2, potentialMisspellings: 115, views: 0 },
-  { id: "3", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-3520-intel-core-i5-12th-gen-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29187", language: "English (Australian)", misspellings: 2, potentialMisspellings: 116, views: 0 },
-  { id: "4", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-3-amd-ryzen-5-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29188", language: "English (Australian)", misspellings: 2, potentialMisspellings: 117, views: 0 },
-  { id: "5", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29189", language: "English (Australian)", misspellings: 2, potentialMisspellings: 119, views: 0 },
-  { id: "6", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29190", language: "English (Australian)", misspellings: 2, potentialMisspellings: 112, views: 0 },
-  { id: "7", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29191", language: "English (Australian)", misspellings: 2, potentialMisspellings: 118, views: 0 },
-  { id: "8", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29192", language: "English (Australian)", misspellings: 2, potentialMisspellings: 114, views: 0 },
-  { id: "9", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-thinkpad-e15-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29193", language: "English (Australian)", misspellings: 2, potentialMisspellings: 121, views: 0 },
-  { id: "10", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-swift-3-intel-core-i5-8-gb-512-gb-ssd-14-inch-laptop/p/29194", language: "English (Australian)", misspellings: 2, potentialMisspellings: 110, views: 0 },
-  { id: "11", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-zenbook-14-amd-ryzen-5-8-gb-512-gb-ssd-14-inch-laptop/p/29195", language: "English (Australian)", misspellings: 2, potentialMisspellings: 122, views: 0 },
-  { id: "12", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-14s-intel-celeron-4-gb-256-gb-ssd-14-inch-laptop/p/29196", language: "English (Australian)", misspellings: 2, potentialMisspellings: 108, views: 0 },
-  { id: "13", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-latitude-3520-intel-core-i5-8-gb-256-gb-ssd-15-6-inch-laptop/p/29197", language: "English (Australian)", misspellings: 2, potentialMisspellings: 120, views: 0 },
-  { id: "14", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-legion-5-amd-ryzen-7-16-gb-512-gb-ssd-15-6-inch-gaming-laptop/p/29198", language: "English (Australian)", misspellings: 2, potentialMisspellings: 125, views: 0 },
-  { id: "15", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-tuf-gaming-f15-intel-core-i5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29199", language: "English (Australian)", misspellings: 2, potentialMisspellings: 124, views: 0 },
-];
-
 function toDrawerPage(row) {
   const id = Number.parseInt(String(row.id).replace(/\D/g, ""), 10) || 0;
   return { id, title: row.title, url: row.url };
@@ -67,10 +48,33 @@ export default function PagesWithMisspellingsView() {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get(TAB_PARAM) || "all";
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [sortBy, setSortBy] = useState(null);
+  const [sortBy, setSortBy] = useState("misspellings");
   const [sortDir, setSortDir] = useState("desc");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const listFilter =
+    activeTab === "misspellings"
+      ? "misspellings"
+      : activeTab === "potential"
+        ? "potential-misspellings"
+        : "spellcheck-pages";
+
+  const { rows: apiRows, pagination, loading } = useQaPagesList({
+    filter: listFilter,
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    sortBy: "issues",
+    sortOrder: sortDir,
+    enabled: activeTab === "all" || activeTab === "misspellings" || activeTab === "potential",
+  });
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
   const viewsTooltipRef = useRef(null);
@@ -91,29 +95,7 @@ export default function PagesWithMisspellingsView() {
     setPageDetailsOpen(true);
   }
 
-  const filteredByTab = useMemo(() => {
-    if (activeTab === "all") return SAMPLE_ROWS;
-    if (activeTab === "misspellings") return SAMPLE_ROWS.filter((r) => r.misspellings > 0);
-    return SAMPLE_ROWS.filter((r) => r.potentialMisspellings > 0);
-  }, [activeTab]);
-
-  const filteredRows = useMemo(() => {
-    if (!search.trim()) return filteredByTab;
-    const q = search.toLowerCase();
-    return filteredByTab.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [filteredByTab, search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortBy) return filteredRows;
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...filteredRows].sort((a, b) => {
-      if (sortBy === "title") return dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url));
-      if (sortBy === "language") return dir * a.language.localeCompare(b.language);
-      if (sortBy === "misspellings") return dir * (a.misspellings - b.misspellings);
-      if (sortBy === "potentialMisspellings") return dir * (a.potentialMisspellings - b.potentialMisspellings);
-      return dir * (a.views - b.views);
-    });
-  }, [filteredRows, sortBy, sortDir]);
+  const sortedRows = apiRows;
 
   function handleSort(key) {
     setCurrentPage(1);
@@ -154,7 +136,7 @@ export default function PagesWithMisspellingsView() {
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedRows]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
+  const totalPages = pagination.pages || 1;
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return sortedRows.slice(start, start + rowsPerPage);
@@ -187,7 +169,7 @@ export default function PagesWithMisspellingsView() {
             <div>
               <h5 className="mb-0 fw-semibold text-body">Pages with Misspellings</h5>
               <p className="text-muted fs-13 mb-0 mt-1">
-                <span className="fw-medium text-body">{filteredRows.length}</span> pages
+                <span className="fw-medium text-body">{loading ? "…" : pagination.total ?? sortedRows.length}</span> pages
               </p>
             </div>
           </div>
@@ -211,7 +193,7 @@ export default function PagesWithMisspellingsView() {
         <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0" aria-label="Filter by type">
           {TABS.map(({ key, label, icon }) => {
             const isActive = activeTab === key;
-            const href = `/quality-assurance?view=${viewKey}&${TAB_PARAM}=${key}`;
+            const href = `/domain/quality-assurance?view=pages-misspellings&${TAB_PARAM}=${key}`;
             return (
               <Link
                 key={key}
@@ -241,10 +223,7 @@ export default function PagesWithMisspellingsView() {
         </div>
       </div>
 
-      {activeTab === "misspellings" && <PagesWithMisspellingsMisspellingsTabView search={search} onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }} />}
-      {activeTab === "potential" && <PagesWithMisspellingsPotentialTabView search={search} onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }} />}
-
-      {activeTab === "all" && (
+      {(activeTab === "all" || activeTab === "misspellings" || activeTab === "potential") && (
         <React.Fragment>
           {/* Table card */}
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
@@ -291,7 +270,17 @@ export default function PagesWithMisspellingsView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRows.map((row) => (
+                  {loading && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-5 text-muted">Loading pages…</td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-5 text-muted">No pages found.</td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.map((row) => (
                     <tr key={row.id}>
                       <td className="py-3 ps-4">
                         <div className="d-flex flex-column gap-1">

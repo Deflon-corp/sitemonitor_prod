@@ -4,8 +4,10 @@ import React, { useCallback, useMemo  } from "react";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import { getDomainLatestSummaryApi, getDomainByIdApi } from "../../api/domainApi";
-import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
+import { getDomainByIdApi } from "../../api/domainApi";
+import { getQaSummaryApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
+import { useQaScan } from "../../contexts/QaScanContext";
 import ContentWithQAErrorsView from "./ContentWithQAErrorsView";
 import ContentWithBrokenLinksView from "./ContentWithBrokenLinksView";
 import BrokenLinksView from "./BrokenLinksView";
@@ -57,26 +59,24 @@ const QA_NAV = [
   { key: "readability", label: "Readability", icon: "isax-book-1", href: "/domain/quality-assurance?view=readability-summary", children: READABILITY_SUB_NAV },
 ];
 
-/** Sample data – replace with API */
-const QA_COMPLIANCE_PERCENT = 0.2;
 const INDUSTRY_AVERAGE_PERCENT = 93.52;
-const TOTAL_QA_ISSUES = 18;
-const TOTAL_QA_ISSUES_CHANGE = -83.87;
-const CONTENT_WITH_ISSUES = 499;
-const CONTENT_WITH_ISSUES_CHANGE = -0.2;
 
-/** Summary rows for QA Summary download report */
-function getQASummaryExportRows() {
+function buildQASummaryExportRows(qa) {
+  if (!qa) return [];
   return [
-    { category: "Unique broken links", value: "12", detail: "Affects 499 pages" },
-    { category: "Potential misspellings", value: "388", detail: "Affects 499 pages" },
-    { category: "Broken images", value: "1", detail: "Affects 2 pages" },
-    { category: "Misspellings", value: "5", detail: "Affects 498 pages" },
-    { category: "QA Compliance", value: `${QA_COMPLIANCE_PERCENT}%`, detail: "Pages compliant with all QA checks" },
+    { category: "Unique broken links", value: String(qa.uniqueBrokenLinks ?? 0), detail: `Affects ${qa.pagesWithBrokenLinks ?? 0} pages` },
+    { category: "Potential misspellings", value: String(qa.totalPotentialMisspellings ?? 0), detail: `Affects ${qa.pagesWithPotentialMisspellings ?? 0} pages` },
+    { category: "Broken images", value: String(qa.uniqueBrokenImages ?? 0), detail: `Affects ${qa.pagesWithBrokenImages ?? 0} pages` },
+    { category: "Misspellings", value: String(qa.totalMisspellings ?? 0), detail: `Affects ${qa.pagesWithMisspellings ?? 0} pages` },
+    { category: "QA Compliance", value: `${qa.qaCompliancePercent ?? 0}%`, detail: "Pages compliant with all QA checks" },
     { category: "Industry average", value: `${INDUSTRY_AVERAGE_PERCENT}%`, detail: "Industry benchmark" },
-    { category: "Total QA issues", value: String(TOTAL_QA_ISSUES), detail: "Total count of QA issues" },
-    { category: "Content with issues", value: String(CONTENT_WITH_ISSUES), detail: "Pages with at least one issue" },
-    { category: "Readability (most pages)", value: "8th to 9th grade", detail: "Affects 324 pages" },
+    { category: "Total QA issues", value: String(qa.totalQaIssues ?? 0), detail: "Total count of QA issues" },
+    { category: "Content with issues", value: String(qa.contentWithQaErrors ?? 0), detail: "Pages with at least one issue" },
+    {
+      category: "Readability (most pages)",
+      value: qa.mostCommonReadabilityLevel || "—",
+      detail: `Affects ${qa.readabilityPagesCount ?? 0} pages`,
+    },
   ];
 }
 
@@ -160,21 +160,22 @@ function QATrendChart() {
 
 export default function QualityAssuranceView() {
   const [searchParams] = useSearchParams();
-  const [summary, setSummary] = React.useState(null);
+  const [qaSummary, setQaSummary] = React.useState(null);
   const [domain, setDomain] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+  const domainId = useQaDomainId();
+  const { refreshKey, runQaScan, isScanning, scanMessage } = useQaScan();
 
   const fetchSummary = React.useCallback(async () => {
     if (!domainId) return;
     setIsLoading(true);
     try {
-      const [summaryRes, domainRes] = await Promise.all([
-        getDomainLatestSummaryApi(domainId),
-        getDomainByIdApi(domainId)
+      const [qaRes, domainRes] = await Promise.all([
+        getQaSummaryApi(domainId),
+        getDomainByIdApi(domainId),
       ]);
-      if (summaryRes.success) setSummary(summaryRes.data);
+      if (qaRes.success) setQaSummary(qaRes.data);
       if (domainRes.success) setDomain(domainRes.data);
     } catch (error) {
       console.error("Failed to fetch QA summary:", error);
@@ -185,7 +186,7 @@ export default function QualityAssuranceView() {
 
   React.useEffect(() => {
     fetchSummary();
-  }, [fetchSummary]);
+  }, [fetchSummary, refreshKey]);
 
   const currentView = searchParams.get("view") || "summary";
   const isLinksView =
@@ -196,7 +197,7 @@ export default function QualityAssuranceView() {
     SUMMARY_SPELLCHECK_VIEW_KEYS.includes(currentView);
   const isReadabilityView = READABILITY_VIEW_KEYS.includes(currentView);
 
-  const qaSummaryExportRows = useMemo(() => getQASummaryExportRows(), []);
+  const qaSummaryExportRows = useMemo(() => buildQASummaryExportRows(qaSummary), [qaSummary]);
   const qaSummaryReportName = "Quality-Assurance-Summary-Report";
   const qaSummaryBaseName = safeFilename(qaSummaryReportName);
 
@@ -234,25 +235,31 @@ export default function QualityAssuranceView() {
     doc.save(`${qaSummaryBaseName}.pdf`);
   }, [qaSummaryBaseName, qaSummaryExportRows]);
 
-  if (isLoading) {
-    return (
-      <div className="d-flex justify-content-center p-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  const showSummaryLoader = isLoading && currentView === "summary";
 
-  const qaScore = summary?.performanceMetrics?.avgPerformanceScore || 0;
-  const totalIssues = (summary?.issueBreakdown?.high || 0) + (summary?.issueBreakdown?.medium || 0) + (summary?.issueBreakdown?.low || 0);
+  const qaScore = qaSummary?.qaCompliancePercent ?? 0;
+  const totalIssues = qaSummary?.totalQaIssues ?? 0;
+  const contentWithIssues = qaSummary?.contentWithQaErrors ?? 0;
+  const totalPages = qaSummary?.totalPagesScanned ?? 0;
 
   return (
     <div>
       {/* Horizontal nav – same pattern as Accessibility */}
       <div className="card mb-4">
         <div className="card-body py-3">
-          <nav className="d-flex flex-wrap gap-1 gap-md-4 align-items-center" aria-label="Quality Assurance navigation">
+          {scanMessage && (
+            <div
+              className={`alert py-2 px-3 mb-3 fs-13 ${isScanning ? "alert-info" : scanMessage.includes("failed") ? "alert-danger" : "alert-success"}`}
+              role="status"
+            >
+              {isScanning && (
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+              )}
+              {scanMessage}
+            </div>
+          )}
+          <div className="d-flex flex-wrap align-items-center gap-3">
+          <nav className="d-flex flex-wrap gap-1 gap-md-4 align-items-center flex-grow-1" aria-label="Quality Assurance navigation">
             {QA_NAV.map((item) => {
               const hasChildren = "children" in item && item.children;
               const isActive =
@@ -316,12 +323,40 @@ export default function QualityAssuranceView() {
               );
             })}
           </nav>
+          <div className="d-flex flex-shrink-0 align-items-center gap-2">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
+              disabled={!domainId || isScanning}
+              onClick={() => runQaScan()}
+              title={!domainId ? "Select a domain first" : "Run QA scan only (broken links, images, spellcheck, readability)"}
+            >
+              {isScanning ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  QA scan in progress…
+                </>
+              ) : (
+                <>
+                  <i className="isax isax-refresh-2" aria-hidden="true" />
+                  Run QA scan
+                </>
+              )}
+            </button>
+          </div>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="min-w-0 p-4 bg-body-tertiary rounded-3 overflow-auto">
-        {currentView === "summary" ? (
+        {showSummaryLoader ? (
+          <div className="d-flex justify-content-center p-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading summary…</span>
+            </div>
+          </div>
+        ) : currentView === "summary" ? (
           <React.Fragment>
             {/* Header */}
             <div className="mb-4 pb-3 border-bottom border-secondary border-opacity-25">
@@ -364,8 +399,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Unique broken links</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.high || 0}</div>
-                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.highPages || 0} pages</span>
+                            <div className="fs-4 fw-bold text-body">{qaSummary?.uniqueBrokenLinks ?? 0}</div>
+                            <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithBrokenLinks ?? 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -378,8 +413,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Potential misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.medium || 0}</div>
-                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.mediumPages || 0} pages</span>
+                            <div className="fs-4 fw-bold text-body">{qaSummary?.totalPotentialMisspellings ?? 0}</div>
+                            <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithPotentialMisspellings ?? 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -392,8 +427,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Broken images</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">{summary?.issueBreakdown?.low || 0}</div>
-                            <span className="fs-12 text-muted">Affects {summary?.issueBreakdown?.lowPages || 0} pages</span>
+                            <div className="fs-4 fw-bold text-body">{qaSummary?.uniqueBrokenImages ?? 0}</div>
+                            <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithBrokenImages ?? 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -406,8 +441,8 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">0</div>
-                            <span className="fs-12 text-muted">Affects 0 pages</span>
+                            <div className="fs-4 fw-bold text-body">{qaSummary?.totalMisspellings ?? 0}</div>
+                            <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithMisspellings ?? 0} pages</span>
                           </div>
                         </Link>
                       </div>
@@ -426,7 +461,9 @@ export default function QualityAssuranceView() {
                         </span>
                         <div className="min-w-0 flex-grow-1">
                           <p className="fs-13 text-muted mb-1">Misspelling affecting the most content</p>
-                          <span className="d-inline-block fs-13 fw-semibold text-body bg-danger bg-opacity-10 rounded-2 px-2 py-1 me-2">upto</span>
+                          <span className="d-inline-block fs-13 fw-semibold text-body bg-danger bg-opacity-10 rounded-2 px-2 py-1 me-2">
+                            {qaSummary?.misspellingAffectingMostContent || "—"}
+                          </span>
                           <span className="d-inline-block rounded-2 bg-primary bg-opacity-15" style={{ width: 120, height: 6 }} title="Severity" aria-hidden="true" />
                         </div>
                       </div>
@@ -444,9 +481,13 @@ export default function QualityAssuranceView() {
                         </span>
                         <div className="min-w-0 flex-grow-1">
                           <p className="fs-13 text-muted mb-1">Broken link affecting most content</p>
-                          <a href="https://bflcareers.peoplestrong.com/home" target="_blank" rel="noopener noreferrer" className="fs-13 text-body text-decoration-none d-inline-flex align-items-center gap-1 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-2 px-2 py-1 text-break">
-                            <ExternalLinkIcon size={12} className="text-primary flex-shrink-0" /> https://bflcareers.peoplestrong.com/home
-                          </a>
+                          {qaSummary?.brokenLinksAffectingMostContent ? (
+                            <a href={qaSummary.brokenLinksAffectingMostContent} target="_blank" rel="noopener noreferrer" className="fs-13 text-body text-decoration-none d-inline-flex align-items-center gap-1 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-2 px-2 py-1 text-break">
+                              <ExternalLinkIcon size={12} className="text-primary flex-shrink-0" /> {qaSummary.brokenLinksAffectingMostContent}
+                            </a>
+                          ) : (
+                            <span className="fs-13 text-muted">No broken links detected</span>
+                          )}
                         </div>
                       </div>
                       <div className="d-flex align-items-start gap-3 py-3">
@@ -455,9 +496,13 @@ export default function QualityAssuranceView() {
                         </span>
                         <div className="min-w-0 flex-grow-1">
                           <p className="fs-13 text-muted mb-1">Broken image affecting most content</p>
-                          <a href="https://www.bajajfinserv.in/content/dam/bajajmall-site/images/DefaultImage%20.png" target="_blank" rel="noopener noreferrer" className="fs-13 text-body text-decoration-none d-inline-flex align-items-center gap-1 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-2 px-2 py-1 text-break">
-                            <ExternalLinkIcon size={12} className="text-primary flex-shrink-0" /> https://www.bajajfinserv.in/content/dam/bajajmall-site/images/DefaultImage%20.png
-                          </a>
+                          {qaSummary?.brokenImagesAffectingMostContent ? (
+                            <a href={qaSummary.brokenImagesAffectingMostContent} target="_blank" rel="noopener noreferrer" className="fs-13 text-body text-decoration-none d-inline-flex align-items-center gap-1 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-2 px-2 py-1 text-break">
+                              <ExternalLinkIcon size={12} className="text-primary flex-shrink-0" /> {qaSummary.brokenImagesAffectingMostContent}
+                            </a>
+                          ) : (
+                            <span className="fs-13 text-muted">No broken images detected</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -470,8 +515,8 @@ export default function QualityAssuranceView() {
                     <h6 className="fw-semibold text-body mb-2">Readability</h6>
                     <p className="fs-13 text-muted mb-3">Most of your pages have the readability level</p>
                     <div className="d-flex align-items-center gap-3 rounded-3 border border-primary border-opacity-25 bg-white bg-opacity-80 p-3">
-                      <span className="fw-semibold text-body">8th to 9th grade</span>
-                      <span className="text-muted fs-13">Affects 324 pages</span>
+                      <span className="fw-semibold text-body">{qaSummary?.mostCommonReadabilityLevel || "—"}</span>
+                      <span className="text-muted fs-13">Affects {qaSummary?.readabilityPagesCount ?? 0} pages</span>
                     </div>
                   </div>
                 </div>
@@ -510,7 +555,8 @@ export default function QualityAssuranceView() {
                             Content with issues
                             <i className="isax isax-info-circle fs-12 text-muted opacity-75" aria-hidden="true" title="Pages with at least one issue" />
                           </p>
-                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{summary?.totalPages || 0}</p>
+                          <p className="fs-3 fw-bold text-body mb-0 mt-1">{contentWithIssues}</p>
+                          <span className="fs-12 text-muted">of {totalPages} scanned</span>
                           <span className="d-inline-flex align-items-center gap-1 text-success fs-12">
                             <i className="isax isax-arrow-down-1" aria-hidden="true" />
                             0%

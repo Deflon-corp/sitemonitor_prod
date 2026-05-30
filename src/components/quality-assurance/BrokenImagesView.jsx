@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback  } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useQaBrokenImages } from "../../hooks/useQaBrokenImages";
 import { downloadBlob, safeFilename } from "../../lib/download";
 import ContentWithBrokenLinkDrawer from "./ContentWithBrokenLinkDrawer";
 import DocumentsWithBrokenLinkDrawer from "./DocumentsWithBrokenLinkDrawer";
@@ -12,61 +13,27 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS_ALL = [
-  {
-    id: 1,
-    url: "https://www.bajajfinserv.in/content/dam/bajajmall-site/images/DefaultImage%20.png",
-    responseCode: "404",
-    type: "image",
-    documentsCount: 0,
-    pagesCount: 2,
-  },
-  {
-    id: 2,
-    url: "https://cdn.example.com/assets/hero-banner.jpg",
-    responseCode: "404",
-    type: "image",
-    documentsCount: 1,
-    pagesCount: 5,
-  },
-  {
-    id: 3,
-    url: "https://www.bajajfinserv.in/content/dam/images/legacy-icon.svg",
-    responseCode: "404",
-    type: "image",
-    documentsCount: 0,
-    pagesCount: 12,
-  },
-];
-
-const SAMPLE_ROWS_IGNORED = [
-  {
-    id: 101,
-    url: "https://legacy.bajajfinserv.in/images/old-logo.png",
-    responseCode: "404",
-    type: "image",
-    documentsCount: 0,
-    pagesCount: 3,
-  },
-];
-
-const SAMPLE_ROWS_FIXED = [
-  {
-    id: 201,
-    url: "https://www.bajajfinserv.in/content/dam/fixed-image.png",
-    responseCode: "200",
-    type: "image",
-    documentsCount: 0,
-    pagesCount: 8,
-  },
-];
-
 export default function BrokenImagesView() {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortByUrl, setSortByUrl] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { images, pagination, loading } = useQaBrokenImages({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    sortBy: sortByUrl ? "url" : "pages",
+    sortOrder: sortByUrl || "desc",
+    tab: activeTab,
+  });
   const [contentDrawerOpen, setContentDrawerOpen] = useState(false);
   const [contentDrawerUrl, setContentDrawerUrl] = useState(null);
   const [documentsDrawerOpen, setDocumentsDrawerOpen] = useState(false);
@@ -82,33 +49,10 @@ export default function BrokenImagesView() {
     setDocumentsDrawerOpen(true);
   }
 
-  const rowsByTab = useMemo(() => {
-    if (activeTab === "ignored") return SAMPLE_ROWS_IGNORED;
-    if (activeTab === "fixed") return SAMPLE_ROWS_FIXED;
-    return SAMPLE_ROWS_ALL;
-  }, [activeTab]);
-
-  const filteredRows = useMemo(() => {
-    let rows = rowsByTab;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      rows = rows.filter((r) => r.url.toLowerCase().includes(q));
-    }
-    return rows;
-  }, [rowsByTab, search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortByUrl) return filteredRows;
-    return [...filteredRows].sort((a, b) =>
-      sortByUrl === "asc" ? a.url.localeCompare(b.url) : b.url.localeCompare(a.url)
-    );
-  }, [filteredRows, sortByUrl]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedRows.slice(start, start + rowsPerPage);
-  }, [sortedRows, currentPage, rowsPerPage]);
+  const sortedRows = images;
+  const paginatedRows = images;
+  const totalPages = pagination.pages || 1;
+  const totalCount = pagination.total ?? images.length;
 
   function handleSortUrl() {
     setCurrentPage(1);
@@ -170,7 +114,7 @@ export default function BrokenImagesView() {
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
           <i className="isax isax-image fs-20 text-primary" aria-hidden="true"></i>Broken images
         </h5>
-        <p className="text-muted fs-13 mb-0">{sortedRows.length} link{sortedRows.length !== 1 ? "s" : ""}</p>
+        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${totalCount} image${totalCount !== 1 ? "s" : ""}`}</p>
       </div>
 
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">

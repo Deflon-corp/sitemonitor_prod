@@ -1,11 +1,9 @@
-import React, { useState, useMemo, useCallback  } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useQaPagesList } from "../../hooks/useQaPagesList";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { downloadBlob, safeFilename } from "../../lib/download";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
-import ContentWithBrokenLinksPagesView from "./ContentWithBrokenLinksPagesView";
-import ContentWithBrokenLinksPdfView from "./ContentWithBrokenLinksPdfView";
-import ContentWithBrokenLinksTextView from "./ContentWithBrokenLinksTextView";
 
 const TABS = [
   { key: "all", label: "All", icon: "isax-folder" },
@@ -16,16 +14,6 @@ const TABS = [
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-/** Sample data – replace with API */
-const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
-  id: `bl-${i + 1}`,
-  title: i % 5 === 0 ? "(No title found)" : "Search",
-  url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,
-  notifications: [12, 10, 8, 6, 4][i % 5],
-  priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-  views: 0,
-}));
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
@@ -40,10 +28,27 @@ export default function ContentWithBrokenLinksView() {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get(TAB_PARAM) || "all";
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [sortBy, setSortBy] = useState(null);
+  const [sortBy, setSortBy] = useState("notifications");
   const [sortDir, setSortDir] = useState("desc");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const apiSortBy = sortBy === "notifications" ? "issues" : sortBy === "title" ? "title" : "url";
+  const { rows: apiRows, pagination, loading } = useQaPagesList({
+    filter: "broken-links",
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    sortBy: apiSortBy,
+    sortOrder: sortDir,
+    enabled: activeTab === "all" || activeTab === "pages",
+  });
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
 
@@ -52,25 +57,7 @@ export default function ContentWithBrokenLinksView() {
     setPageDetailsOpen(true);
   }
 
-  const filteredRows = useMemo(() => {
-    let rows = SAMPLE_ROWS;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      rows = rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-    }
-    return rows;
-  }, [search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortBy) return filteredRows;
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...filteredRows].sort((a, b) => {
-      if (sortBy === "title") return dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url));
-      if (sortBy === "notifications") return dir * (a.notifications - b.notifications);
-      if (sortBy === "priority") return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
-      return dir * (a.views - b.views);
-    });
-  }, [filteredRows, sortBy, sortDir]);
+  const sortedRows = activeTab === "all" || activeTab === "pages" ? apiRows : [];
 
   function handleSort(key) {
     setCurrentPage(1);
@@ -88,11 +75,8 @@ export default function ContentWithBrokenLinksView() {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedRows.slice(start, start + rowsPerPage);
-  }, [sortedRows, currentPage, rowsPerPage]);
+  const totalPages = activeTab === "all" || activeTab === "pages" ? (pagination.pages || 1) : 1;
+  const paginatedRows = sortedRows;
 
   const reportName = "Content-with-Broken-Links-Report";
   const baseName = safeFilename(reportName);
@@ -144,7 +128,9 @@ export default function ContentWithBrokenLinksView() {
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
           <i className="isax isax-document-copy fs-20 text-primary" aria-hidden="true"></i> Content with Broken Links
         </h5>
-        <p className="text-muted fs-13 mb-0">{activeTab === "all" ? filteredRows.length : "—"} pages</p>
+        <p className="text-muted fs-13 mb-0">
+          {activeTab === "all" ? (loading ? "Loading…" : `${pagination.total ?? sortedRows.length} pages`) : "—"}
+        </p>
       </div>
 
       {/* Tabs + Download Report + Search in one row */}
@@ -155,7 +141,7 @@ export default function ContentWithBrokenLinksView() {
             return (
               <Link
                 key={key}
-                to={`/quality-assurance?view=content-broken-links&${TAB_PARAM}=${key}`}
+                to={`/domain/quality-assurance?view=content-broken-links&${TAB_PARAM}=${key}`}
                 className={`nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"}`}
               >
                 <i className={`isax ${icon}`} aria-hidden="true"></i>
@@ -211,10 +197,12 @@ export default function ContentWithBrokenLinksView() {
         </div>
       </div>
 
-      {activeTab === "pages" && <ContentWithBrokenLinksPagesView search={search} onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }} />}
-      {activeTab === "pdf" && <ContentWithBrokenLinksPdfView search={search} onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }} />}
-      {activeTab === "text" && <ContentWithBrokenLinksTextView search={search} onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }} />}
-      {activeTab === "all" && (
+      {(activeTab === "pdf" || activeTab === "text") && (
+        <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm p-5 text-center text-muted">
+          No {activeTab === "pdf" ? "PDF" : "text"} documents with broken links in this scan.
+        </div>
+      )}
+      {(activeTab === "all" || activeTab === "pages") && (
         <>
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm mb-4 overflow-hidden">
             <div className="card-body p-0">

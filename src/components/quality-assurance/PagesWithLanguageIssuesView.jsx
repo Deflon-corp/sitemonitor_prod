@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
+import { useQaPagesList } from "../../hooks/useQaPagesList";
 
 const TABS = [
   { key: "incorrect", label: "Pages with incorrect language", icon: "isax-danger" },
@@ -13,13 +14,7 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 const TAB_PARAM = "tab";
 
-const SAMPLE_ROWS = [
-  { id: "1", title: "Search", url: "https://www.bajajfinserv.in/search", declaredLanguage: "Indonesian (Id)", detectedLanguage: "English (en)", multiLanguage: false, views: 0 },
-  { id: "2", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/page-2", declaredLanguage: "English (en)", detectedLanguage: "English (en)", multiLanguage: false, views: 12 },
-  { id: "3", title: "Contact", url: "https://www.bajajfinserv.in/contact", declaredLanguage: "—", detectedLanguage: "English (en)", multiLanguage: false, views: 45 },
-  { id: "4", title: "(No title found)", url: "https://www.bajajfinserv.in/faq", declaredLanguage: "Indonesian (id)", detectedLanguage: "English (en)", multiLanguage: true, views: 8 },
-  { id: "5", title: "About", url: "https://www.bajajfinserv.in/about", declaredLanguage: "—", detectedLanguage: "English (en)", multiLanguage: false, views: 23 },
-];
+
 
 function toDrawerPage(row) {
   const id = Number.parseInt(String(row.id).replace(/\D/g, ""), 10) || 0;
@@ -37,10 +32,19 @@ export default function PagesWithLanguageIssuesView() {
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
 
+  const { rows: fetchedRows, loading } = useQaPagesList({
+    filter: "qa-errors",
+    page: currentPage,
+    limit: rowsPerPage,
+    search,
+    enabled: true,
+  });
+
   const filteredByTab = useMemo(() => {
-    if (activeTab === "incorrect") return SAMPLE_ROWS.filter((r) => r.declaredLanguage !== "—" && r.declaredLanguage !== r.detectedLanguage);
-    return SAMPLE_ROWS.filter((r) => r.declaredLanguage === "—");
-  }, [activeTab]);
+    if (activeTab === "incorrect")
+      return fetchedRows.filter((r) => r.declaredLanguage !== "—" && r.declaredLanguage !== r.detectedLanguage);
+    return fetchedRows.filter((r) => r.declaredLanguage === "—");
+  }, [activeTab, fetchedRows]);
 
   const filteredRows = useMemo(() => {
     if (!search.trim()) return filteredByTab;

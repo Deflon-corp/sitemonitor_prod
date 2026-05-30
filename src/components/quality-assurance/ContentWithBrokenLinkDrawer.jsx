@@ -1,19 +1,10 @@
-import React, { useState, useMemo, useEffect, useCallback  } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { downloadBlob, safeFilename } from "../../lib/download";
+import { getQaBrokenLinkPagesApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-const SAMPLE_ROWS = [
-  { id: "1", title: "Search", url: "https://www.bajajfinserv.in/search", priority: "High", views: 0 },
-  { id: "2", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-intel-core-i3-3rd-gen-4-gb-ram-320-gb-hdd-windows-10-laptop", priority: "Low", views: 0 },
-  { id: "3", title: "Compare", url: "https://www.bajajfinserv.in/compare", priority: "Medium", views: 0 },
-  { id: "4", title: "(No title found)", url: "https://www.bajajfinserv.in/offers", priority: "High", views: 0 },
-  { id: "5", title: "Laptops", url: "https://www.bajajfinserv.in/bmall/laptops", priority: "Medium", views: 0 },
-  { id: "6", title: "(No title found)", url: "https://www.bajajfinserv.in/legacy/page", priority: "Low", views: 0 },
-  { id: "7", title: "Support", url: "https://www.bajajfinserv.in/support", priority: "High", views: 0 },
-  { id: "8", title: "(No title found)", url: "https://www.bajajfinserv.in/archive/2023", priority: "Medium", views: 0 },
-];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
@@ -30,13 +21,35 @@ export default function ContentWithBrokenLinkDrawer({
   const [sortBy, setSortBy] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
 
-  const displayUrl = sourceUrl ?? "https://bflcareers.peoplestrong.com/home";
+  const domainId = useQaDomainId();
+  const [rows, setRows] = useState([]);
+  const displayUrl = sourceUrl ?? "";
+
+  useEffect(() => {
+    if (!open || !domainId || !sourceUrl) {
+      setRows([]);
+      return;
+    }
+    getQaBrokenLinkPagesApi(domainId, sourceUrl).then((res) => {
+      if (res.success) {
+        setRows(
+          (res.data?.pages || []).map((p, i) => ({
+            id: p.id || String(i + 1),
+            title: p.title,
+            url: p.url,
+            priority: p.priority || "Medium",
+            views: p.views || 0,
+          }))
+        );
+      }
+    });
+  }, [open, domainId, sourceUrl]);
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, rows]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;

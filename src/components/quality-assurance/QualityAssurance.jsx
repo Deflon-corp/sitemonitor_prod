@@ -1,6 +1,7 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import QualityAssuranceView from "@/components/quality-assurance/QualityAssuranceView";
+import { QaScanProvider } from "@/contexts/QaScanContext";
 
 const QualityAssurance = () => {
     const [searchParams] = useSearchParams();
@@ -31,7 +32,11 @@ const QualityAssurance = () => {
                 <h6 className="mb-0">Quality Assurance</h6>
             </div>
 
-            {showQAView && <QualityAssuranceView />}
+            {showQAView && (
+              <QaScanProvider>
+                <QualityAssuranceView />
+              </QaScanProvider>
+            )}
         </div>
     );
 };

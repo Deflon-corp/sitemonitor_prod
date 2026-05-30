@@ -1,34 +1,13 @@
-import React, { useState, useMemo, useRef, useEffect  } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageIssuesIcon from "../icons/PageIssuesIcon";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
+import { useQaMisspellings } from "../../hooks/useQaMisspellings";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-/** 10–20 sample rows: pages with potential misspellings only (potentialMisspellings > 0). */
-const SAMPLE_ROWS = [
-  { id: "p1", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", language: "English (Australian)", misspellings: 2, potentialMisspellings: 113, views: 0 },
-  { id: "p2", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-15s-dua-3560-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-15-6-inch-laptop/p/29186", language: "English (Australian)", misspellings: 2, potentialMisspellings: 115, views: 0 },
-  { id: "p3", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-3520-intel-core-i5-12th-gen-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29187", language: "English (Australian)", misspellings: 2, potentialMisspellings: 116, views: 0 },
-  { id: "p4", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-3-amd-ryzen-5-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29188", language: "English (Australian)", misspellings: 2, potentialMisspellings: 117, views: 0 },
-  { id: "p5", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29189", language: "English (Australian)", misspellings: 2, potentialMisspellings: 119, views: 0 },
-  { id: "p6", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29190", language: "English (Australian)", misspellings: 2, potentialMisspellings: 112, views: 0 },
-  { id: "p7", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29191", language: "English (Australian)", misspellings: 2, potentialMisspellings: 118, views: 0 },
-  { id: "p8", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29192", language: "English (Australian)", misspellings: 2, potentialMisspellings: 114, views: 0 },
-  { id: "p9", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-thinkpad-e15-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29193", language: "English (Australian)", misspellings: 2, potentialMisspellings: 121, views: 0 },
-  { id: "p10", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-swift-3-intel-core-i5-8-gb-512-gb-ssd-14-inch-laptop/p/29194", language: "English (Australian)", misspellings: 2, potentialMisspellings: 110, views: 0 },
-  { id: "p11", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-zenbook-14-amd-ryzen-5-8-gb-512-gb-ssd-14-inch-laptop/p/29195", language: "English (Australian)", misspellings: 2, potentialMisspellings: 122, views: 0 },
-  { id: "p12", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-14s-intel-celeron-4-gb-256-gb-ssd-14-inch-laptop/p/29196", language: "English (Australian)", misspellings: 2, potentialMisspellings: 108, views: 0 },
-  { id: "p13", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-latitude-3520-intel-core-i5-8-gb-256-gb-ssd-15-6-inch-laptop/p/29197", language: "English (Australian)", misspellings: 2, potentialMisspellings: 120, views: 0 },
-  { id: "p14", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-legion-5-amd-ryzen-7-16-gb-512-gb-ssd-15-6-inch-gaming-laptop/p/29198", language: "English (Australian)", misspellings: 2, potentialMisspellings: 125, views: 0 },
-  { id: "p15", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-tuf-gaming-f15-intel-core-i5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29199", language: "English (Australian)", misspellings: 2, potentialMisspellings: 124, views: 0 },
-  { id: "p16", title: "Product Guide", url: "https://www.bajajfinserv.in/bmall/consumer-durables/p/29200", language: "English (Indian)", misspellings: 0, potentialMisspellings: 98, views: 42 },
-  { id: "p17", title: "FAQ", url: "https://www.bajajfinserv.in/bmall/faq/p/29201", language: "English (Indian)", misspellings: 1, potentialMisspellings: 87, views: 120 },
-  { id: "p18", title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/terms/p/29202", language: "English (Australian)", misspellings: 0, potentialMisspellings: 102, views: 8 },
-  { id: "p19", title: "Privacy Policy", url: "https://www.bajajfinserv.in/bmall/privacy/p/29203", language: "English (Indian)", misspellings: 0, potentialMisspellings: 95, views: 56 },
-  { id: "p20", title: "Contact Us", url: "https://www.bajajfinserv.in/bmall/contact/p/29204", language: "English (Australian)", misspellings: 1, potentialMisspellings: 91, views: 200 },
-];
+
 
 function toDrawerPage(row) {
   const id = Number.parseInt(String(row.id).replace(/\D/g, ""), 10) || 0;
@@ -50,6 +29,13 @@ export default function PagesWithMisspellingsPotentialTabView({ search: searchPr
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
   const viewsTooltipRef = useRef(null);
+
+  const { items: fetchedRows, loading } = useQaMisspellings({
+    page: currentPage,
+    limit: rowsPerPage,
+    search,
+    potential: true,
+  });
 
   useEffect(() => {
     function init(el) {
@@ -77,10 +63,10 @@ export default function PagesWithMisspellingsPotentialTabView({ search: searchPr
   }
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return fetchedRows;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return fetchedRows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, fetchedRows]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;

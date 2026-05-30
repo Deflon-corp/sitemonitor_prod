@@ -1,7 +1,6 @@
-import React, { useState  } from "react";
-import PotentialMisspellingsSection, {
-  POTENTIAL_MISSPELLINGS_SAMPLE,
-} from "../prioritized-content/PotentialMisspellingsSection";
+import React, { useState } from "react";
+import PotentialMisspellingsSection from "../prioritized-content/PotentialMisspellingsSection";
+import { useQaMisspellings } from "../../hooks/useQaMisspellings";
 import PotentialMisspellingIssueDrawer from "../prioritized-content/PotentialMisspellingIssueDrawer";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
 import PotentialMisspellingPageDetailsDrawer from "../prioritized-content/PotentialMisspellingPageDetailsDrawer";
@@ -19,10 +18,10 @@ export default function PotentialMisspellingsView() {
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
   const [defaultQaSubView, setDefaultQaSubView] = useState("misspellings");
 
+  const { items, loading } = useQaMisspellings({ page: 1, limit: 500, potential: true });
+
   const selectedIssue =
-    selectedIssueId != null
-      ? POTENTIAL_MISSPELLINGS_SAMPLE.find((r) => r.id === selectedIssueId) ?? null
-      : null;
+    selectedIssueId != null ? items.find((r) => r.id === selectedIssueId) ?? null : null;
 
   function openPageDetails(page, qaSubView) {
     setSelectedPageForDetails(page);
@@ -32,8 +31,9 @@ export default function PotentialMisspellingsView() {
 
   return (
     <React.Fragment>
+      {loading && <p className="text-muted py-2">Loading potential misspellings…</p>}
       <PotentialMisspellingsSection
-        items={POTENTIAL_MISSPELLINGS_SAMPLE}
+        items={items}
         onOpenIssue={(id) => setSelectedIssueId(id)}
         onOpenPageDetails={() => setOpenPageDetailsDrawerOpen(true)}
       />

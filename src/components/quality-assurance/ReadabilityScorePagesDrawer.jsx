@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import { downloadBlob, safeFilename } from "../../lib/download";
+import { getQaReadabilityPagesApi } from "../../api/qaApi";
 const QUICK_HELP_TEXT =
   "Put simply, readability is the ease with which a reader can understand the written text. Readability tests, readability formulas, or readability metrics are formulae for evaluating the readability of text, by counting syllables, words, and sentences. Scores are compared with scales based on judged linguistic difficulty or reading grade level.";
 
@@ -29,10 +30,33 @@ export default function ReadabilityScorePagesDrawer({
   scoreLevel,
   totalCount: totalCountProp,
   pages: pagesProp,
+  domainId,
   onOpenPageDetails,
 }) {
-  const pages = pagesProp ?? SAMPLE_PAGES_6TH_GRADE;
-  const totalCount = totalCountProp ?? pages.length;
+  const [apiPages, setApiPages] = useState([]);
+  const [apiTotal, setApiTotal] = useState(0);
+
+  useEffect(() => {
+    if (!open || !domainId || !scoreLevel) return;
+    getQaReadabilityPagesApi(domainId, { level: scoreLevel, page: "1", limit: "500" }).then((res) => {
+      if (res.success) {
+        const mapped = (res.data?.pages || []).map((p) => ({
+          title: p.title,
+          url: p.url,
+          readabilityScore: p.readabilityScore ?? 0,
+          readabilityLevel: p.readabilityLevel || scoreLevel,
+          totalWords: 0,
+          priority: "Medium",
+          views: 0,
+        }));
+        setApiPages(mapped);
+        setApiTotal(res.data?.pagination?.total ?? mapped.length);
+      }
+    });
+  }, [open, domainId, scoreLevel]);
+
+  const pages = pagesProp?.length ? pagesProp : apiPages.length ? apiPages : SAMPLE_PAGES_6TH_GRADE;
+  const totalCount = totalCountProp ?? apiTotal ?? pages.length;
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);

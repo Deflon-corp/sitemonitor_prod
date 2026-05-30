@@ -1,31 +1,50 @@
-import React, { useState  } from "react";
-import IgnoredSpellingsSection, { IGNORED_SPELLINGS_SAMPLE } from "../prioritized-content/IgnoredSpellingsSection";
+import React, { useState, useEffect } from "react";
+import IgnoredSpellingsSection from "../prioritized-content/IgnoredSpellingsSection";
 import IgnoredSpellingIssueDrawer from "../prioritized-content/IgnoredSpellingIssueDrawer";
+import { getQaSummaryApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
 
-/**
- * QA Spellcheck >> Ignored Misspellings view.
- * Renders IgnoredSpellingsSection and opens IgnoredSpellingIssueDrawer when "Open issue page" is clicked.
- * From the issue drawer, "Open page details" opens IgnoredSpellingPageDetailsDrawer.
- */
 export default function IgnoredSpellingsSectionView() {
   const [selectedIgnoredSpellingId, setSelectedIgnoredSpellingId] = useState(null);
+  const [items, setItems] = useState([]);
+  const domainId = useQaDomainId();
+
+  useEffect(() => {
+    if (!domainId) return;
+    getQaSummaryApi(domainId).then((res) => {
+      if (res.success && res.data?.ignoredSpellings) {
+        setItems(
+          res.data.ignoredSpellings.map((word, i) => ({
+            id: String(i + 1),
+            word,
+            language: "English",
+            dateIgnored: res.data.scanDate,
+          }))
+        );
+      }
+    });
+  }, [domainId]);
+
+  const selectedIssue =
+    selectedIgnoredSpellingId != null
+      ? items.find((r) => r.id === selectedIgnoredSpellingId) ?? null
+      : null;
 
   return (
     <React.Fragment>
       <IgnoredSpellingsSection
-        items={IGNORED_SPELLINGS_SAMPLE}
-        onOpenIssue={function(id) { setSelectedIgnoredSpellingId(id); }}
+        items={items}
+        onOpenIssue={function (id) {
+          setSelectedIgnoredSpellingId(id);
+        }}
       />
       <IgnoredSpellingIssueDrawer
         open={selectedIgnoredSpellingId != null}
-        onClose={function() { setSelectedIgnoredSpellingId(null); }}
-        issue={
-          selectedIgnoredSpellingId != null
-            ? IGNORED_SPELLINGS_SAMPLE.find((r) => r.id === selectedIgnoredSpellingId) ?? null
-            : null
-        }
+        onClose={function () {
+          setSelectedIgnoredSpellingId(null);
+        }}
+        issue={selectedIssue}
       />
     </React.Fragment>
   );
 }
-

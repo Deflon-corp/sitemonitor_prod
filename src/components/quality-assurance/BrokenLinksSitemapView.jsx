@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useCallback  } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useQaBrokenLinksSitemap } from "../../hooks/useQaBrokenLinksSitemap";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import BrokenLinksIgnoredView from "./BrokenLinksIgnoredView";
-import BrokenLinksMarkedAsFixedView from "./BrokenLinksMarkedAsFixedView";
 import ContentWithBrokenLinkDrawer from "./ContentWithBrokenLinkDrawer";
 import DocumentsWithBrokenLinkDrawer from "./DocumentsWithBrokenLinkDrawer";
 
@@ -14,42 +13,25 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS_ALL = [
-  { id: 1, url: "https://www.bajajfinserv.in/sitemap/page-1", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 12 },
-  { id: 2, url: "https://www.bajajfinserv.in/sitemap/products/old", responseCode: "404", type: "link", documentsCount: 1, pagesCount: 8 },
-  { id: 3, url: "https://www.bajajfinserv.in/sitemap/offers/expired", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 24 },
-  { id: 4, url: "https://www.bajajfinserv.in/sitemap/blog/archived", responseCode: "410", type: "link", documentsCount: 0, pagesCount: 5 },
-  { id: 5, url: "https://www.bajajfinserv.in/sitemap/legal/terms-v1", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 31 },
-  { id: 6, url: "https://www.bajajfinserv.in/sitemap/help/retired", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 7 },
-  { id: 7, url: "https://www.bajajfinserv.in/sitemap/careers/region-old", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 15 },
-  { id: 8, url: "https://www.bajajfinserv.in/sitemap/compare/legacy", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 9 },
-  { id: 9, url: "https://www.bajajfinserv.in/sitemap/emi-calculator/v1", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 42 },
-  { id: 10, url: "https://www.bajajfinserv.in/sitemap/contact/old-form", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 18 },
-  { id: 11, url: "https://www.bajajfinserv.in/sitemap/faq/deprecated", responseCode: "410", type: "link", documentsCount: 0, pagesCount: 6 },
-  { id: 12, url: "https://www.bajajfinserv.in/sitemap/insurance/removed", responseCode: "404", type: "link", documentsCount: 2, pagesCount: 11 },
-  { id: 13, url: "https://www.bajajfinserv.in/sitemap/loans/discontinued", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 22 },
-  { id: 14, url: "https://www.bajajfinserv.in/sitemap/partners/sunset", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 3 },
-  { id: 15, url: "https://www.bajajfinserv.in/sitemap/promotions/2023", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 14 },
-];
-
-const SAMPLE_ROWS_IGNORED = [
-  { id: 101, url: "https://www.bajajfinserv.in/sitemap/legacy/ignored-1", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 2 },
-  { id: 102, url: "https://www.bajajfinserv.in/sitemap/legacy/ignored-2", responseCode: "404", type: "link", documentsCount: 0, pagesCount: 4 },
-  { id: 103, url: "https://www.bajajfinserv.in/sitemap/archive/ignored-3", responseCode: "410", type: "link", documentsCount: 0, pagesCount: 1 },
-];
-
-const SAMPLE_ROWS_FIXED = [
-  { id: 201, url: "https://www.bajajfinserv.in/sitemap/fixed/page-a", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 10 },
-  { id: 202, url: "https://www.bajajfinserv.in/sitemap/fixed/page-b", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 6 },
-  { id: 203, url: "https://www.bajajfinserv.in/sitemap/fixed/page-c", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 8 },
-];
-
 export default function BrokenLinksSitemapView() {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortByUrl, setSortByUrl] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { links, pagination, loading } = useQaBrokenLinksSitemap({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    tab: activeTab,
+  });
   const [contentDrawerOpen, setContentDrawerOpen] = useState(false);
   const [contentDrawerUrl, setContentDrawerUrl] = useState(null);
   const [documentsDrawerOpen, setDocumentsDrawerOpen] = useState(false);
@@ -65,33 +47,10 @@ export default function BrokenLinksSitemapView() {
     setDocumentsDrawerOpen(true);
   }
 
-  const rowsByTab = useMemo(() => {
-    if (activeTab === "ignored") return SAMPLE_ROWS_IGNORED;
-    if (activeTab === "fixed") return SAMPLE_ROWS_FIXED;
-    return SAMPLE_ROWS_ALL;
-  }, [activeTab]);
-
-  const filteredRows = useMemo(() => {
-    let rows = rowsByTab;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      rows = rows.filter((r) => r.url.toLowerCase().includes(q));
-    }
-    return rows;
-  }, [rowsByTab, search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortByUrl) return filteredRows;
-    return [...filteredRows].sort((a, b) =>
-      sortByUrl === "asc" ? a.url.localeCompare(b.url) : b.url.localeCompare(a.url)
-    );
-  }, [filteredRows, sortByUrl]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedRows.slice(start, start + rowsPerPage);
-  }, [sortedRows, currentPage, rowsPerPage]);
+  const sortedRows = links;
+  const paginatedRows = links;
+  const totalPages = pagination.pages || 1;
+  const totalCount = pagination.total ?? links.length;
 
   function handleSortUrl() {
     setCurrentPage(1);
@@ -147,6 +106,7 @@ export default function BrokenLinksSitemapView() {
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
           <i className="isax isax-menu fs-20 text-primary" aria-hidden="true"></i>Broken Links on Sitemap
         </h5>
+        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${totalCount} links`}</p>
       </div>
 
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -213,19 +173,7 @@ export default function BrokenLinksSitemapView() {
         </div>
       </div>
 
-      {activeTab === "ignored" && (
-        <BrokenLinksIgnoredView
-          onOpenContentDrawer={openContentDrawer}
-          onOpenDocumentsDrawer={openDocumentsDrawer}
-        />
-      )}
-      {activeTab === "fixed" && (
-        <BrokenLinksMarkedAsFixedView
-          onOpenContentDrawer={openContentDrawer}
-          onOpenDocumentsDrawer={openDocumentsDrawer}
-        />
-      )}
-      {activeTab === "all" && (
+      {(activeTab === "all" || activeTab === "ignored" || activeTab === "fixed") && (
         <>
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
             <div className="table-responsive flex-grow-1">
@@ -260,7 +208,19 @@ export default function BrokenLinksSitemapView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRows.map((row) => (
+                  {loading && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-5 text-muted">Loading broken links on sitemap…</td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-5 text-muted">
+                        No broken links on sitemap found. Run a QA scan to refresh data.
+                      </td>
+                    </tr>
+                  )}
+                  {!loading && paginatedRows.map((row) => (
                     <tr key={row.id}>
                       <td className="ps-4 py-2">
                         <input type="checkbox" className="form-check-input" aria-label={`Select link ${row.id}`} />
@@ -335,7 +295,9 @@ export default function BrokenLinksSitemapView() {
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                  {totalCount === 0
+                    ? "0 of 0"
+                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, totalCount)} of ${totalCount}`}
                 </span>
               </div>
               <nav aria-label="Broken links on sitemap pagination">

@@ -1,28 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
-
-/** Sample data – replace with API. Counts aligned with spellcheck summary chart (Unique: 0, Potential: 1,000). */
-const UNIQUE_MISSPELLINGS = 0;
-const POTENTIAL_MISSPELLINGS = 1000;
-const LANGUAGES_FOUND = 2;
-const MOST_COMMON_LANGUAGE = "English (Australian)";
-
-const MOST_COMMON_MISSPELLINGS = [
-  { word: "upto", language: "English (Australian)", pages: 498 },
-  { word: "IRDAI", language: "English (Australian)", pages: 497 },
-  { word: "ppi", language: "English (Australian)", pages: 2 },
-  { word: "color", language: "English (Australian)", pages: 2 },
-  { word: "labor", language: "English (Australian)", pages: 1 },
-];
-
-const MOST_COMMON_POTENTIAL = [
-  { word: "Finserv", language: "English (Australian)", pages: 499 },
-  { word: "Sonalika", language: "English (Australian)", pages: 498 },
-  { word: "Swaraj", language: "English (Australian)", pages: 498 },
-  { word: "Eicher", language: "English (Australian)", pages: 498 },
-  { word: "Kubota", language: "English (Australian)", pages: 498 },
-];
+import { getQaSpellcheckSummaryApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
+import { useQaRefreshKey } from "../../contexts/QaScanContext";
 
 /** Trend: unique (orange, flat low) and potential (blue, high to mid). Y 0–1000, X time. */
 function MisspellingsTrendChart() {
@@ -102,6 +83,36 @@ function SpellcheckMetricRow({ label, value, icon }) {
 const baseName = safeFilename("Spellcheck-Summary-Report");
 
 export default function SpellcheckSummaryView() {
+  const domainId = useQaDomainId();
+  const refreshKey = useQaRefreshKey();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!domainId) return;
+    setLoading(true);
+    getQaSpellcheckSummaryApi(domainId)
+      .then((res) => {
+        if (res.success) setData(res.data);
+      })
+      .finally(() => setLoading(false));
+  }, [domainId, refreshKey]);
+
+  const UNIQUE_MISSPELLINGS = data?.uniqueMisspellings ?? 0;
+  const POTENTIAL_MISSPELLINGS = data?.potentialMisspellings ?? 0;
+  const LANGUAGES_FOUND = 1;
+  const MOST_COMMON_LANGUAGE = "English";
+  const MOST_COMMON_MISSPELLINGS = (data?.mostCommonMisspellings || []).map((r) => ({
+    word: r.word,
+    language: MOST_COMMON_LANGUAGE,
+    pages: r.pagesCount,
+  }));
+  const MOST_COMMON_POTENTIAL = (data?.mostCommonPotential || []).map((r) => ({
+    word: r.word,
+    language: MOST_COMMON_LANGUAGE,
+    pages: r.pagesCount,
+  }));
+
   const exportCSV = useCallback(() => {
     const summaryRows = [
       ["Metric", "Value"],

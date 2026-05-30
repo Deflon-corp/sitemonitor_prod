@@ -1,18 +1,10 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { downloadBlob, safeFilename } from "../../lib/download";
-import ReadabilityScorePagesDrawer, { SAMPLE_PAGES_6TH_GRADE } from "./ReadabilityScorePagesDrawer";
+import ReadabilityScorePagesDrawer from "./ReadabilityScorePagesDrawer";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
-
-/** Readability level and page count. Based on Flesch Kincaid. */
-const READABILITY_BY_SCORE = [
-  { level: "6th grade", pages: 1 },
-  { level: "7th grade", pages: 51 },
-  { level: "8th to 9th grade", pages: 324, isMost: true },
-  { level: "10th to 12th grade", pages: 111 },
-  { level: "College", pages: 11 },
-  { level: "Language not supported", pages: 1 },
-  { level: "Score could not be generated", pages: 1 },
-];
+import { getQaReadabilityApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
+import { useQaRefreshKey } from "../../contexts/QaScanContext";
 
 /** All levels for the bar chart (Y-axis order from bottom to top). */
 const BAR_CHART_LEVELS = [
@@ -28,10 +20,13 @@ const BAR_CHART_LEVELS = [
   "Language not supported",
 ];
 
-const TOTAL_PAGES_APPROX = 500;
-const MOST_LEVEL = "8th to 9th grade";
-const MOST_PAGES = 324;
-const MOST_PERCENT = Math.round((MOST_PAGES / TOTAL_PAGES_APPROX) * 1000) / 10; // 64.8
+const DEFAULT_READABILITY_BY_SCORE = [
+  { level: "6th grade", pages: 0 },
+  { level: "7th grade", pages: 0 },
+  { level: "8th to 9th grade", pages: 0, isMost: true },
+  { level: "10th to 12th grade", pages: 0 },
+  { level: "College", pages: 0 },
+];
 
 /** Tooltip for each readability level (shown when hovering the info icon). */
 const READABILITY_LEVEL_TOOLTIPS = {
@@ -47,17 +42,14 @@ const READABILITY_LEVEL_TOOLTIPS = {
   "Language not supported": "Language is not supported for readability scoring.",
 };
 
-/** Bar chart: page counts per level. Uses first match from READABILITY_BY_SCORE or 0. */
-function getPagesForLevel(level) {
-  const row = READABILITY_BY_SCORE.find((r) => r.level === level);
-  if (row) return row.pages;
-  if (level === "5th grade" || level === "Below 5th grade" || level === "College graduate") return 0;
-  return 0;
+function getPagesForLevel(level, byScore) {
+  const row = (byScore || []).find((r) => r.level === level);
+  return row?.pages ?? 0;
 }
 
 const X_AXIS_MAX_PAGES = 350;
 
-function ReadabilityBarChart() {
+function ReadabilityBarChart({ byScore }) {
   const chartWidth = 880;
   const barHeight = 28;
   const gap = 6;
@@ -95,7 +87,7 @@ function ReadabilityBarChart() {
         </text>
         {/* Y-axis levels and bars */}
         {BAR_CHART_LEVELS.map((level, i) => {
-          const pages = getPagesForLevel(level);
+          const pages = getPagesForLevel(level, byScore);
           const y = padding.top + i * (barHeight + gap) + barHeight / 2;
           const barW = (pages / X_AXIS_MAX_PAGES) * barAreaWidth;
           return (
@@ -129,8 +121,8 @@ function ReadabilityBarChart() {
   );
 }
 
-function ReadabilityDonutChart() {
-  const percent = MOST_PERCENT;
+function ReadabilityDonutChart({ mostLevel, mostPercent, totalPages }) {
+  const percent = mostPercent;
   const radius = 72;
   const stroke = 14;
   const circumference = 2 * Math.PI * radius;
@@ -141,7 +133,7 @@ function ReadabilityDonutChart() {
     <div className="d-flex flex-column align-items-center justify-content-center">
       <p className="text-center mb-1 fs-13 text-muted">Most of your pages have the readability level</p>
       <p className="text-center mb-3 mb-md-4 fw-bold text-body" style={{ fontSize: "1.1rem" }}>
-        {MOST_LEVEL}
+        {mostLevel}
       </p>
       <div
         className="position-relative d-inline-flex align-items-center justify-content-center"
@@ -165,7 +157,7 @@ function ReadabilityDonutChart() {
             {percent} %
           </span>
           <span className="d-block text-muted" style={{ fontSize: "0.7rem" }}>
-            (of approx. {TOTAL_PAGES_APPROX.toLocaleString()} pages)
+            (of approx. {totalPages.toLocaleString()} pages)
           </span>
         </div>
       </div>
@@ -178,15 +170,42 @@ function toPageDetailsPage(p) {
 }
 
 export default function ReadabilitySummaryView() {
+  const domainId = useQaDomainId();
+  const refreshKey = useQaRefreshKey();
+  const [readabilityData, setReadabilityData] = useState(null);
   const [selectedScoreLevel, setSelectedScoreLevel] = useState(null);
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [pageDetailsPage, setPageDetailsPage] = useState(null);
   const reportName = "Readability-Summary-Report";
   const baseName = safeFilename(reportName);
 
+  useEffect(() => {
+    if (!domainId) return;
+    getQaReadabilityApi(domainId).then((res) => {
+      if (res.success) setReadabilityData(res.data);
+    });
+  }, [domainId, refreshKey]);
+
+  const READABILITY_BY_SCORE = useMemo(() => {
+    const dist = readabilityData?.distribution;
+    if (!dist?.length) return DEFAULT_READABILITY_BY_SCORE;
+    const most = readabilityData.mostCommonLevel;
+    return dist.map((d) => ({
+      level: d.level,
+      pages: d.count,
+      isMost: d.level === most,
+    }));
+  }, [readabilityData]);
+
+  const TOTAL_PAGES_APPROX = readabilityData?.totalPages || 0;
+  const MOST_LEVEL = readabilityData?.mostCommonLevel || "—";
+  const MOST_PAGES = readabilityData?.pagesAtMostCommon || 0;
+  const MOST_PERCENT =
+    TOTAL_PAGES_APPROX > 0 ? Math.round((MOST_PAGES / TOTAL_PAGES_APPROX) * 1000) / 10 : 0;
+
   const exportRows = useMemo(
-    () => BAR_CHART_LEVELS.map((level) => ({ level, pages: getPagesForLevel(level) })),
-    []
+    () => BAR_CHART_LEVELS.map((level) => ({ level, pages: getPagesForLevel(level, READABILITY_BY_SCORE) })),
+    [READABILITY_BY_SCORE]
   );
 
   const exportCSV = useCallback(() => {
@@ -274,10 +293,14 @@ export default function ReadabilitySummaryView() {
           <p className="fs-13 text-muted mb-4">Readability scores across all web pages (based on Flesch Kincaid)</p>
           <div className="row align-items-start g-4">
             <div className="col-lg-8">
-              <ReadabilityBarChart />
+              <ReadabilityBarChart byScore={READABILITY_BY_SCORE} />
             </div>
             <div className="col-lg-4 d-flex justify-content-center justify-content-lg-start">
-              <ReadabilityDonutChart />
+              <ReadabilityDonutChart
+                mostLevel={MOST_LEVEL}
+                mostPercent={MOST_PERCENT}
+                totalPages={TOTAL_PAGES_APPROX}
+              />
             </div>
           </div>
         </div>
@@ -338,7 +361,8 @@ export default function ReadabilitySummaryView() {
         onClose={() => setSelectedScoreLevel(null)}
         scoreLevel={selectedScoreLevel}
         totalCount={selectedScoreLevel != null ? READABILITY_BY_SCORE.find((r) => r.level === selectedScoreLevel)?.pages : undefined}
-        pages={selectedScoreLevel === "6th grade" ? SAMPLE_PAGES_6TH_GRADE : []}
+        pages={[]}
+        domainId={domainId}
         onOpenPageDetails={(page) => {
           setPageDetailsPage(toPageDetailsPage(page));
           setSelectedScoreLevel(null);

@@ -31,19 +31,19 @@ export default function QAQuickInfoMenu({
             <span className="fw-medium fs-13">{policies}</span>
           </Link>
         )}
-        <Link to="/quality-assurance?view=broken-links" className={`dropdown-item ${rowClass} ${brokenLinks > 0 ? "text-danger" : "text-body"}`}>
+        <Link to="/domain/quality-assurance?view=broken-links" className={`dropdown-item ${rowClass} ${brokenLinks > 0 ? "text-danger" : "text-body"}`}>
           <span className="d-inline-flex align-items-center gap-2 fs-13">
             <i className="isax isax-link-2 fs-16" aria-hidden="true"></i> Broken Links
           </span>
           <span className="fw-medium fs-13">{brokenLinks}</span>
         </Link>
-        <Link to="/quality-assurance?view=broken-images" className={`dropdown-item ${rowClass} text-body`}>
+        <Link to="/domain/quality-assurance?view=broken-images" className={`dropdown-item ${rowClass} text-body`}>
           <span className="d-inline-flex align-items-center gap-2 fs-13">
             <i className="isax isax-image fs-16" aria-hidden="true"></i> Broken Images
           </span>
           <span className="fw-medium fs-13">{brokenImages}</span>
         </Link>
-        <Link to="/quality-assurance?view=spellcheck-misspellings" className={`dropdown-item ${rowClass} text-body`}>
+        <Link to="/domain/quality-assurance?view=spellcheck-misspellings" className={`dropdown-item ${rowClass} text-body`}>
           <span className="d-inline-flex align-items-center gap-2 fs-13">
             <i className="isax isax-edit-2 fs-16" aria-hidden="true"></i> Misspellings
           </span>

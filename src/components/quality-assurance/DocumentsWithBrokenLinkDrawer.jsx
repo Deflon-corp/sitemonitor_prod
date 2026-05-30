@@ -1,16 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback  } from "react";
 import { downloadBlob, safeFilename } from "../../lib/download";
-
-const SAMPLE_ROWS = [
-  { id: "d1", title: "Annual Report 2024", url: "https://www.bajajfinserv.in/docs/annual-report-2024.pdf", type: "PDF", views: 12 },
-  { id: "d2", title: "Product Brochure", url: "https://www.bajajfinserv.in/downloads/brochure.pdf", type: "PDF", views: 45 },
-  { id: "d3", title: "Terms and Conditions", url: "https://www.bajajfinserv.in/legal/terms.pdf", type: "PDF", views: 28 },
-  { id: "d4", title: "User Guide", url: "https://www.bajajfinserv.in/support/user-guide.pdf", type: "PDF", views: 67 },
-  { id: "d5", title: "Privacy Policy", url: "https://www.bajajfinserv.in/legal/privacy.pdf", type: "PDF", views: 19 },
-  { id: "d6", title: "FAQ Document", url: "https://www.bajajfinserv.in/help/faq.pdf", type: "PDF", views: 34 },
-  { id: "d7", title: "Loan Application Form", url: "https://www.bajajfinserv.in/forms/loan-application.pdf", type: "PDF", views: 89 },
-  { id: "d8", title: "Compliance Report", url: "https://www.bajajfinserv.in/compliance/report-2024.pdf", type: "PDF", views: 5 },
-];
+import { getQaBrokenLinkPagesApi } from "../../api/qaApi";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
 
 export default function DocumentsWithBrokenLinkDrawer({
   open,
@@ -20,16 +11,46 @@ export default function DocumentsWithBrokenLinkDrawer({
   title: titleProp,
 }) {
   const [search, setSearch] = useState("");
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const domainId = useQaDomainId();
   const drawerTitle =
     titleProp ?? (titleVariant === "images" ? "Documents with Broken Images" : "Documents with Broken Link");
 
-  const displayUrl = sourceUrl ?? "https://bflcareers.peoplestrong.com/home";
+  const displayUrl = sourceUrl ?? "";
+
+  useEffect(() => {
+    if (!open || !domainId || !sourceUrl) {
+      setRows([]);
+      return;
+    }
+    setLoading(true);
+    getQaBrokenLinkPagesApi(domainId, sourceUrl)
+      .then((res) => {
+        if (res.success) {
+          const docs = (res.data?.pages || [])
+            .filter((p) => /\.pdf($|\?)/i.test(p.url || ""))
+            .map((p, i) => ({
+              id: p.id || String(i + 1),
+              title: p.title || p.url,
+              url: p.url,
+              type: "PDF",
+              views: p.views || 0,
+            }));
+          setRows(docs);
+        } else {
+          setRows([]);
+        }
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [open, domainId, sourceUrl]);
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, rows]);
 
   const reportName = "Documents-with-Broken-Link-Report";
   const baseName = safeFilename(reportName);

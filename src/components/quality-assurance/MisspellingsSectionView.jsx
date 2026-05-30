@@ -1,29 +1,34 @@
-import React, { useState  } from "react";
-import MisspellingsSection, { MISSPELLINGS_SAMPLE, } from "../prioritized-content/MisspellingsSection";
+import React, { useState } from "react";
+import MisspellingsSection from "../prioritized-content/MisspellingsSection";
 import MisspellingIssueDrawer from "../prioritized-content/MisspellingIssueDrawer";
+import { useQaMisspellings } from "../../hooks/useQaMisspellings";
 
-/**
- * QA Spellcheck >> Misspellings view.
- * Renders MisspellingsSection and opens the same MisspellingIssueDrawer
- * when "Open issue page" is clicked (same as Pages with Misspellings >> Open page details >> Open page issue).
- */
 export default function MisspellingsSectionView() {
   const [selectedMisspellingId, setSelectedMisspellingId] = useState(null);
+  const { items, loading } = useQaMisspellings({ page: 1, limit: 500, potential: false });
 
   const selectedIssue =
     selectedMisspellingId != null
-      ? MISSPELLINGS_SAMPLE.find((r) => r.id === selectedMisspellingId) ?? null
+      ? items.find((r) => r.id === selectedMisspellingId) ?? null
       : null;
+
+  if (loading) {
+    return <p className="text-muted py-4">Loading misspellings…</p>;
+  }
 
   return (
     <React.Fragment>
       <MisspellingsSection
-        items={MISSPELLINGS_SAMPLE}
-        onOpenIssue={function(id) { setSelectedMisspellingId(id); }}
+        items={items}
+        onOpenIssue={function (id) {
+          setSelectedMisspellingId(id);
+        }}
       />
       <MisspellingIssueDrawer
         open={selectedMisspellingId != null}
-        onClose={function() { setSelectedMisspellingId(null); }}
+        onClose={function () {
+          setSelectedMisspellingId(null);
+        }}
         issue={
           selectedIssue
             ? {
@@ -38,4 +43,3 @@ export default function MisspellingsSectionView() {
     </React.Fragment>
   );
 }
-

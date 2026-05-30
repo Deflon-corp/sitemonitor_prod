@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useQaPagesList } from "../../hooks/useQaPagesList";
 import { Link, useSearchParams } from "react-router-dom";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 import ContentWithQAErrorsPagesView from "./ContentWithQAErrorsPagesView";
@@ -16,14 +17,12 @@ const TABS = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = Array.from({ length: 4 }, (_, i) => ({
-  id: `qa-${i + 1}`,
-  title: i % 5 === 0 ? "(No title found)" : "Search",
-  url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,
-  notifications: [12, 10, 8, 6, 4][i % 5],
-  priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-  views: 0,
-}));
+const VIEW_FILTER_MAP = {
+  "summary-broken-links": "broken-links",
+  "summary-broken-images": "broken-images",
+  "summary-misspellings": "misspellings",
+  "summary-potential-misspellings": "potential-misspellings",
+};
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 const TAB_PARAM = "tab";
@@ -48,10 +47,28 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get(TAB_PARAM) || "all";
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [sortBy, setSortBy] = useState(null);
+  const [sortBy, setSortBy] = useState("notifications");
   const [sortDir, setSortDir] = useState("desc");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const listFilter = VIEW_FILTER_MAP[viewKey] || "qa-errors";
+  const apiSortBy = sortBy === "notifications" ? "issues" : sortBy === "title" ? "title" : "url";
+  const { rows: apiRows, pagination, loading } = useQaPagesList({
+    filter: listFilter,
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    sortBy: apiSortBy,
+    sortOrder: sortDir,
+    enabled: activeTab === "all",
+  });
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
 
@@ -60,25 +77,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     setPageDetailsOpen(true);
   };
 
-  const filteredRows = useMemo(() => {
-    let rows = SAMPLE_ROWS;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      rows = rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-    }
-    return rows;
-  }, [search]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortBy) return filteredRows;
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...filteredRows].sort((a, b) => {
-      if (sortBy === "title") return dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url));
-      if (sortBy === "notifications") return dir * (a.notifications - b.notifications);
-      if (sortBy === "priority") return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
-      return dir * (a.views - b.views);
-    });
-  }, [filteredRows, sortBy, sortDir]);
+  const sortedRows = activeTab === "all" ? apiRows : [];
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -98,18 +97,15 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     />
   );
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedRows.slice(start, start + rowsPerPage);
-  }, [sortedRows, currentPage, rowsPerPage]);
+  const totalPages = activeTab === "all" ? (pagination.pages || 1) : 1;
+  const paginatedRows = sortedRows;
 
   return (
     <div className="d-flex flex-column h-100">
       {/* Header with highlighted option */}
       <div className="mb-3">
         <div className="d-flex align-items-center gap-2 mb-1">
-          <Link to="/quality-assurance?view=summary" className="fs-13 text-muted text-decoration-none d-inline-flex align-items-center gap-1">
+          <Link to="/domain/quality-assurance?view=summary" className="fs-13 text-muted text-decoration-none d-inline-flex align-items-center gap-1">
             Summary
           </Link>
           <span className="text-muted">/</span>
@@ -121,7 +117,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
           <i className={`isax ${icon} fs-20 text-primary`} aria-hidden="true" />
           {title}
         </h5>
-        <p className="text-muted fs-13 mb-0">{filteredRows.length} pages</p>
+        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${pagination.total ?? sortedRows.length} pages`}</p>
       </div>
 
       {/* Filter tabs */}
