@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { getDomainsApi, getDomainAuditDataApi, getDomainSeoPagesApi } from "@/api/domainApi";
+import { getDomainsApi, getDomainAuditDataApi, getDomainSeoPagesApi, triggerDomainScanApi } from "@/api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import { SEO_HEALTH_ISSUES } from "@/lib/seo-health-config";
 import { SPELL_CHECKER_AUDIT_CONFIG, SPELL_CHECKER_SLUGS_ORDER } from "@/lib/spell-checker-audit-data";
@@ -46,6 +46,7 @@ export default function RunWebsiteAuditPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
+  const [isTriggeringScan, setIsTriggeringScan] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
@@ -81,10 +82,6 @@ export default function RunWebsiteAuditPage() {
   const fetchAuditData = useCallback(async (domain, page = null) => {
     if (!domain) return;
     setIsLoading(true);
-    // If a page is selected, we use the page's report data. 
-    // For now, we'll fetch domain audit data and if a page is selected, we'll try to get its specific data if needed.
-    // However, the current Audit endpoint returns domain-wide summary.
-    // If a specific page is selected, we might want to show its specific report.
     try {
       const res = await getDomainAuditDataApi(domain._id);
       if (res.success) {
@@ -102,6 +99,54 @@ export default function RunWebsiteAuditPage() {
       fetchAuditData(selectedDomain, selectedPage);
     }
   }, [selectedDomain, selectedPage, fetchAuditData]);
+
+  // Poll for scan status updates when a scan is active (pending or scanning)
+  useEffect(() => {
+    let intervalId = null;
+    const status = auditData?.domain?.dm_seo_status;
+    
+    if ((status === 'pending' || status === 'scanning') && selectedDomain) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await getDomainAuditDataApi(selectedDomain._id);
+          if (res.success) {
+            setAuditData(res.data);
+          }
+        } catch (err) {
+          console.error("Error polling audit data:", err);
+        }
+      }, 5000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [auditData?.domain?.dm_seo_status, selectedDomain]);
+
+  const handleTriggerNewScan = async () => {
+    if (!selectedDomain) return;
+    setIsTriggeringScan(true);
+    try {
+      const res = await triggerDomainScanApi(selectedDomain._id);
+      if (res.success) {
+        // Immediately set status to pending to start polling and UI feedback
+        setAuditData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            domain: {
+              ...prev.domain,
+              dm_seo_status: 'pending'
+            }
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Failed to trigger audit scan:", err);
+    } finally {
+      setIsTriggeringScan(false);
+    }
+  };
 
   // Handle URL input change and suggest pages of the selected domain
   useEffect(() => {
@@ -342,17 +387,58 @@ export default function RunWebsiteAuditPage() {
 
         {/* Results header */}
         {selectedDomain && (
-          <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <h6 className="mb-0">
               Result for {selectedPage ? <span className="text-primary">{selectedPage.url}</span> : <span className="text-primary">{selectedDomain.dm_url}</span>}
               {!selectedPage && <span className="badge bg-light text-muted ms-2 fs-10">Domain Overview</span>}
               {selectedPage && <span className="badge bg-primary-subtle text-primary ms-2 fs-10">Single Page</span>}
             </h6>
-            {(selectedPage?.lastCrawled || auditData?.lastScanDate) && (
-              <p className="fs-13 text-muted mb-0">
-                Last scan: {formatDateTime(selectedPage ? selectedPage.lastCrawled : auditData.lastScanDate)}
+            <div className="d-flex align-items-center gap-3">
+              {(selectedPage?.lastCrawled || auditData?.lastScanDate) && (
+                <p className="fs-13 text-muted mb-0">
+                  Last scan: {formatDateTime(selectedPage ? selectedPage.lastCrawled : auditData.lastScanDate)}
+                </p>
+              )}
+              {!selectedPage && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary d-flex align-items-center gap-2 hover-scale transition-all"
+                  onClick={handleTriggerNewScan}
+                  disabled={isTriggeringScan || auditData?.domain?.dm_seo_status === 'pending' || auditData?.domain?.dm_seo_status === 'scanning'}
+                  style={{ borderRadius: "6px", fontWeight: "500" }}
+                >
+                  {isTriggeringScan || auditData?.domain?.dm_seo_status === 'pending' || auditData?.domain?.dm_seo_status === 'scanning' ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>{auditData?.domain?.dm_seo_status === 'scanning' ? 'Scanning...' : 'Pending...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="isax isax-refresh fs-14" />
+                      <span>New Audit Scan</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Active Scan Indicator Banner */}
+        {selectedDomain && (auditData?.domain?.dm_seo_status === 'pending' || auditData?.domain?.dm_seo_status === 'scanning') && (
+          <div 
+            className="alert border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-3 p-3 text-primary bg-primary-subtle" 
+            style={{ 
+              borderLeft: "4px solid #0d6efd"
+            }}
+          >
+            <span className="spinner-border text-primary flex-shrink-0" role="status" style={{ width: "1.5rem", height: "1.5rem" }} />
+            <div className="flex-grow-1">
+              <h6 className="alert-heading fw-bold mb-1 fs-14">Crawler Audit In Progress</h6>
+              <p className="mb-0 fs-12 text-primary-emphasis">
+                Our crawler is currently auditing <strong>{selectedDomain.dm_url}</strong> in the background (Status: <span className="text-uppercase fw-semibold">{auditData.domain.dm_seo_status}</span>). The audit snapshot will refresh automatically once completed!
               </p>
-            )}
+            </div>
           </div>
         )}
 

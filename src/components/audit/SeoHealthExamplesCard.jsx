@@ -35,6 +35,14 @@ const SeoHealthExamplesCard = ({
   const [localPage, setLocalPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(pageSize);
   const [sortDesc, setSortDesc] = useState(true);
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const toggleRow = (index) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   const allRows = useMemo(() => {
     if (Array.isArray(rowsProp)) return rowsProp;
@@ -167,19 +175,97 @@ const SeoHealthExamplesCard = ({
                 <tr>
                     <td colSpan="3" className="text-center py-5 text-muted fs-13">No pages found matching this issue.</td>
                 </tr>
-              ) : pageRows.map((row, i) => (
-                <tr key={i}>
-                  <td className="py-3">
-                    <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none text-break fs-13">
-                      {row.url}
-                    </a>
-                  </td>
-                  <td className="py-3 text-center">
-                      <span className="badge bg-danger-subtle text-danger rounded-pill px-2">{row.targetedIssueCount || 0}</span>
-                  </td>
-                  <td className="text-end text-muted fs-13 py-3">{row.lastCrawled ? new Date(row.lastCrawled).toLocaleDateString() : 'N/A'}</td>
-                </tr>
-              ))}
+              ) : pageRows.map((row, i) => {
+                const hasDetails = (row.brokenLinks && row.brokenLinks.length > 0) || (row.misspellings && row.misspellings.length > 0);
+                const isExpanded = !!expandedRows[i];
+                return (
+                  <React.Fragment key={i}>
+                    <tr>
+                      <td className="py-3">
+                        <div className="d-flex align-items-center gap-2">
+                          {hasDetails && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-icon btn-light p-0 border-0 d-flex align-items-center justify-content-center"
+                              style={{ width: 24, height: 24, borderRadius: 4 }}
+                              onClick={() => toggleRow(i)}
+                            >
+                              <i className={`isax ${isExpanded ? 'isax-arrow-down-1' : 'isax-arrow-right-3'} fs-12`} />
+                            </button>
+                          )}
+                          <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none text-break fs-13 fw-semibold">
+                            {row.url}
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3 text-center">
+                          <span className="badge bg-danger-subtle text-danger rounded-pill px-2">{row.targetedIssueCount || 0}</span>
+                      </td>
+                      <td className="text-end text-muted fs-13 py-3">{row.lastCrawled ? new Date(row.lastCrawled).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                    
+                    {hasDetails && isExpanded && (
+                      <tr>
+                        <td colSpan="3" className="bg-light-subtle p-3 border-bottom">
+                          <div className="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                            <h6 className="fs-12 text-muted fw-bold mb-3 text-uppercase ls-1" style={{ letterSpacing: '0.05em' }}>
+                              {(row.brokenLinks && row.brokenLinks.length > 0) ? "Broken Links Found on Page" : "Spelling Mistakes Found on Page"}
+                            </h6>
+                            <div className="table-responsive">
+                              <table className="table table-sm table-hover mb-0 fs-12">
+                                <thead className="bg-light">
+                                  <tr>
+                                    {(row.brokenLinks && row.brokenLinks.length > 0) ? (
+                                      <>
+                                        <th className="fw-semibold py-2">Broken Link URL</th>
+                                        <th className="fw-semibold py-2">Anchor / Link Text</th>
+                                        <th className="fw-semibold py-2 text-center" style={{ width: 100 }}>Status</th>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <th className="fw-semibold py-2">Misspelled Word</th>
+                                        <th className="fw-semibold py-2">Suggestions</th>
+                                      </>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(row.brokenLinks && row.brokenLinks.length > 0) ? (
+                                    row.brokenLinks.map((link, idx) => (
+                                      <tr key={idx}>
+                                        <td className="py-2">
+                                          <a href={link.url || link.href} target="_blank" rel="noopener noreferrer" className="text-danger text-decoration-none text-break">
+                                            {link.url || link.href}
+                                          </a>
+                                        </td>
+                                        <td className="py-2 text-muted italic">{link.anchorText || link.text || '(No text)'}</td>
+                                        <td className="py-2 text-center">
+                                          <span className="badge bg-danger-subtle text-danger">
+                                            {link.status || link.statusCode || 404}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  ) : (
+                                    row.misspellings.map((mistake, idx) => (
+                                      <tr key={idx}>
+                                        <td className="py-2 fw-semibold text-danger">{mistake.word}</td>
+                                        <td className="py-2 text-muted">
+                                          {Array.isArray(mistake.suggestions) ? mistake.suggestions.join(", ") : mistake.suggestions || 'None'}
+                                        </td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>

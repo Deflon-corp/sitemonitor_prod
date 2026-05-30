@@ -7,6 +7,15 @@ import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/Page
 import { getDomainByIdApi, getDomainSeoCheckpointsApi } from "../../api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
+const getFriendlyIssueMessage = (msg) => {
+  if (!msg) return "";
+  const lower = msg.toLowerCase();
+  if (lower.includes("incomplete t&c") || lower.includes("incomplete terms") || (lower.includes("t&c") && lower.includes("missing"))) {
+    return "Terms & Conditions is missing key legal clauses";
+  }
+  return msg;
+};
+
 const TEAL = "#14b8a6";
 
 const ComplianceRing = ({ percent, status }) => {
@@ -41,7 +50,9 @@ const ComplianceRing = ({ percent, status }) => {
 };
 
 function parsePageCount(pagesLabel) {
-  const m = pagesLabel.match(/^(\d+)\s*(?:PAGE|PAGES)$/i);
+  if (!pagesLabel) return 0;
+  if (typeof pagesLabel === "number") return pagesLabel;
+  const m = String(pagesLabel).match(/(\d+)/);
   return m ? parseInt(m[1], 10) : 0;
 }
 
@@ -64,9 +75,8 @@ const CheckpointSection = ({
           <table className="table table-borderless align-middle mb-0">
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25">
-                <th className="py-2 ps-0 text-body fs-13 fw-semibold">SEO Check</th>
-                <th className="py-2 text-body fs-13 fw-semibold">Compliance Rate</th>
-                <th className="py-2 pe-0 text-body fs-13 fw-semibold">Affected Pages</th>
+                <th className="py-2 ps-0 text-body fs-13 fw-semibold">Audit Checkpoint</th>
+                <th className="py-2 pe-0 text-body fs-13 fw-semibold">Affected Pages List</th>
               </tr>
             </thead>
             <tbody>
@@ -81,43 +91,51 @@ const CheckpointSection = ({
                           <i className="isax isax-danger text-danger fs-18" aria-hidden="true" />
                         )}
                       </span>
-                      <span className="fs-13 text-body">{row.issue}</span>
+                      <span 
+                        className="fs-13 text-body hover-text-primary" 
+                        style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}
+                        onClick={() => onPagesClick?.(row)}
+                        title="Click to view affected pages"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onPagesClick?.(row); } }}
+                      >
+                        {getFriendlyIssueMessage(row.issue)}
+                      </span>
                       {row.showInfoIcon && (
                         <span className="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style={{ width: 18, height: 18 }}>
                           <i className="isax isax-information text-primary" style={{ fontSize: 10 }} aria-hidden="true" />
                         </span>
                       )}
-                      <button type="button" className="btn btn-link p-0 fs-13 text-primary text-decoration-none shadow-none">Ignore</button>
-                    </div>
-                  </td>
-                  <td className="py-3">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="fs-13 text-body fw-medium">{row.compliancePercent}% COMPLIANCE</span>
-                      <ComplianceRing percent={row.compliancePercent} status={row.status} />
                     </div>
                   </td>
                   <td className="py-3 pe-0">
-                    {row.pagesHref && onPagesClick ? (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 border-0 fs-13 text-primary text-decoration-none fw-medium"
-                        onClick={() => onPagesClick(row)}
-                      >
-                        {row.pagesLabel}
-                      </button>
-                    ) : row.pagesHref ? (
-                      <Link to={row.pagesHref} className="fs-13 text-primary text-decoration-none fw-medium">
-                        {row.pagesLabel}
-                      </Link>
-                    ) : (
-                      <span className="fs-13 text-muted">{row.pagesLabel}</span>
-                    )}
+                    {(() => {
+                      const count = parsePageCount(row.pagesLabel);
+                      const displayLabel = count === 0 ? "0 Pages Affected (Passed)" : `${count} Page${count !== 1 ? 's' : ''} Affected`;
+                      
+                      return row.pagesHref && onPagesClick ? (
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 fs-13 text-primary text-decoration-none fw-medium"
+                          onClick={() => onPagesClick(row)}
+                        >
+                          {displayLabel}
+                        </button>
+                      ) : row.pagesHref ? (
+                        <Link to={row.pagesHref} className="fs-13 text-primary text-decoration-none fw-medium">
+                          {displayLabel}
+                        </Link>
+                      ) : (
+                        <span className="fs-13 text-muted">{displayLabel}</span>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
+                  <td colSpan="2" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
                 </tr>
               )}
             </tbody>
@@ -202,9 +220,9 @@ const SeoCheckpointsView = () => {
   }, []);
 
   const allRows = [
-    ...checkpoints.high.map((r) => ({ ...r, priority: "High" })),
-    ...checkpoints.medium.map((r) => ({ ...r, priority: "Medium" })),
-    ...checkpoints.low.map((r) => ({ ...r, priority: "Low" }))
+    ...checkpoints.high.map((r) => ({ ...r, priority: "High", issue: getFriendlyIssueMessage(r.issue) })),
+    ...checkpoints.medium.map((r) => ({ ...r, priority: "Medium", issue: getFriendlyIssueMessage(r.issue) })),
+    ...checkpoints.low.map((r) => ({ ...r, priority: "Low", issue: getFriendlyIssueMessage(r.issue) }))
   ];
 
   const exportCSV = useCallback(() => {
@@ -293,7 +311,7 @@ const SeoCheckpointsView = () => {
       </div>
 
       <CheckpointSection
-        title="Critical Issues"
+        title="High Impact Issues (Must Fix)"
         iconClass="isax-chart-2 text-danger"
         description="Fix these immediately to ensure your site can be properly indexed and ranked by search engines."
         rows={checkpoints.high}
@@ -301,7 +319,7 @@ const SeoCheckpointsView = () => {
       />
 
       <CheckpointSection
-        title="Recommended Improvements"
+        title="Medium Impact Issues (Recommended)"
         iconClass="isax-chart-2 text-warning"
         description="Addressing these issues will help improve your overall search visibility and user experience."
         rows={checkpoints.medium}
@@ -309,7 +327,7 @@ const SeoCheckpointsView = () => {
       />
 
       <CheckpointSection
-        title="Minor Optimizations"
+        title="Low Impact Issues (Good to Have)"
         iconClass="isax-chart-2 text-primary"
         description="These smaller adjustments will further polish your site's SEO performance."
         rows={checkpoints.low}

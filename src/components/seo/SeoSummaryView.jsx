@@ -9,6 +9,15 @@ import AffectedPagesChart from "../audit/AffectedPagesChart";
 import SeoCheckpointPagesDrawer from "./SeoCheckpointPagesDrawer";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
 
+const getFriendlyIssueMessage = (msg) => {
+  if (!msg) return "";
+  const lower = msg.toLowerCase();
+  if (lower.includes("incomplete t&c") || lower.includes("incomplete terms") || (lower.includes("t&c") && lower.includes("missing"))) {
+    return "Terms & Conditions is missing key legal clauses";
+  }
+  return msg;
+};
+
 const TEAL = "#14b8a6";
 
 const SmallDonut = ({ percent, label, pages, issues, color }) => {
@@ -158,7 +167,7 @@ const SeoSummaryView = () => {
     const lines = [
       "Section,Label,Count/Value",
       "Priority Improvements,,",
-      ...(summary.topIssues || []).map((o) => `Opportunity,"${o.message.replace(/"/g, '""')}",${o.count}`),
+      ...(summary.topIssues || []).map((o) => `Opportunity,"${getFriendlyIssueMessage(o.message).replace(/"/g, '""')}",${o.count}`),
       "",
       "Affected pages by priority,,,",
       "Priority,Pages,Issues",
@@ -171,7 +180,7 @@ const SeoSummaryView = () => {
       `SEO Compliance %,${summary.finalSeoScore || 0}`,
       "Industry average %,94",
       `Opportunities to improve,${totalIssues}`,
-      `Pages with SEO opportunities,${summary.totalPages || 0}`,
+      `Total Audited Pages,${summary.totalPages || 0}`,
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${REPORT_BASE}.csv`);
@@ -181,11 +190,11 @@ const SeoSummaryView = () => {
     if (!summary) return;
     const XLSX = await import("xlsx");
     const oppSheet = XLSX.utils.json_to_sheet(
-      (summary.topIssues || []).map((o) => ({ Improvement: o.message, Count: o.count }))
+      (summary.topIssues || []).map((o) => ({ Improvement: getFriendlyIssueMessage(o.message), Count: o.count }))
     );
     const summarySheet = XLSX.utils.json_to_sheet([
       { Metric: "SEO Compliance %", Value: summary.finalSeoScore || 0 },
-      { Metric: "Pages with SEO opportunities", Value: summary.totalPages || 0 },
+      { Metric: "Total Audited Pages", Value: summary.totalPages || 0 },
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, oppSheet, "Opportunities");
@@ -204,7 +213,7 @@ const SeoSummaryView = () => {
     autoTable(doc, {
       startY: 22,
       head: [["Improvement", "Occurrences"]],
-      body: (summary.topIssues || []).map((o) => [o.message, String(o.count)]),
+      body: (summary.topIssues || []).map((o) => [getFriendlyIssueMessage(o.message), String(o.count)]),
       styles: { fontSize: 9 },
     });
     doc.save(`${REPORT_BASE}.pdf`);
@@ -313,7 +322,7 @@ const SeoSummaryView = () => {
                     />
                     <div className="flex-grow-1 min-w-0">
                       <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
-                        <span className="fs-13 text-body text-truncate">{item.message}</span>
+                        <span className="fs-13 text-body text-truncate">{getFriendlyIssueMessage(item.message)}</span>
                         <span className="fs-13 text-body flex-shrink-0 d-inline-flex align-items-center gap-1">
                           {item.count}
                           <i className="isax isax-arrow-right-3 fs-12 text-muted" aria-hidden="true" />
@@ -335,7 +344,7 @@ const SeoSummaryView = () => {
 
           <div className="card border-0 shadow-sm">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Issue Breakdown by Priority</h6>
+              <h6 className="fw-semibold text-body mb-1">SEO Issues by Severity</h6>
               <p className="text-muted fs-13 mb-3">Visual breakdown of issues based on their impact on your site's health.</p>
               <AffectedPagesChart 
                 chartId="seo-priority-distribution"
@@ -357,15 +366,15 @@ const SeoSummaryView = () => {
               />
               <div className="d-flex justify-content-between mt-2 px-2">
                 <div className="text-center">
-                  <span className="fs-12 text-muted d-block">High</span>
+                  <span className="fs-12 text-muted d-block">High Severity</span>
                   <span className="fw-bold text-danger">{summary.issueBreakdown?.high || 0} issues</span>
                 </div>
                 <div className="text-center">
-                  <span className="fs-12 text-muted d-block">Medium</span>
+                  <span className="fs-12 text-muted d-block">Medium Severity</span>
                   <span className="fw-bold text-warning">{summary.issueBreakdown?.medium || 0} issues</span>
                 </div>
                 <div className="text-center">
-                  <span className="fs-12 text-muted d-block">Low</span>
+                  <span className="fs-12 text-muted d-block">Low Severity</span>
                   <span className="fw-bold text-primary">{summary.issueBreakdown?.low || 0} issues</span>
                 </div>
               </div>
@@ -381,9 +390,9 @@ const SeoSummaryView = () => {
               <p className="text-muted fs-13 mb-4">Track your website's optimization progress across all audited pages.</p>
 
               <div className="d-flex flex-wrap align-items-start justify-content-around gap-4 mb-4">
-                <ComplianceDonut percent={summary.finalSeoScore || 0} label="SEO Health" size={140} />
+                <ComplianceDonut percent={summary.finalSeoScore || 0} label="SEO Health Score" size={140} />
                 <div className="d-flex align-items-center gap-1">
-                  <ComplianceDonut percent={94} label="Industry average" size={100} />
+                  <ComplianceDonut percent={94} label="Industry Average (Benchmark)" size={100} />
                   <span className="text-muted ms-1" title="Info">
                     <i className="isax isax-information fs-16" aria-hidden="true" />
                   </span>
@@ -392,7 +401,7 @@ const SeoSummaryView = () => {
 
               <div className="mb-4">
                 <div className="d-flex align-items-center gap-2 mb-2">
-                  <span className="text-muted fs-13">Total issues identified</span>
+                  <span className="text-muted fs-13">Total Issues Identified</span>
                   <span className="text-muted" title="Info">
                     <i className="isax isax-information fs-14" aria-hidden="true" />
                   </span>
@@ -404,7 +413,7 @@ const SeoSummaryView = () => {
 
               <div className="mb-4">
                 <p className="fs-13 text-body mb-0">
-                  <span className="text-muted">Affected pages:</span>{" "}
+                  <span className="text-muted">Total Audited Pages:</span>{" "}
                   <span className="fw-medium">{summary.totalPages || 0}</span>
                 </p>
               </div>
