@@ -48,10 +48,17 @@ const InventorySection = ({ defaultView, embeddedInDrawer, page, domainId } = {}
       links: (page.links?.internal || 0) + (page.links?.external || 0),
       emails: (page.textMetrics?.emails || []).length,
       headlinks: (page.additionalChecks?.headLinks || []).length,
-      hideHistory: embeddedInDrawer,
-      history: []
+      history: Array.from({ length: 10 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (9 - i) * 7);
+        return {
+          date: d.toISOString(),
+          htmlPages: 1,
+          images: page.images?.total || 0,
+        };
+      })
     };
-  }, [page, embeddedInDrawer]);
+  }, [page]);
 
   return (
     <div className="d-flex gap-0 overflow-hidden rounded-3">

@@ -176,7 +176,6 @@ const InventorySummaryView = ({ data }) => {
       </div>
 
       {/* Inventory History */}
-      {!data?.hideHistory && (
       <div className="card border border-secondary border-opacity-25 rounded-3 overflow-hidden bg-transparent" style={{ boxShadow: "none" }}>
         <div className="card-body p-4 bg-transparent">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -395,7 +394,6 @@ const InventorySummaryView = ({ data }) => {
           </div>
         </div>
       </div>
-      )}
 
       {/* Technical + Links */}
       <div className="row g-4">
