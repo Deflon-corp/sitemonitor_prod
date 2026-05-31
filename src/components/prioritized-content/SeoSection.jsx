@@ -12,12 +12,12 @@ const ComplianceRing = ({ percent, size = 48 }) => {
   const r = (size - 8) / 2;
   const circumference = 2 * Math.PI * r;
   const strokeDash = (safePercent / 100) * circumference;
-  
+
   let color = "#0d6efd";
-  if (safePercent >= 90) color = "#22c55e"; 
-  else if (safePercent >= 70) color = "#0ea5e9"; 
-  else if (safePercent >= 40) color = "#f59e0b"; 
-  else color = "#ef4444"; 
+  if (safePercent >= 90) color = "#22c55e";
+  else if (safePercent >= 70) color = "#0ea5e9";
+  else if (safePercent >= 40) color = "#f59e0b";
+  else color = "#ef4444";
 
   return (
     <svg width={size} height={size} className="flex-shrink-0" aria-hidden="true">
@@ -142,6 +142,7 @@ const SeoSection = ({ issues = [], score = 0 }) => {
         </div>
       </div>
 
+
       <div className="row g-3">
         <div className="col-lg-6">
           <div className="card border shadow-sm h-100">
@@ -156,8 +157,8 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                   </thead>
                   <tbody>
                     {filteredIssues.map((row) => (
-                      <tr 
-                        key={row.id} 
+                      <tr
+                        key={row.id}
                         className={selectedIssueId === row.id ? "table-primary" : ""}
                         style={{ cursor: 'pointer' }}
                         onClick={() => setManualSelectedId(row.id)}
@@ -194,13 +195,13 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                     <i className="isax isax-info-circle text-primary" /> Issue Details
                   </h6>
                   <nav className="nav nav-pills gap-2 mb-3 bg-light p-1 rounded">
-                    <button 
+                    <button
                       className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'information' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
                       onClick={() => setDetailTab('information')}
                     >
                       Info
                     </button>
-                    <button 
+                    <button
                       className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'quick-help' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
                       onClick={() => setDetailTab('quick-help')}
                     >
