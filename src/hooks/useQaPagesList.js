@@ -23,7 +23,13 @@ export function useQaPagesList({
   const [error, setError] = useState(null);
 
   const fetchData = useCallback(async () => {
-    if (!domainId || !enabled) {
+    if (!domainId) {
+      setRows([]);
+      setLoading(false);
+      setError("Select a domain to view quality assurance data.");
+      return;
+    }
+    if (!enabled) {
       setLoading(false);
       return;
     }

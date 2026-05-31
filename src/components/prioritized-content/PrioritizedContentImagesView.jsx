@@ -11,6 +11,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const PrioritizedContentImagesView = ({
   title: titleProp = "Images",
   items = [],
+  variant,
   defaultInventorySubView = "images",
 }) => {
   const [search, setSearch] = useState("");
@@ -73,6 +74,140 @@ const PrioritizedContentImagesView = ({
     });
     doc.save(`${reportBase}.pdf`);
   }, [filteredRows, reportBase]);
+
+  if (variant === "details") {
+    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.url || "").toLowerCase().includes(search.trim().toLowerCase()));
+    const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
+    const start = (currentPage - 1) * rowsPerPage;
+    const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);
+    
+    return (
+      <>
+        <div className="card border-0 shadow-sm mb-3">
+          <div className="card-body">
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <div className="d-flex align-items-center gap-2">
+                <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
+                  <i className="isax isax-image fs-22" aria-hidden="true" />
+                </span>
+                <div>
+                  <h6 className="mb-0 fw-semibold">{titleProp}</h6>
+                  <p className="text-muted fs-13 mb-0">{detailsFiltered.length} found</p>
+                </div>
+              </div>
+              <div className="flex-grow-1 flex-md-grow-0" style={{ minWidth: 200, maxWidth: 320 }}>
+                <input
+                  type="search"
+                  className="form-control form-control-sm"
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  aria-label={`Search ${titleProp.toLowerCase()}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm overflow-hidden">
+          <div className="card-body p-0">
+            <div className="table-responsive">
+              <table className="table table-hover table-striped table-borderless align-middle mb-0">
+                <thead>
+                  <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Link</th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Type</th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Response code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailsPaginated.map((row) => (
+                    <tr key={row.id}>
+                      <td className="px-4 py-2">
+                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none text-break">
+                          {row.url}
+                        </a>
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className="badge bg-secondary bg-opacity-25 text-body">Image</span>
+                      </td>
+                      <td className="px-4 py-2 text-body">{row.statusCode || 200}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top">
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-muted small">Rows per page</span>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "auto" }}
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  {ROWS_PER_PAGE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-muted small">
+                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, detailsFiltered.length)} of {detailsFiltered.length}
+                </span>
+              </div>
+              <nav aria-label={`${titleProp} pagination`}>
+                <ul className="pagination pagination-sm mb-0 gap-1">
+                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage <= 1}
+                      aria-label="Previous"
+                    >
+                      Previous
+                    </button>
+                  </li>
+                  {Array.from({ length: Math.min(detailsTotalPages, 10) }, (_, i) => {
+                    const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
+                    if (p > detailsTotalPages) return null;
+                    return (
+                      <li key={p} className="page-item">
+                        <button
+                          type="button"
+                          className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                          onClick={() => setCurrentPage(p)}
+                        >
+                          {p}
+                        </button>
+                      </li>
+                    );
+                  })}
+                  <li className={`page-item ${currentPage >= detailsTotalPages ? "disabled" : ""}`}>
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() => setCurrentPage((p) => Math.min(detailsTotalPages, p + 1))}
+                      disabled={currentPage >= detailsTotalPages}
+                      aria-label="Next"
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -141,14 +276,14 @@ const PrioritizedContentImagesView = ({
                 {paginatedRows.map((row) => (
                   <tr key={row.id}>
                     <td className="py-3 ps-4">
-                      <Link
-                        to={row.url}
+                      <a
+                        href={row.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary text-decoration-none text-break"
                       >
                         {row.url}
-                      </Link>
+                      </a>
                     </td>
                     <td className="py-3 pe-4 text-end">
                       <button

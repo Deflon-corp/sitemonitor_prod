@@ -5,7 +5,7 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 
-export default function InventoryDetailsView({ domainId, currentView }) {
+export default function InventoryDetailsView({ domainId, currentView, pageUrl, variant }) {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -39,6 +39,7 @@ export default function InventoryDetailsView({ domainId, currentView }) {
         search: debouncedSearch,
         sortBy,
         sortOrder,
+        pageUrl,
       });
 
       if (res && res.success && res.data) {
@@ -50,7 +51,7 @@ export default function InventoryDetailsView({ domainId, currentView }) {
     } finally {
       setLoading(false);
     }
-  }, [domainId, currentView, page, limit, debouncedSearch, sortBy, sortOrder]);
+  }, [domainId, currentView, page, limit, debouncedSearch, sortBy, sortOrder, pageUrl]);
 
   useEffect(() => {
     fetchData();
@@ -64,7 +65,7 @@ export default function InventoryDetailsView({ domainId, currentView }) {
     setSortBy("");
     setSortOrder("asc");
     setExpandedId(null);
-  }, [currentView]);
+  }, [currentView, pageUrl]);
 
   const handleSort = (field) => {
     setPage(1);
@@ -374,13 +375,12 @@ export default function InventoryDetailsView({ domainId, currentView }) {
 
   const SortIcon = ({ column }) => (
     <i
-      className={`isax ms-1 fs-12 ${
-        sortBy === column
+      className={`isax ms-1 fs-12 ${sortBy === column
           ? sortOrder === "asc"
             ? "isax-arrow-up-1"
             : "isax-arrow-down-1"
           : "isax-arrow-down-1"
-      }`}
+        }`}
       style={{ opacity: sortBy === column ? 1 : 0.4 }}
       aria-hidden="true"
     />
@@ -390,24 +390,26 @@ export default function InventoryDetailsView({ domainId, currentView }) {
 
   return (
     <>
-      {/* Title Header Card */}
-      <div className="card border-0 shadow-sm mb-3">
-        <div className="card-body">
-          <div className="d-flex align-items-center gap-3">
-            <span
-              className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${viewConfig.badgeColor}`}
-            >
-              <i className={`isax ${viewConfig.icon} fs-22`} aria-hidden="true" />
-            </span>
-            <div>
-              <h6 className="mb-0 fw-semibold text-body">{viewConfig.title}</h6>
-              <p className="text-muted fs-13 mb-0">
-                {loading ? "Loading..." : `${total} items scanned`}
-              </p>
+      {/* Title Header Card - Hide if in compact variant mode to save vertical space */}
+      {variant !== "drawer" && (
+        <div className="card border-0 shadow-sm mb-3">
+          <div className="card-body">
+            <div className="d-flex align-items-center gap-3">
+              <span
+                className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${viewConfig.badgeColor}`}
+              >
+                <i className={`isax ${viewConfig.icon} fs-22`} aria-hidden="true" />
+              </span>
+              <div>
+                <h6 className="mb-0 fw-semibold text-body">{viewConfig.title}</h6>
+                <p className="text-muted fs-13 mb-0">
+                  {loading ? "Loading..." : `${total} items scanned`}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Control Panel: Search & Exports */}
       <div className="card border-0 shadow-sm mb-4">
@@ -516,13 +518,12 @@ export default function InventoryDetailsView({ domainId, currentView }) {
                               </td>
                               <td className="py-3">
                                 <span
-                                  className={`badge rounded-pill ${
-                                    row.status_code < 300
+                                  className={`badge rounded-pill ${row.status_code < 300
                                       ? "bg-success bg-opacity-10 text-success"
                                       : row.status_code < 400
-                                      ? "bg-warning bg-opacity-10 text-warning"
-                                      : "bg-danger bg-opacity-10 text-danger"
-                                  }`}
+                                        ? "bg-warning bg-opacity-10 text-warning"
+                                        : "bg-danger bg-opacity-10 text-danger"
+                                    }`}
                                 >
                                   {row.status_code}
                                 </span>
@@ -733,9 +734,8 @@ export default function InventoryDetailsView({ domainId, currentView }) {
 
                           <td className="py-3 pe-4 text-end">
                             <i
-                              className={`isax fs-18 text-primary ${
-                                isExpanded ? "isax-arrow-up-1" : "isax-arrow-down-1"
-                              }`}
+                              className={`isax fs-18 text-primary ${isExpanded ? "isax-arrow-up-1" : "isax-arrow-down-1"
+                                }`}
                             />
                           </td>
                         </tr>
@@ -749,7 +749,7 @@ export default function InventoryDetailsView({ domainId, currentView }) {
                                 style={{ fontSize: "13px" }}
                               >
                                 <h6 className="fw-semibold text-primary mb-3">Asset Granular Specification</h6>
-                                
+
                                 <div className="row g-3">
                                   {currentView === "html-pages" && (
                                     <>

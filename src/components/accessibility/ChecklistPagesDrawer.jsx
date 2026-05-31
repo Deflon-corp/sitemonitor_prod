@@ -8,16 +8,16 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_PAGE_TEMPLATES = [
-  { url: "https://www.bajajfinserv.in/search", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Low", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/lenovo-thinkpad-e14-intel-core-i5-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { url: "https://www.bajajfinserv.in/bmall/acer-swift-3-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-14-inc", priority: "Low", views: 0 },
+  { url: "https://example.com/search", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
+  { url: "https://example.com/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Low", views: 0 },
+  { url: "https://example.com/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
+  { url: "https://example.com/bmall/lenovo-thinkpad-e14-intel-core-i5-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
+  { url: "https://example.com/bmall/acer-swift-3-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-14-inc", priority: "Low", views: 0 },
 ];
 
 const generateSamplePages = (count) => {

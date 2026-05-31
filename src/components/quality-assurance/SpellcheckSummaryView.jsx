@@ -89,17 +89,25 @@ export default function SpellcheckSummaryView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!domainId) return;
+    if (!domainId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     getQaSpellcheckSummaryApi(domainId)
       .then((res) => {
-        if (res.success) setData(res.data);
+        if (res.success) setData(res.data ?? null);
+        else setData(null);
       })
+      .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, [domainId, refreshKey]);
 
   const UNIQUE_MISSPELLINGS = data?.uniqueMisspellings ?? 0;
-  const POTENTIAL_MISSPELLINGS = data?.potentialMisspellings ?? 0;
+  const POTENTIAL_MISSPELLINGS =
+    data?.uniquePotentialMisspellings ?? data?.potentialMisspellings ?? 0;
+  const PAGES_WITH_POTENTIAL = data?.pagesWithPotentialMisspellings ?? 0;
   const LANGUAGES_FOUND = 1;
   const MOST_COMMON_LANGUAGE = "English";
   const MOST_COMMON_MISSPELLINGS = (data?.mostCommonMisspellings || []).map((r) => ({
@@ -179,6 +187,18 @@ export default function SpellcheckSummaryView() {
     doc.save(`${baseName}.pdf`);
   }, []);
 
+  if (loading) {
+    return <p className="text-muted py-4">Loading spellcheck summary…</p>;
+  }
+
+  if (!data) {
+    return (
+      <div className="card border border-secondary border-opacity-25 rounded-3 p-5 text-center text-muted">
+        <p className="mb-0 fs-13">No spellcheck data yet. Run a QA scan to see summary metrics.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="spellcheck-summary-view">
       {/* Header */}
@@ -205,8 +225,17 @@ export default function SpellcheckSummaryView() {
           <div className="row g-4">
             <div className="col-lg-5">
               <div className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-3">
-                <SpellcheckMetricRow label="Unique misspellings found" value={UNIQUE_MISSPELLINGS} icon="isax-edit-2" />
-                <SpellcheckMetricRow label="Potential misspellings found" value={POTENTIAL_MISSPELLINGS} icon="isax-text" />
+                <SpellcheckMetricRow label="Unique misspellings" value={UNIQUE_MISSPELLINGS} icon="isax-edit-2" />
+                <SpellcheckMetricRow
+                  label="Possible misspellings (unique words)"
+                  value={POTENTIAL_MISSPELLINGS}
+                  icon="isax-text"
+                />
+                <SpellcheckMetricRow
+                  label="Pages with possible misspellings"
+                  value={PAGES_WITH_POTENTIAL}
+                  icon="isax-document-text"
+                />
                 <SpellcheckMetricRow label="Languages found" value={LANGUAGES_FOUND} icon="isax-flag" />
                 <div className="d-flex align-items-center justify-content-between py-2 border-bottom-0">
                   <span className="d-inline-flex align-items-center gap-2 text-body fs-13">
@@ -242,6 +271,13 @@ export default function SpellcheckSummaryView() {
                     </tr>
                   </thead>
                   <tbody>
+                    {!loading && MOST_COMMON_MISSPELLINGS.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="text-center py-4 text-muted fs-13">
+                          No misspellings found.
+                        </td>
+                      </tr>
+                    )}
                     {MOST_COMMON_MISSPELLINGS.map((row, i) => (
                       <tr key={i}>
                         <td className="py-2 ps-0">
@@ -297,6 +333,13 @@ export default function SpellcheckSummaryView() {
                     </tr>
                   </thead>
                   <tbody>
+                    {!loading && MOST_COMMON_POTENTIAL.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="text-center py-4 text-muted fs-13">
+                          No possible misspellings found. Run a QA scan to refresh.
+                        </td>
+                      </tr>
+                    )}
                     {MOST_COMMON_POTENTIAL.map((row, i) => (
                       <tr key={i}>
                         <td className="py-2 ps-0">

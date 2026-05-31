@@ -24,7 +24,7 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 function getSamplePagesWithDocument() {
-  const base = "https://www.bajajfinserv.in";
+  const base = "https://www.example.com";
   const paths = [
     "/personal-loans",
     "/home-loans",

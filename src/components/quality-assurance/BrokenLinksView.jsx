@@ -189,18 +189,18 @@ export default function BrokenLinksView() {
                         className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center gap-1"
                         onClick={handleSortUrl}
                       >
-                        Broken link
+                        Broken link URL
                         {sortByUrl != null && (
                           <i className={`isax fs-14 ${sortByUrl === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true"></i>
                         )}
                         {sortByUrl == null && <i className="isax isax-sort fs-14 opacity-50" aria-hidden="true"></i>}
                       </button>
                     </th>
-                    <th className="fw-semibold text-body py-3">Response code</th>
-                    <th className="fw-semibold text-body py-3">Type</th>
+                    <th className="fw-semibold text-body py-3">HTTP status</th>
+                    <th className="fw-semibold text-body py-3">Link type</th>
                     <th className="fw-semibold text-body py-3 text-center">Documents</th>
                     <th className="fw-semibold text-body py-3 text-center">
-                      <span className="d-inline-flex align-items-center">Pages
+                      <span className="d-inline-flex align-items-center">Pages affected
                         <i className="isax isax-arrow-down-1 ms-1 fs-12 opacity-75" aria-hidden="true"></i>
                       </span>
                     </th>

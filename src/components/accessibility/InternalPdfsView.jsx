@@ -10,8 +10,8 @@ const TABS = [
 ];
 
 const SAMPLE_PDFS = [
-  { id: "1", title: "Lorem ipsum", url: "https://www.bajajfinserv.in/content/dam/lorem-ipsum.pdf", fileSize: "1.67 MB", pages: 27, words: 1281, created: "May 24, 2018" },
-  { id: "2", title: "Ipsum dolor", url: "https://www.bajajfinserv.in/content/dam/ipsum-dolor.pdf", fileSize: "110.46 KB", pages: 4, words: 1040, created: "Jun 24, 2016" },
+  { id: "1", title: "Lorem ipsum", url: "https://example.com/content/dam/lorem-ipsum.pdf", fileSize: "1.67 MB", pages: 27, words: 1281, created: "May 24, 2018" },
+  { id: "2", title: "Ipsum dolor", url: "https://example.com/content/dam/ipsum-dolor.pdf", fileSize: "110.46 KB", pages: 4, words: 1040, created: "Jun 24, 2016" },
 ];
 
 const Y_MAX = 20;

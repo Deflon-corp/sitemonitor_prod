@@ -1,67 +1,61 @@
-function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import React, { useEffect, useState, useMemo, useCallback  } from "react";
+function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; } import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import inventoryApi from "@/api/inventoryApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-function getSamplePages() {
-  const base = "https://www.bajajfinserv.in/bmall";
-  const paths = [
-    "/nipha-turbo-thresher-paddy-4-fan-plus-1-red/p/29185",
-    "/godrej-343-l-3-star-frost-free-double-door-refrigerator/p/29185",
-    "/samsung-253-l-3-star-frost-free-double-door-refrigerator/p/29184",
-    "/lg-260-l-3-star-frost-free-double-door-refrigerator/p/29183",
-    "/whirlpool-265-l-3-star-frost-free-double-door-refrigerator/p/29182",
-    "/haier-324-l-frost-free-double-door-refrigerator/p/29181",
-    "/ifb-279-l-3-star-frost-free-double-door-refrigerator/p/29180",
-    "/televisions/bpl-tv",
-    "/laptops/16gb-ram-laptops",
-    "/search",
-  ];
-  const types = ["text/html", "text/html", "text/html", "text/html", "text/html", "text/html", "text/html", "text/html", "text/html", "text/html"];
-  const codes = [200, 200, 200, 304, 200, 200, 200, 200, 200, 200];
-  return paths.map((path, i) => ({
-    id: `page-${i + 1}`,
-    title: "(No title found)",
-    url: path.startsWith("http") ? path : `${base}${path}`,
-    type: _nullishCoalesce(types[i], () => ( "text/html")),
-    responseCode: _nullishCoalesce(codes[i], () => ( 200)),
-    views: Math.floor(Math.random() * 500),
-  }));
-}
-
-const SAMPLE_PAGES = getSamplePages();
-
 export default function PagesWithImageDrawer({ open, onClose, imageUrl, onOpenPageDetails }) {
+  const [pages, setPages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortViewsAsc, setSortViewsAsc] = useState(true);
 
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  useEffect(() => {
+    if (!open || !domainId || !imageUrl) return;
+    const fetchPages = async () => {
+      setIsLoading(true);
+      try {
+        const res = await inventoryApi.getInventoryDetails(domainId, {
+          type: "images",
+          search: imageUrl,
+          limit: 100,
+        });
+        if (res.success && res.data?.items) {
+          const mapped = res.data.items.map((item, idx) => ({
+            id: item._id || idx,
+            title: item.alt_text || "(No alt text found)",
+            url: item.page_url,
+            type: item.image_type || "image/png",
+            responseCode: item.status_code || 200,
+            views: 0,
+          }));
+          setPages(mapped);
+        } else {
+          setPages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching pages with image:", err);
+        setPages([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPages();
+  }, [open, domainId, imageUrl]);
+
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_PAGES;
+    if (!search.trim()) return pages;
     const q = search.trim().toLowerCase();
-    return SAMPLE_PAGES.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return pages.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, pages]);
 
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((a, b) => (sortViewsAsc ? a.views - b.views : b.views - a.views));
@@ -131,59 +125,64 @@ export default function PagesWithImageDrawer({ open, onClose, imageUrl, onOpenPa
   const content = (
     React.createElement(React.Fragment, null
       , React.createElement('div', {
-        className: "bg-dark bg-opacity-50 position-fixed top-0 start-0 end-0 bottom-0"      ,
+        className: "bg-dark bg-opacity-50 position-fixed top-0 start-0 end-0 bottom-0",
         style: { zIndex: 1050 },
         'aria-hidden': true,
-        onClick: onClose}
+        onClick: onClose
+      }
       )
       , React.createElement('div', {
-        className: "bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column"       ,
+        className: "bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column",
         style: { zIndex: 1055, width: "min(100%, 1200px)", overflow: "visible" },
         role: "dialog",
         'aria-modal': "true",
-        'aria-labelledby': "pages-with-image-drawer-title"}
+        'aria-labelledby': "pages-with-image-drawer-title"
+      }
 
-        , React.createElement('div', { className: "drawer-header-with-dropdown border-bottom border-secondary border-opacity-25 px-4 py-3 flex-shrink-0"      }
-          , React.createElement('div', { className: "d-flex align-items-start justify-content-between gap-3"   }
+        , React.createElement('div', { className: "drawer-header-with-dropdown border-bottom border-secondary border-opacity-25 px-4 py-3 flex-shrink-0" }
+          , React.createElement('div', { className: "d-flex align-items-start justify-content-between gap-3" }
             , React.createElement('div', { className: "min-w-0 flex-grow-1" }
-              , React.createElement('div', { className: "d-flex align-items-center gap-2 mb-1"   }
+              , React.createElement('div', { className: "d-flex align-items-center gap-2 mb-1" }
                 , React.createElement('button', {
                   type: "button",
-                  className: "btn btn-icon btn-sm btn-light border-0"    ,
+                  className: "btn btn-icon btn-sm btn-light border-0",
                   onClick: onClose,
-                  'aria-label': "Close"}
+                  'aria-label': "Close"
+                }
 
-                  , React.createElement('i', { className: "isax isax-close-circle fs-20 text-body"   , 'aria-hidden': true} )
+                  , React.createElement('i', { className: "isax isax-close-circle fs-20 text-body", 'aria-hidden': true })
                 )
-                , React.createElement('h5', { id: "pages-with-image-drawer-title", className: "mb-0 fw-semibold text-body"  }, "Pages with this image"
+                , React.createElement('h5', { id: "pages-with-image-drawer-title", className: "mb-0 fw-semibold text-body" }, "Pages with this image"
 
                 )
               )
-              , React.createElement('p', { className: "text-muted small mb-0 ms-4 text-break"    }, imageUrl)
+              , React.createElement('p', { className: "text-muted small mb-0 ms-4 text-break" }, imageUrl)
             )
-            , React.createElement('div', { className: "d-flex align-items-center gap-2 flex-shrink-0"   }
+            , React.createElement('div', { className: "d-flex align-items-center gap-2 flex-shrink-0" }
               , React.createElement(DownloadReportDropdown, {
                 reportBaseName: reportBase,
                 onExportCSV: exportCSV,
                 onExportExcel: exportExcel,
                 onExportPDF: exportPDF,
                 variant: "icon",
-                dropup: true}
+                dropup: true
+              }
               )
-              , React.createElement('div', { className: "input-group input-group-sm" , style: { width: 200 }}
-                , React.createElement('span', { className: "input-group-text bg-transparent border-end-0"  }
-                  , React.createElement('i', { className: "isax isax-search-normal-1 text-muted"  , 'aria-hidden': true} )
+              , React.createElement('div', { className: "input-group input-group-sm", style: { width: 200 } }
+                , React.createElement('span', { className: "input-group-text bg-transparent border-end-0" }
+                  , React.createElement('i', { className: "isax isax-search-normal-1 text-muted", 'aria-hidden': true })
                 )
                 , React.createElement('input', {
                   type: "search",
-                  className: "form-control border-start-0" ,
+                  className: "form-control border-start-0",
                   placeholder: "Search...",
                   value: search,
                   onChange: (e) => {
                     setSearch(e.target.value);
                     setCurrentPage(1);
                   },
-                  'aria-label': "Search pages" }
+                  'aria-label': "Search pages"
+                }
                 )
               )
             )
@@ -191,97 +190,114 @@ export default function PagesWithImageDrawer({ open, onClose, imageUrl, onOpenPa
         )
 
         , React.createElement('div', { className: "flex-grow-1 overflow-auto" }
-          , React.createElement('div', { className: "table-responsive"}
-            , React.createElement('table', { className: "table table-hover table-striped table-borderless mb-0 align-middle"     }
+          , React.createElement('div', { className: "table-responsive" }
+            , React.createElement('table', { className: "table table-hover table-striped table-borderless mb-0 align-middle" }
               , React.createElement('thead', { className: "sticky-top bg-white" }
-                , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50"    }
-                  , React.createElement('th', { className: "py-3 ps-4 fw-semibold text-body fs-13 text-nowrap"     }, "Title and URL"  )
-                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13 text-nowrap"    }, "Type")
-                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13 text-nowrap"    }, "Response code" )
-                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13"   }
+                , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50" }
+                  , React.createElement('th', { className: "py-3 ps-4 fw-semibold text-body fs-13 text-nowrap" }, "Title and URL")
+                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13 text-nowrap" }, "Type")
+                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13 text-nowrap" }, "Response code")
+                  , React.createElement('th', { className: "py-3 fw-semibold text-body fs-13" }
                     , React.createElement('button', {
                       type: "button",
-                      className: "btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center text-nowrap"        ,
-                      onClick: () => setSortViewsAsc((v) => !v)}
-, "Views"
+                      className: "btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center text-nowrap",
+                      onClick: () => setSortViewsAsc((v) => !v)
+                    }
+                      , "Views"
 
-                      , React.createElement('i', { className: `isax ms-1 fs-12 ${sortViewsAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} )
+                      , React.createElement('i', { className: `isax ms-1 fs-12 ${sortViewsAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true })
                     )
                   )
-                  , React.createElement('th', { className: "py-3 pe-4" , style: { width: 48 }} )
+                  , React.createElement('th', { className: "py-3 pe-4", style: { width: 48 } })
                 )
               )
               , React.createElement('tbody', {}
-                , paginatedRows.map((row) => (
-                  React.createElement('tr', { key: row.id}
-                    , React.createElement('td', { className: "py-3 ps-4" }
-                      , React.createElement('div', { className: "d-flex flex-column" }
-                        , React.createElement('span', { className: "text-muted small" }, row.title)
-                        , React.createElement('a', {
-                          href: row.url,
-                          target: "_blank",
-                          rel: "noopener noreferrer" ,
-                          className: "text-primary text-decoration-none small d-inline-flex align-items-center gap-1 mt-1"      }
+                , isLoading ? (
+                  React.createElement('tr', null,
+                    React.createElement('td', { colSpan: 5, className: "text-center py-5 text-muted" },
+                      React.createElement('div', { className: "spinner-border spinner-border-sm text-primary me-2", role: "status" }),
+                      "Loading pages..."
+                    )
+                  )
+                ) : paginatedRows.length === 0 ? (
+                  React.createElement('tr', null,
+                    React.createElement('td', { colSpan: 5, className: "text-center py-5 text-muted" }, "No pages found embedding this image.")
+                  )
+                ) : (
+                  paginatedRows.map((row) => (
+                    React.createElement('tr', { key: row.id }
+                      , React.createElement('td', { className: "py-3 ps-4" }
+                        , React.createElement('div', { className: "d-flex flex-column" }
+                          , React.createElement('span', { className: "text-muted small" }, row.title)
+                          , React.createElement('a', {
+                            href: row.url,
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                            className: "text-primary text-decoration-none small d-inline-flex align-items-center gap-1 mt-1"
+                          }
 
-                          , row.url
-                          , React.createElement('span', { className: "d-inline-flex", style: { width: 12, height: 12 }, 'aria-hidden': true}
-                            , React.createElement('svg', { width: "12", height: "12", viewBox: "0 0 24 24"   , fill: "none", stroke: "currentColor", strokeWidth: "2", style: { verticalAlign: "middle" }}
-                              , React.createElement('path', { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"               } )
-                              , React.createElement('path', { d: "M15 3h6v6" } )
-                              , React.createElement('path', { d: "M10 14L21 3"  } )
+                            , row.url
+                            , React.createElement('span', { className: "d-inline-flex", style: { width: 12, height: 12 }, 'aria-hidden': true }
+                              , React.createElement('svg', { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", style: { verticalAlign: "middle" } }
+                                , React.createElement('path', { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" })
+                                , React.createElement('path', { d: "M15 3h6v6" })
+                                , React.createElement('path', { d: "M10 14L21 3" })
+                              )
                             )
                           )
                         )
                       )
-                    )
-                    , React.createElement('td', { className: "py-3 text-body text-nowrap"  }, row.type)
-                    , React.createElement('td', { className: "py-3 text-body text-nowrap"  }, row.responseCode)
-                    , React.createElement('td', { className: "py-3 text-body" }, row.views)
-                    , React.createElement('td', { className: "py-3 pe-4 text-end"  }
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-icon btn-sm btn-primary rounded-2"    ,
-                        'aria-label': "Open page details"  ,
-                        title: "Open page details"  ,
-                        onClick: () => _optionalChain([onOpenPageDetails, 'optionalCall', _2 => _2(row)])}
+                      , React.createElement('td', { className: "py-3 text-body text-nowrap" }, row.type)
+                      , React.createElement('td', { className: "py-3 text-body text-nowrap" }, row.responseCode)
+                      , React.createElement('td', { className: "py-3 text-body" }, row.views)
+                      , React.createElement('td', { className: "py-3 pe-4 text-end" }
+                        , React.createElement('button', {
+                          type: "button",
+                          className: "btn btn-icon btn-sm btn-primary rounded-2",
+                          'aria-label': "Open page details",
+                          title: "Open page details",
+                          onClick: () => _optionalChain([onOpenPageDetails, 'optionalCall', _2 => _2(row)])
+                        }
 
-                        , React.createElement('i', { className: "isax isax-document-text" , 'aria-hidden': true} )
+                          , React.createElement('i', { className: "isax isax-document-text", 'aria-hidden': true })
+                        )
                       )
                     )
-                  )
-                ))
+                  ))
+                )
               )
             )
           )
         )
 
-        , React.createElement('div', { className: "d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top flex-shrink-0"        }
-          , React.createElement('div', { className: "d-flex align-items-center gap-2"  }
-            , React.createElement('span', { className: "text-muted small" }, "Rows per page"  )
+        , React.createElement('div', { className: "d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top flex-shrink-0" }
+          , React.createElement('div', { className: "d-flex align-items-center gap-2" }
+            , React.createElement('span', { className: "text-muted small" }, "Rows per page")
             , React.createElement('select', {
-              className: "form-select form-select-sm" ,
+              className: "form-select form-select-sm",
               style: { width: "auto" },
               value: rowsPerPage,
               onChange: (e) => {
                 setRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-              }}
+              }
+            }
 
               , ROWS_PER_PAGE_OPTIONS.map((n) => (
-                React.createElement('option', { key: n, value: n}
+                React.createElement('option', { key: n, value: n }
                   , n
                 )
               ))
             )
             , React.createElement('span', { className: "text-muted small" }
               , (currentPage - 1) * rowsPerPage + 1, "–"
-              , Math.min(currentPage * rowsPerPage, sortedRows.length), " of "  , sortedRows.length
+              , Math.min(currentPage * rowsPerPage, sortedRows.length), " of ", sortedRows.length
             )
           )
           , React.createElement('nav', { 'aria-label': "Pages pagination" }
-            , React.createElement('ul', { className: "pagination pagination-sm mb-0 gap-1"   }
-              , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}`}
-                , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.max(1, p - 1)), disabled: currentPage <= 1}, "«"
+            , React.createElement('ul', { className: "pagination pagination-sm mb-0 gap-1" }
+              , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}` }
+                , React.createElement('button', { type: "button", className: "page-link rounded-2", onClick: () => setCurrentPage((p) => Math.max(1, p - 1)), disabled: currentPage <= 1 }, "«"
 
                 )
               )
@@ -289,8 +305,8 @@ export default function PagesWithImageDrawer({ open, onClose, imageUrl, onOpenPa
                 const p = currentPage <= 4 ? i + 1 : currentPage - 3 + i;
                 if (p > totalPages) return null;
                 return (
-                  React.createElement('li', { key: p, className: "page-item"}
-                    , React.createElement('button', { type: "button", className: `page-link rounded-2 ${currentPage === p ? "active" : ""}`, onClick: () => setCurrentPage(p)}
+                  React.createElement('li', { key: p, className: "page-item" }
+                    , React.createElement('button', { type: "button", className: `page-link rounded-2 ${currentPage === p ? "active" : ""}`, onClick: () => setCurrentPage(p) }
                       , p
                     )
                   )
@@ -299,17 +315,17 @@ export default function PagesWithImageDrawer({ open, onClose, imageUrl, onOpenPa
               , totalPages > 7 && (
                 React.createElement(React.Fragment, null
                   , React.createElement('li', { className: "page-item disabled" }
-                    , React.createElement('span', { className: "page-link"}, "...")
+                    , React.createElement('span', { className: "page-link" }, "...")
                   )
-                  , React.createElement('li', { className: "page-item"}
-                    , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(totalPages)}
+                  , React.createElement('li', { className: "page-item" }
+                    , React.createElement('button', { type: "button", className: "page-link rounded-2", onClick: () => setCurrentPage(totalPages) }
                       , totalPages
                     )
                   )
                 )
               )
-              , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}`}
-                , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)), disabled: currentPage >= totalPages}, "»"
+              , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}` }
+                , React.createElement('button', { type: "button", className: "page-link rounded-2", onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)), disabled: currentPage >= totalPages }, "»"
 
                 )
               )

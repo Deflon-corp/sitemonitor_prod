@@ -25,13 +25,21 @@ export function useQaMisspellings({ page = 1, limit = 50, search = '', potential
       });
       if (res.success) {
         setItems(
-          (res.data?.items || []).map((item, i) => ({
-            id: item.id || String(i + 1),
-            word: item.word,
-            language: item.language || 'English',
-            dateFound: item.dateFound,
-            pages: item.pagesCount,
-          }))
+          (res.data?.items || []).map((item, i) => {
+            const pagesList = Array.isArray(item.pages) ? item.pages : [];
+            const pagesCount = item.pagesCount ?? pagesList.length ?? 0;
+            return {
+              id: item.id || String(i + 1),
+              word: item.word,
+              language: item.language || 'English',
+              dateFound: item.dateFound
+                ? new Date(item.dateFound).toISOString().slice(0, 10)
+                : '—',
+              pages: pagesCount,
+              pagesCount,
+              pagesList,
+            };
+          })
         );
         setPagination(res.data?.pagination || { page, limit, total: 0, pages: 1 });
       } else {

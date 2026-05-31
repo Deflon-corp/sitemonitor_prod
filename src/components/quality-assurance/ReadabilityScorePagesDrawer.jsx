@@ -6,18 +6,6 @@ import { getQaReadabilityPagesApi } from "../../api/qaApi";
 const QUICK_HELP_TEXT =
   "Put simply, readability is the ease with which a reader can understand the written text. Readability tests, readability formulas, or readability metrics are formulae for evaluating the readability of text, by counting syllables, words, and sentences. Scores are compared with scales based on judged linguistic difficulty or reading grade level.";
 
-export const SAMPLE_PAGES_6TH_GRADE = [
-  {
-    title: "(No title found)",
-    url: "https://www.bajajfinserv.in/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc",
-    readabilityScore: 81,
-    readabilityLevel: "6th grade",
-    totalWords: 238,
-    priority: "Medium",
-    views: 0,
-  },
-];
-
 const TOTAL_PAGES_FOR_PERCENT = 500;
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -55,7 +43,7 @@ export default function ReadabilityScorePagesDrawer({
     });
   }, [open, domainId, scoreLevel]);
 
-  const pages = pagesProp?.length ? pagesProp : apiPages.length ? apiPages : SAMPLE_PAGES_6TH_GRADE;
+  const pages = pagesProp?.length ? pagesProp : apiPages;
   const totalCount = totalCountProp ?? apiTotal ?? pages.length;
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

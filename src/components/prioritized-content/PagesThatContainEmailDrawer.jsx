@@ -7,8 +7,7 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 /** Full-page style sample list (replace with API via `pages` prop). */
-export function getSamplePagesForEmail(email) {
-  const domain = "https://www.bajajfinserv.in";
+export function getSamplePagesForEmail(email, domainUrl = "https://example.com") {
   const safe = (email || "contact").replace(/@/g, "-at-").replace(/\./g, "-");
   const local = email || "contact@example.com";
 
@@ -42,7 +41,7 @@ export function getSamplePagesForEmail(email) {
   return paths.map((p, i) => ({
     id: String(i + 1),
     title: p.title,
-    url: `${domain}${p.path}`,
+    url: `${domainUrl}${p.path}`,
     views: p.views,
   }));
 }
@@ -73,12 +72,35 @@ export default function PagesThatContainEmailDrawer({
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortViewsAsc, setSortViewsAsc] = useState(true);
+  const [domainUrl, setDomainUrl] = useState("https://example.com");
+
+  useEffect(() => {
+    const fetchDomain = async () => {
+      try {
+        const selDomainId = sessionStorage.getItem("SELECTED_DOMAIN_KEY");
+        if (selDomainId) {
+          const { getDomainsApi } = await import("@/api/domainApi");
+          const domainRes = await getDomainsApi();
+          const domainList = Array.isArray(domainRes.data) ? domainRes.data : (domainRes.data?.domains || []);
+          const domain = domainList.find((d) => d._id === selDomainId || String(d.dm_id) === selDomainId);
+          if (domain?.dm_url) {
+            setDomainUrl(domain.dm_url.replace(/\/$/, ""));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic domain URL in email drawer:", err);
+      }
+    };
+    if (open) {
+      fetchDomain();
+    }
+  }, [open]);
 
   const sourcePages = useMemo(() => {
     if (pages.length > 0) return pages;
-    if (email) return getSamplePagesForEmail(email);
+    if (email) return getSamplePagesForEmail(email, domainUrl);
     return [];
-  }, [pages, email]);
+  }, [pages, email, domainUrl]);
 
   const filteredRows = useMemo(() => {
     if (!search.trim()) return sourcePages;

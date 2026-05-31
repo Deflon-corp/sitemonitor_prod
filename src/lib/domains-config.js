@@ -1,8 +1,8 @@
 export const DOMAINS = [
   {
-    id: "bajajfinserv",
-    name: "Bajaj FinServ -500",
-    url: "https://www.bajajfinserv.in/",
+    id: "example",
+    name: "Example Domain -500",
+    url: "https://example.com/",
     lastScan: "DEC 09 2025",
     metrics: {
       issues: 0,

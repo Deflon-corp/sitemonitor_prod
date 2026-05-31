@@ -7,7 +7,7 @@ const PANEL_Z = 1075;
 const DEFAULT_PAGE = {
   id: 0,
   title: "(No title found)",
-  url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185",
+  url: "https://example.com/store/laptops/lenovo-intel-core-i3-laptop",
 };
 
 /**

@@ -24,7 +24,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 // const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
 //   id: `row-${i + 1}`,
 //   title: i % 5 === 0 ? "(No title found)" : "Search",
-//   url: `https://www.bajajfinserv.in/search${i > 0 ? `?q=${i}` : ""}`,
+//   url: `https://example.com/search${i > 0 ? `?q=${i}` : ""}`,
 //   unwanted: 0,
 //   required: 0,
 //   matches: 1,

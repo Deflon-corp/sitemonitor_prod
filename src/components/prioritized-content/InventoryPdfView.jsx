@@ -11,21 +11,21 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const PDF_SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/framework-2.0-for-covid19-related-stressdocxpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/moratorium-bflpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/security-measurespdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bfl-citizens-charter-30-th-may-25pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/interest-rate-policy-mar-25pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/caution-noticepdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/whistle-blower-14-may-2025pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/annual-report-2024pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 9, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/terms-and-conditionspdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 10, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/privacy-policypdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 11, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/faq-documentpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 12, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/compliance-frameworkpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 13, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/investor-presentationpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 14, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/sustainability-reportpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
-  { id: 15, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/code-of-conductpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/is/content/examplefinance/framework-2.0-for-covid19-related-stressdocxpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/is/content/examplefinance/moratorium-bflpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/is/content/examplefinance/security-measurespdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/is/content/examplefinance/bfl-citizens-charter-30-th-may-25pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/is/content/examplefinance/interest-rate-policy-mar-25pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/is/content/examplefinance/caution-noticepdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/is/content/examplefinance/whistle-blower-14-may-2025pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/is/content/examplefinance/annual-report-2024pdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 9, link: "https://cms-assets.example.com/is/content/examplefinance/terms-and-conditionspdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 10, link: "https://cms-assets.example.com/is/content/examplefinance/privacy-policypdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 11, link: "https://cms-assets.example.com/is/content/examplefinance/faq-documentpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 12, link: "https://cms-assets.example.com/is/content/examplefinance/compliance-frameworkpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 13, link: "https://cms-assets.example.com/is/content/examplefinance/investor-presentationpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 14, link: "https://cms-assets.example.com/is/content/examplefinance/sustainability-reportpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
+  { id: 15, link: "https://cms-assets.example.com/is/content/examplefinance/code-of-conductpdf?scl=1&fmt=pdf", type: "Pdf", responseCode: "200" },
 ];
 
 

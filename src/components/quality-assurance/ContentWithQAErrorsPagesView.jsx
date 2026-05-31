@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect  } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageIssuesIcon from "../icons/PageIssuesIcon";
 
@@ -6,18 +6,18 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_ROWS = [
-  { id: "p1", title: "Search", url: "https://www.bajajfinserv.in/search", notifications: 12, priority: "High", views: 0 },
-  { id: "p2", title: "(No title found)", url: "https://www.bajajfinserv.in/page/2", notifications: 10, priority: "High", views: 24 },
-  { id: "p3", title: "Laptops", url: "https://www.bajajfinserv.in/bmall/laptops", notifications: 8, priority: "Medium", views: 156 },
-  { id: "p4", title: "Personal Loan", url: "https://www.bajajfinserv.in/loans/personal-loan", notifications: 6, priority: "Medium", views: 89 },
-  { id: "p5", title: "(No title found)", url: "https://www.bajajfinserv.in/about", notifications: 5, priority: "Low", views: 42 },
-  { id: "p6", title: "Contact Us", url: "https://www.bajajfinserv.in/contact", notifications: 4, priority: "Low", views: 31 },
-  { id: "p7", title: "Home", url: "https://www.bajajfinserv.in/", notifications: 3, priority: "High", views: 1200 },
-  { id: "p8", title: "Insurance", url: "https://www.bajajfinserv.in/insurance", notifications: 9, priority: "Medium", views: 67 },
-  { id: "p9", title: "(No title found)", url: "https://www.bajajfinserv.in/faq", notifications: 7, priority: "Low", views: 18 },
-  { id: "p10", title: "Careers", url: "https://www.bajajfinserv.in/careers", notifications: 2, priority: "Low", views: 12 },
-  { id: "p11", title: "Terms and Conditions", url: "https://www.bajajfinserv.in/terms", notifications: 11, priority: "High", views: 5 },
-  { id: "p12", title: "Privacy Policy", url: "https://www.bajajfinserv.in/privacy", notifications: 6, priority: "Medium", views: 8 },
+  { id: "p1", title: "Search", url: "https://example.com/search", notifications: 12, priority: "High", views: 0 },
+  { id: "p2", title: "(No title found)", url: "https://example.com/page/2", notifications: 10, priority: "High", views: 24 },
+  { id: "p3", title: "Laptops", url: "https://example.com/bmall/laptops", notifications: 8, priority: "Medium", views: 156 },
+  { id: "p4", title: "Personal Loan", url: "https://example.com/loans/personal-loan", notifications: 6, priority: "Medium", views: 89 },
+  { id: "p5", title: "(No title found)", url: "https://example.com/about", notifications: 5, priority: "Low", views: 42 },
+  { id: "p6", title: "Contact Us", url: "https://example.com/contact", notifications: 4, priority: "Low", views: 31 },
+  { id: "p7", title: "Home", url: "https://example.com/", notifications: 3, priority: "High", views: 1200 },
+  { id: "p8", title: "Insurance", url: "https://example.com/insurance", notifications: 9, priority: "Medium", views: 67 },
+  { id: "p9", title: "(No title found)", url: "https://example.com/faq", notifications: 7, priority: "Low", views: 18 },
+  { id: "p10", title: "Careers", url: "https://example.com/careers", notifications: 2, priority: "Low", views: 12 },
+  { id: "p11", title: "Terms and Conditions", url: "https://example.com/terms", notifications: 11, priority: "High", views: 5 },
+  { id: "p12", title: "Privacy Policy", url: "https://example.com/privacy", notifications: 6, priority: "Medium", views: 8 },
 ];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };

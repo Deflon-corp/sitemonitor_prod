@@ -3,18 +3,6 @@ import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/Page
 
 const BACKDROP_Z = 1080;
 const PANEL_Z = 1085;
-
- 
-
-
-
-
-
-
-
-
-
-
 /**
  * Renders the full Page Details drawer when opened from the Misspelling issue drawer
  * (e.g. when user clicks the misspelling or potential misspelling count).

@@ -6,16 +6,16 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_URLS = [
-  "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc",
-  "https://www.bajajfinserv.in/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc",
-  "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc",
-  "https://www.bajajfinserv.in/search",
-  "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc",
-  "https://www.bajajfinserv.in/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc",
-  "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc",
-  "https://www.bajajfinserv.in/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc",
-  "https://www.bajajfinserv.in/bmall/lenovo-thinkpad-e14-intel-core-i5-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc",
-  "https://www.bajajfinserv.in/bmall/acer-swift-3-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-14-inc",
+  "https://www.example.com/products/laptop-a",
+  "https://www.example.com/products/laptop-b",
+  "https://www.example.com/products/laptop-c",
+  "https://www.example.com/search",
+  "https://www.example.com/products/tablet-a",
+  "https://www.example.com/products/tablet-b",
+  "https://www.example.com/products/phone-a",
+  "https://www.example.com/products/phone-b",
+  "https://www.example.com/products/phone-c",
+  "https://www.example.com/products/tablet-c",
 ];
 
 const generateSamplePages = (count) => {

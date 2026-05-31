@@ -5,11 +5,7 @@ import IgnoredSpellingPageDetailsDrawer from "@/components/prioritized-content/I
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-const DEFAULT_PAGES = [
-  { title: "Compare", url: "https://www.bajajfinserv.in/bmall/compare", priority: "High", views: 0 },
-  { title: "Latest BPL Televisions", url: "https://www.bajajfinserv.in/bmall/televisions/bpl-tv", priority: "High", views: 0 },
-  { title: "TVs - Latest Television Prices", url: "https://www.bajajfinserv.in/bmall/televisions", priority: "Low", views: 0 },
-];
+const DEFAULT_PAGES = [];
 
 function formatDateFound(dateStr) {
   try {
@@ -45,6 +41,7 @@ export default function IgnoredSpellingDetailDrawer({
   open,
   onClose,
   issue,
+  page,
   pagesWithIgnoredSpelling = DEFAULT_PAGES,
   onOpenPageDetails,
   backdropZIndex = DEFAULT_BACKDROP_Z,
@@ -55,11 +52,17 @@ export default function IgnoredSpellingDetailDrawer({
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
 
+  const resolvedPagesWithIgnoredSpelling = useMemo(() => {
+    if (pagesWithIgnoredSpelling && pagesWithIgnoredSpelling.length > 0) return pagesWithIgnoredSpelling;
+    if (page) return [{ title: page.title || "Untitled Page", url: page.url, priority: "Medium", views: 0 }];
+    return [];
+  }, [pagesWithIgnoredSpelling, page]);
+
   const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return pagesWithIgnoredSpelling;
+    if (!searchQuery.trim()) return resolvedPagesWithIgnoredSpelling;
     const q = searchQuery.toLowerCase();
-    return pagesWithIgnoredSpelling.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
-  }, [pagesWithIgnoredSpelling, searchQuery]);
+    return resolvedPagesWithIgnoredSpelling.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+  }, [resolvedPagesWithIgnoredSpelling, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPages.length / rowsPerPage));
   const paginatedPages = useMemo(() => {
@@ -68,7 +71,7 @@ export default function IgnoredSpellingDetailDrawer({
   }, [filteredPages, currentPage, rowsPerPage]);
 
   const handleCopyUrl = () => {
-    const url = issue && pagesWithIgnoredSpelling.length > 0 ? pagesWithIgnoredSpelling[0].url : window.location.href;
+    const url = issue && resolvedPagesWithIgnoredSpelling.length > 0 ? resolvedPagesWithIgnoredSpelling[0].url : window.location.href;
     void navigator.clipboard.writeText(url);
   };
 
@@ -89,7 +92,7 @@ export default function IgnoredSpellingDetailDrawer({
 
   if (!open || !issue) return null;
 
-  const firstPage = pagesWithIgnoredSpelling[0];
+  const firstPage = resolvedPagesWithIgnoredSpelling[0];
 
   const drawerContent = (
     React.createElement(React.Fragment, null
@@ -235,8 +238,8 @@ export default function IgnoredSpellingDetailDrawer({
                   , React.createElement('select', { className: "form-select form-select-sm" , style: { width: "auto", minWidth: 60 }, value: rowsPerPage, onChange: (e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
                     , ROWS_PER_PAGE_OPTIONS.map((n) => React.createElement('option', { key: n, value: n}, n))
                   )
-                  , React.createElement('span', { className: "text-muted small" }
-                    , (currentPage - 1) * rowsPerPage + 1, "–", Math.min(currentPage * rowsPerPage, filteredPages.length), " of "  , filteredPages.length
+                  , React.createElement('span', { className: "text-muted small" },
+                    resolvedPagesWithIgnoredSpelling.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1, "–", Math.min(currentPage * rowsPerPage, resolvedPagesWithIgnoredSpelling.length), " of "  , resolvedPagesWithIgnoredSpelling.length
                   )
                 )
                 , React.createElement('nav', { 'aria-label': "Pagination"}

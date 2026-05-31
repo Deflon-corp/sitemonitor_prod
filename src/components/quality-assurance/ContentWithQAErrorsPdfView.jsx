@@ -6,18 +6,18 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_ROWS = [
-  { id: "pdf1", title: "Product Brochure 2024", url: "https://www.bajajfinserv.in/docs/product-brochure-2024.pdf", notifications: 5, priority: "High", views: 120 },
-  { id: "pdf2", title: "(No title found)", url: "https://www.bajajfinserv.in/docs/terms.pdf", notifications: 3, priority: "Medium", views: 45 },
-  { id: "pdf3", title: "Privacy Policy", url: "https://www.bajajfinserv.in/docs/privacy-policy.pdf", notifications: 4, priority: "Medium", views: 67 },
-  { id: "pdf4", title: "Loan Application Form", url: "https://www.bajajfinserv.in/docs/loan-application.pdf", notifications: 8, priority: "High", views: 234 },
-  { id: "pdf5", title: "Annual Report", url: "https://www.bajajfinserv.in/docs/annual-report-2023.pdf", notifications: 2, priority: "Low", views: 89 },
-  { id: "pdf6", title: "FAQ Document", url: "https://www.bajajfinserv.in/docs/faq.pdf", notifications: 6, priority: "Medium", views: 156 },
-  { id: "pdf7", title: "(No title found)", url: "https://www.bajajfinserv.in/docs/insurance-claim-form.pdf", notifications: 7, priority: "High", views: 34 },
-  { id: "pdf8", title: "EMI Calculator Guide", url: "https://www.bajajfinserv.in/docs/emi-guide.pdf", notifications: 1, priority: "Low", views: 278 },
-  { id: "pdf9", title: "Careers Brochure", url: "https://www.bajajfinserv.in/docs/careers.pdf", notifications: 4, priority: "Low", views: 12 },
-  { id: "pdf10", title: "Complaint Redressal", url: "https://www.bajajfinserv.in/docs/complaint-redressal.pdf", notifications: 9, priority: "High", views: 23 },
-  { id: "pdf11", title: "KYC Guidelines", url: "https://www.bajajfinserv.in/docs/kyc-guidelines.pdf", notifications: 5, priority: "Medium", views: 98 },
-  { id: "pdf12", title: "(No title found)", url: "https://www.bajajfinserv.in/docs/whitepaper.pdf", notifications: 2, priority: "Low", views: 5 },
+  { id: "pdf1", title: "Product Brochure 2024", url: "https://example.com/docs/product-brochure-2024.pdf", notifications: 5, priority: "High", views: 120 },
+  { id: "pdf2", title: "(No title found)", url: "https://example.com/docs/terms.pdf", notifications: 3, priority: "Medium", views: 45 },
+  { id: "pdf3", title: "Privacy Policy", url: "https://example.com/docs/privacy-policy.pdf", notifications: 4, priority: "Medium", views: 67 },
+  { id: "pdf4", title: "Loan Application Form", url: "https://example.com/docs/loan-application.pdf", notifications: 8, priority: "High", views: 234 },
+  { id: "pdf5", title: "Annual Report", url: "https://example.com/docs/annual-report-2023.pdf", notifications: 2, priority: "Low", views: 89 },
+  { id: "pdf6", title: "FAQ Document", url: "https://example.com/docs/faq.pdf", notifications: 6, priority: "Medium", views: 156 },
+  { id: "pdf7", title: "(No title found)", url: "https://example.com/docs/insurance-claim-form.pdf", notifications: 7, priority: "High", views: 34 },
+  { id: "pdf8", title: "EMI Calculator Guide", url: "https://example.com/docs/emi-guide.pdf", notifications: 1, priority: "Low", views: 278 },
+  { id: "pdf9", title: "Careers Brochure", url: "https://example.com/docs/careers.pdf", notifications: 4, priority: "Low", views: 12 },
+  { id: "pdf10", title: "Complaint Redressal", url: "https://example.com/docs/complaint-redressal.pdf", notifications: 9, priority: "High", views: 23 },
+  { id: "pdf11", title: "KYC Guidelines", url: "https://example.com/docs/kyc-guidelines.pdf", notifications: 5, priority: "Medium", views: 98 },
+  { id: "pdf12", title: "(No title found)", url: "https://example.com/docs/whitepaper.pdf", notifications: 2, priority: "Low", views: 5 },
 ];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };

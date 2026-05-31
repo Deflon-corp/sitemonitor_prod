@@ -4,19 +4,19 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://www.bajajfinserv.in/personal-loans", type: "Outgoing link", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/home-loans", type: "Outgoing link", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/contact-us", type: "Outgoing link", responseCode: "200" },
-  { id: 4, link: "https://www.bajajfinserv.in/careers", type: "Outgoing link", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/about-us", type: "Outgoing link", responseCode: "200" },
-  { id: 6, link: "https://www.bajajfinserv.in/emi-calculator", type: "Outgoing link", responseCode: "200" },
-  { id: 7, link: "https://www.bajajfinserv.in/insurance", type: "Outgoing link", responseCode: "200" },
-  { id: 8, link: "https://www.bajajfinserv.in/investments", type: "Outgoing link", responseCode: "200" },
-  { id: 9, link: "https://www.bajajfinserv.in/faq", type: "Outgoing link", responseCode: "200" },
-  { id: 10, link: "https://www.bajajfinserv.in/privacy-policy", type: "Outgoing link", responseCode: "200" },
+  { id: 1, link: "https://example.com/personal-loans", type: "Outgoing link", responseCode: "200" },
+  { id: 2, link: "https://example.com/home-loans", type: "Outgoing link", responseCode: "200" },
+  { id: 3, link: "https://example.com/contact-us", type: "Outgoing link", responseCode: "200" },
+  { id: 4, link: "https://example.com/careers", type: "Outgoing link", responseCode: "200" },
+  { id: 5, link: "https://example.com/about-us", type: "Outgoing link", responseCode: "200" },
+  { id: 6, link: "https://example.com/emi-calculator", type: "Outgoing link", responseCode: "200" },
+  { id: 7, link: "https://example.com/insurance", type: "Outgoing link", responseCode: "200" },
+  { id: 8, link: "https://example.com/investments", type: "Outgoing link", responseCode: "200" },
+  { id: 9, link: "https://example.com/faq", type: "Outgoing link", responseCode: "200" },
+  { id: 10, link: "https://example.com/privacy-policy", type: "Outgoing link", responseCode: "200" },
 ];
 
-const InventoryOutgoingLinksView = ({ items = SAMPLE }) => {
+const InventoryOutgoingLinksView = ({ items = SAMPLE, variant }) => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);

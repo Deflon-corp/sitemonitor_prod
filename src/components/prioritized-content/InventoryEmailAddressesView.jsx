@@ -11,19 +11,19 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "investor.service@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 2, link: "investors@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 3, link: "support@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 4, link: "contact@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 5, link: "careers@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 6, link: "compliance@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 7, link: "feedback@bajajfinserv.in", type: "Email", responseCode: "200" },
-  { id: 8, link: "privacy@bajajfinserv.in", type: "Email", responseCode: "200" },
+  { id: 1, link: "investor.service@example.com", type: "Email", responseCode: "200" },
+  { id: 2, link: "investors@example.com", type: "Email", responseCode: "200" },
+  { id: 3, link: "support@example.com", type: "Email", responseCode: "200" },
+  { id: 4, link: "contact@example.com", type: "Email", responseCode: "200" },
+  { id: 5, link: "careers@example.com", type: "Email", responseCode: "200" },
+  { id: 6, link: "compliance@example.com", type: "Email", responseCode: "200" },
+  { id: 7, link: "feedback@example.com", type: "Email", responseCode: "200" },
+  { id: 8, link: "privacy@example.com", type: "Email", responseCode: "200" },
 ];
 
 
 
-export default function InventoryEmailAddressesView({ items = SAMPLE }) {
+export default function InventoryEmailAddressesView({ items = SAMPLE, variant }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);

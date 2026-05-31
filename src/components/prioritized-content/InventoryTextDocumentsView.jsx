@@ -11,14 +11,14 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/docs/terms-and-conditions.txt", type: "Text document", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/docs/privacy-policy.txt", type: "Text document", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/docs/readme.txt", type: "Text document", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/docs/faq.txt", type: "Text document", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/docs/code-of-conduct.txt", type: "Text document", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/docs/whistleblower-policy.txt", type: "Text document", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/docs/notice.txt", type: "Text document", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/docs/accessibility-statement.txt", type: "Text document", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/docs/terms-and-conditions.txt", type: "Text document", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/docs/privacy-policy.txt", type: "Text document", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/docs/readme.txt", type: "Text document", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/docs/faq.txt", type: "Text document", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/docs/code-of-conduct.txt", type: "Text document", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/docs/whistleblower-policy.txt", type: "Text document", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/docs/notice.txt", type: "Text document", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/docs/accessibility-statement.txt", type: "Text document", responseCode: "200" },
 ];
 
 

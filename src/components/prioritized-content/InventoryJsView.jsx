@@ -4,7 +4,7 @@ import PagesWithJsDrawer from "./PagesWithJsDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 
- 
+
 
 
 
@@ -14,36 +14,12 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE = [
-  { id: 1, url: "https://www.bajajfinserv.in/assets/js/main.js", pageCount: 5 },
-  { id: 2, url: "https://www.bajajfinserv.in/assets/js/vendor.js", pageCount: 1 },
-  { id: 3, url: "https://www.bajajfinserv.in/assets/js/app.js", pageCount: 2 },
-  { id: 4, url: "https://www.bajajfinserv.in/assets/js/analytics.js", pageCount: 1 },
-  { id: 5, url: "https://www.bajajfinserv.in/assets/js/forms.js", pageCount: 1 },
-  { id: 6, url: "https://www.bajajfinserv.in/assets/js/calculator.js", pageCount: 1 },
-  { id: 7, url: "https://www.bajajfinserv.in/assets/js/chart.js", pageCount: 1 },
-  { id: 8, url: "https://www.bajajfinserv.in/assets/js/lazy-load.js", pageCount: 1 },
-  { id: 9, url: "https://www.bajajfinserv.in/assets/js/polyfills.js", pageCount: 1 },
-];
-
-const DETAILS_SAMPLE = [
-  { id: 1, link: "https://www.bajajfinserv.in/assets/js/main.js", type: "JavaScript", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/assets/js/vendor.js", type: "JavaScript", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/assets/js/app.js", type: "JavaScript", responseCode: "200" },
-  { id: 4, link: "https://www.bajajfinserv.in/assets/js/analytics.js", type: "JavaScript", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/assets/js/forms.js", type: "JavaScript", responseCode: "200" },
-  { id: 6, link: "https://www.bajajfinserv.in/assets/js/calculator.js", type: "JavaScript", responseCode: "200" },
-  { id: 7, link: "https://www.bajajfinserv.in/assets/js/chart.js", type: "JavaScript", responseCode: "200" },
-  { id: 8, link: "https://www.bajajfinserv.in/assets/js/lazy-load.js", type: "JavaScript", responseCode: "200" },
-  { id: 9, link: "https://www.bajajfinserv.in/assets/js/polyfills.js", type: "JavaScript", responseCode: "200" },
-];
-
 const TITLE = "JavaScript";
 const ICON = "isax-code-1";
 const REPORT_BASE = "JavaScript-Report";
 const DEFAULT_INVENTORY_SUB_VIEW = "js";
 
-export default function InventoryJsView({ items = SAMPLE, variant }) {
+export default function InventoryJsView({ items = [], variant }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -85,7 +61,7 @@ export default function InventoryJsView({ items = SAMPLE, variant }) {
   }, [filteredItems, reportBase]);
 
   if (variant === "details") {
-    const detailsFiltered = !search.trim() ? DETAILS_SAMPLE : DETAILS_SAMPLE.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
+    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
     const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);

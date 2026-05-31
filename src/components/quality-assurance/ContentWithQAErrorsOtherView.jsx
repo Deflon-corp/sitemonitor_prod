@@ -6,19 +6,19 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_ROWS = [
-  { id: "o1", title: "Data Sheet.xlsx", url: "https://www.bajajfinserv.in/files/data-sheet.xlsx", notifications: 4, priority: "Medium", views: 56 },
-  { id: "o2", title: "(No title found)", url: "https://www.bajajfinserv.in/files/report-2024.docx", notifications: 6, priority: "High", views: 23 },
-  { id: "o3", title: "Pricing Guide", url: "https://www.bajajfinserv.in/files/pricing-guide.docx", notifications: 2, priority: "Low", views: 89 },
-  { id: "o4", title: "Template v2", url: "https://www.bajajfinserv.in/files/template-v2.doc", notifications: 8, priority: "High", views: 12 },
-  { id: "o5", title: "Process Flow", url: "https://www.bajajfinserv.in/files/process-flow.pptx", notifications: 3, priority: "Medium", views: 45 },
-  { id: "o6", title: "(No title found)", url: "https://www.bajajfinserv.in/files/checklist.xls", notifications: 5, priority: "Low", views: 78 },
-  { id: "o7", title: "Compliance Report", url: "https://www.bajajfinserv.in/files/compliance-report.xlsx", notifications: 7, priority: "High", views: 34 },
-  { id: "o8", title: "User Manual", url: "https://www.bajajfinserv.in/files/user-manual.docx", notifications: 1, priority: "Low", views: 167 },
-  { id: "o9", title: "Q4 Summary", url: "https://www.bajajfinserv.in/files/q4-summary.xlsx", notifications: 9, priority: "Medium", views: 28 },
-  { id: "o10", title: "Draft Policy", url: "https://www.bajajfinserv.in/files/draft-policy.doc", notifications: 4, priority: "Medium", views: 9 },
-  { id: "o11", title: "(No title found)", url: "https://www.bajajfinserv.in/files/legacy-format.wpd", notifications: 10, priority: "High", views: 2 },
-  { id: "o12", title: "Archive List", url: "https://www.bajajfinserv.in/files/archive-list.csv", notifications: 2, priority: "Low", views: 15 },
-  { id: "o13", title: "Export Data", url: "https://www.bajajfinserv.in/files/export-data.xlsx", notifications: 6, priority: "Medium", views: 41 },
+  { id: "o1", title: "Data Sheet.xlsx", url: "https://example.com/files/data-sheet.xlsx", notifications: 4, priority: "Medium", views: 56 },
+  { id: "o2", title: "(No title found)", url: "https://example.com/files/report-2024.docx", notifications: 6, priority: "High", views: 23 },
+  { id: "o3", title: "Pricing Guide", url: "https://example.com/files/pricing-guide.docx", notifications: 2, priority: "Low", views: 89 },
+  { id: "o4", title: "Template v2", url: "https://example.com/files/template-v2.doc", notifications: 8, priority: "High", views: 12 },
+  { id: "o5", title: "Process Flow", url: "https://example.com/files/process-flow.pptx", notifications: 3, priority: "Medium", views: 45 },
+  { id: "o6", title: "(No title found)", url: "https://example.com/files/checklist.xls", notifications: 5, priority: "Low", views: 78 },
+  { id: "o7", title: "Compliance Report", url: "https://example.com/files/compliance-report.xlsx", notifications: 7, priority: "High", views: 34 },
+  { id: "o8", title: "User Manual", url: "https://example.com/files/user-manual.docx", notifications: 1, priority: "Low", views: 167 },
+  { id: "o9", title: "Q4 Summary", url: "https://example.com/files/q4-summary.xlsx", notifications: 9, priority: "Medium", views: 28 },
+  { id: "o10", title: "Draft Policy", url: "https://example.com/files/draft-policy.doc", notifications: 4, priority: "Medium", views: 9 },
+  { id: "o11", title: "(No title found)", url: "https://example.com/files/legacy-format.wpd", notifications: 10, priority: "High", views: 2 },
+  { id: "o12", title: "Archive List", url: "https://example.com/files/archive-list.csv", notifications: 2, priority: "Low", views: 15 },
+  { id: "o13", title: "Export Data", url: "https://example.com/files/export-data.xlsx", notifications: 6, priority: "Medium", views: 41 },
 ];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };

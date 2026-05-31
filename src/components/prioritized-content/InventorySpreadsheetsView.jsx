@@ -11,18 +11,18 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SPREADSHEETS_SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/quarterly-results-q1-2025xlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/loan-disbursement-data-mar-25xlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/branch-list-2025xlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/interest-rates-schedulexlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/employee-count-by-regionxlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/compliance-checklistxlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/audit-findings-summaryxlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/customer-feedback-scoresxlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 9, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/product-catalog-pricingxlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 10, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/npa-report-fy25xlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 11, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/board-meeting-minutes-templatexlsx", type: "Spreadsheet", responseCode: "200" },
-  { id: 12, link: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/risk-register-2025xlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/is/content/examplefinance/quarterly-results-q1-2025xlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/is/content/examplefinance/loan-disbursement-data-mar-25xlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/is/content/examplefinance/branch-list-2025xlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/is/content/examplefinance/interest-rates-schedulexlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/is/content/examplefinance/employee-count-by-regionxlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/is/content/examplefinance/compliance-checklistxlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/is/content/examplefinance/audit-findings-summaryxlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/is/content/examplefinance/customer-feedback-scoresxlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 9, link: "https://cms-assets.example.com/is/content/examplefinance/product-catalog-pricingxlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 10, link: "https://cms-assets.example.com/is/content/examplefinance/npa-report-fy25xlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 11, link: "https://cms-assets.example.com/is/content/examplefinance/board-meeting-minutes-templatexlsx", type: "Spreadsheet", responseCode: "200" },
+  { id: 12, link: "https://cms-assets.example.com/is/content/examplefinance/risk-register-2025xlsx", type: "Spreadsheet", responseCode: "200" },
 ];
 
 

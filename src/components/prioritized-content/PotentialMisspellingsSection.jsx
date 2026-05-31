@@ -29,11 +29,12 @@ export const POTENTIAL_MISSPELLINGS_SAMPLE = [
 ];
 
 const PotentialMisspellingsSection = ({
-  items = POTENTIAL_MISSPELLINGS_SAMPLE,
+  items,
   onOpenIssue,
   onOpenPageDetails,
   onConfirmMisspelling,
 }) => {
+  const listSource = items === undefined ? POTENTIAL_MISSPELLINGS_SAMPLE : items;
   const [languageFilter, setLanguageFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,15 +45,15 @@ const PotentialMisspellingsSection = ({
 
   const languageCount = useCallback(
     (key) => {
-      if (key === "all") return items.length;
+      if (key === "all") return listSource.length;
       const langLabel = LANGUAGES.find((l) => l.key === key)?.label || "";
-      return items.filter((r) => r.language === langLabel).length;
+      return listSource.filter((r) => r.language === langLabel).length;
     },
-    [items]
+    [listSource]
   );
 
   const filteredItems = useMemo(() => {
-    let list = items;
+    let list = listSource;
     if (languageFilter !== "all") {
       const langLabel = LANGUAGES.find((l) => l.key === languageFilter)?.label || "";
       list = list.filter((r) => r.language === langLabel);
@@ -62,7 +63,7 @@ const PotentialMisspellingsSection = ({
       list = list.filter((r) => r.word.toLowerCase().includes(q));
     }
     return list;
-  }, [items, languageFilter, searchQuery]);
+  }, [listSource, languageFilter, searchQuery]);
 
   const sortedItems = useMemo(() => {
     if (!sortBy) return filteredItems;
@@ -95,28 +96,28 @@ const PotentialMisspellingsSection = ({
 
   const exportCSV = useCallback(() => {
     const header = "Word,Language,Date found,Pages\n";
-    const body = items
+    const body = listSource
       .map((r) => `"${r.word.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}","${r.dateFound}",${r.pages}`)
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
-  }, [items, baseName]);
+  }, [listSource, baseName]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = items.map((r) => ({ Word: r.word, Language: r.language, "Date found": r.dateFound, Pages: r.pages }));
+    const rows = listSource.map((r) => ({ Word: r.word, Language: r.language, "Date found": r.dateFound, Pages: r.pages }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Potential Misspellings");
     XLSX.writeFile(wb, `${baseName}.xlsx`);
-  }, [items, baseName]);
+  }, [listSource, baseName]);
 
   const exportPDF = useCallback(async () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Word", "Language", "Date found", "Pages"]];
-    const body = items.map((r) => [r.word, r.language, r.dateFound, String(r.pages)]);
+    const body = listSource.map((r) => [r.word, r.language, r.dateFound, String(r.pages)]);
     autoTable(doc, {
       head,
       body,
@@ -125,7 +126,7 @@ const PotentialMisspellingsSection = ({
       columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: "wrap" }, 2: { cellWidth: 24 }, 3: { cellWidth: 18 } },
     });
     doc.save(`${baseName}.pdf`);
-  }, [items, baseName]);
+  }, [listSource, baseName]);
 
   return (
     <>
@@ -253,8 +254,6 @@ const PotentialMisspellingsSection = ({
                     </button>
                   </th>
                   <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Lookup in Google</th>
-                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Language</th>
-                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Confirm</th>
                   <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
                     <button
                       type="button"
@@ -296,16 +295,6 @@ const PotentialMisspellingsSection = ({
                       >
                         <span className="fw-bold">G</span>
                       </a>
-                    </td>
-                    <td className="py-3 text-body fs-13">{row.language}</td>
-                    <td className="py-3">
-                      <button
-                        type="button"
-                        className="btn btn-link btn-sm p-0 border-0 bg-transparent text-primary text-decoration-none"
-                        onClick={() => setConfirmMisspellingId(row.id)}
-                      >
-                        Confirm misspelling
-                      </button>
                     </td>
                     <td className="py-3">
                       <div className="d-flex flex-column">

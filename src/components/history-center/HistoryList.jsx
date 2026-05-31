@@ -182,7 +182,7 @@ export default function HistoryList() {
                         style={{ width: "auto", minWidth: 180 }}
                         aria-label="Domain"
                     >
-                        <option>Bajaj FinServ-500</option>
+                        <option>Example Domain-500</option>
                         {DOMAINS.map((d) => (
                             <option key={d.id} value={d.id}>
                                 {d.name}

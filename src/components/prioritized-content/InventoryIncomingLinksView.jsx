@@ -14,12 +14,12 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, linkUrl: "https://www.bajajfinserv.in/search", anchorText: "Search", originalUrl: "#", originalText: "", linkType: "Html" },
-  { id: 2, linkUrl: "https://www.bajajfinserv.in/login", anchorText: "Login", originalUrl: "#", originalText: "Login", linkType: "Html" },
-  { id: 3, linkUrl: "https://www.bajajfinserv.in/hindi/search", anchorText: "हिंदी - HI (BETA)", originalUrl: "https://www.bajajfinserv.in/hindi/search", originalText: "हिंदी - HI (BETA)", linkType: "Html" },
-  { id: 4, linkUrl: "https://www.bajajfinserv.in/search", anchorText: "English - EN", originalUrl: "https://www.bajajfinserv.in/search", originalText: "English - EN", linkType: "Html" },
-  { id: 5, linkUrl: "https://www.bajajfinserv.in/personal-loans", anchorText: "Personal Loans", originalUrl: "https://www.bajajfinserv.in/", originalText: "Personal Loans", linkType: "Html" },
-  { id: 6, linkUrl: "https://www.bajajfinserv.in/contact-us", anchorText: "Contact", originalUrl: "https://www.bajajfinserv.in/about", originalText: "Contact", linkType: "Html" },
+  { id: 1, linkUrl: "https://example.com/search", anchorText: "Search", originalUrl: "#", originalText: "", linkType: "Html" },
+  { id: 2, linkUrl: "https://example.com/login", anchorText: "Login", originalUrl: "#", originalText: "Login", linkType: "Html" },
+  { id: 3, linkUrl: "https://example.com/hindi/search", anchorText: "हिंदी - HI (BETA)", originalUrl: "https://example.com/hindi/search", originalText: "हिंदी - HI (BETA)", linkType: "Html" },
+  { id: 4, linkUrl: "https://example.com/search", anchorText: "English - EN", originalUrl: "https://example.com/search", originalText: "English - EN", linkType: "Html" },
+  { id: 5, linkUrl: "https://example.com/personal-loans", anchorText: "Personal Loans", originalUrl: "https://example.com/", originalText: "Personal Loans", linkType: "Html" },
+  { id: 6, linkUrl: "https://example.com/contact-us", anchorText: "Contact", originalUrl: "https://example.com/about", originalText: "Contact", linkType: "Html" },
 ];
 
 
@@ -35,9 +35,9 @@ export default function InventoryIncomingLinksView({ items = SAMPLE }) {
   const filteredItems = useMemo(() => {
     let list = items;
     if (activeTab === "other") {
-      list = items.filter((r) => r.originalUrl !== "#" && !r.originalUrl.startsWith("https://www.bajajfinserv.in"));
+      list = items.filter((r) => r.originalUrl !== "#" && !r.originalUrl.startsWith("https://example.com"));
     } else {
-      list = items.filter((r) => r.originalUrl === "#" || r.originalUrl.startsWith("https://www.bajajfinserv.in"));
+      list = items.filter((r) => r.originalUrl === "#" || r.originalUrl.startsWith("https://example.com"));
     }
     if (!search.trim()) return list;
     const q = search.trim().toLowerCase();
@@ -56,8 +56,8 @@ export default function InventoryIncomingLinksView({ items = SAMPLE }) {
     return filteredItems.slice(start, start + rowsPerPage);
   }, [filteredItems, currentPage, rowsPerPage]);
 
-  const ownDomainCount = useMemo(() => items.filter((r) => r.originalUrl === "#" || r.originalUrl.startsWith("https://www.bajajfinserv.in")).length, [items]);
-  const otherDomainCount = useMemo(() => items.filter((r) => r.originalUrl !== "#" && !r.originalUrl.startsWith("https://www.bajajfinserv.in")).length, [items]);
+  const ownDomainCount = useMemo(() => items.filter((r) => r.originalUrl === "#" || r.originalUrl.startsWith("https://example.com")).length, [items]);
+  const otherDomainCount = useMemo(() => items.filter((r) => r.originalUrl !== "#" && !r.originalUrl.startsWith("https://example.com")).length, [items]);
 
   const handleDownload = useCallback(() => {
     const header = "Link URL,Anchor Text,Original URL,Original Text,Link Type\n";

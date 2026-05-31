@@ -2,10 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQaPagesList } from "../../hooks/useQaPagesList";
 import { Link, useSearchParams } from "react-router-dom";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
-import ContentWithQAErrorsPagesView from "./ContentWithQAErrorsPagesView";
-import ContentWithQAErrorsPdfView from "./ContentWithQAErrorsPdfView";
-import ContentWithQAErrorsOtherView from "./ContentWithQAErrorsOtherView";
 import QAQuickInfoMenu from "./QAQuickInfoMenu";
+import { QaPanelEmpty } from "./QaDataStates";
+import { QaTableStatusRow } from "./QaDataStates";
+import { QA_TABLE } from "./qaConstants";
 
 const TABS = [
   { key: "all", label: "All", icon: "isax-folder" },
@@ -67,7 +67,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     search: debouncedSearch,
     sortBy: apiSortBy,
     sortOrder: sortDir,
-    enabled: activeTab === "all",
+    enabled: activeTab === "all" || activeTab === "pages",
   });
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
@@ -77,7 +77,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     setPageDetailsOpen(true);
   };
 
-  const sortedRows = activeTab === "all" ? apiRows : [];
+  const sortedRows = activeTab === "all" || activeTab === "pages" ? apiRows : [];
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -97,7 +97,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     />
   );
 
-  const totalPages = activeTab === "all" ? (pagination.pages || 1) : 1;
+  const totalPages = activeTab === "all" || activeTab === "pages" ? (pagination.pages || 1) : 1;
   const paginatedRows = sortedRows;
 
   return (
@@ -128,7 +128,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
             return (
               <Link
                 key={key}
-                to={`/quality-assurance?view=${viewKey}&${TAB_PARAM}=${key}`}
+                to={`/domain/quality-assurance?view=${viewKey}&${TAB_PARAM}=${key}`}
                 className={`prioritized-content-filter-link d-inline-flex align-items-center text-primary text-decoration-none py-2 ${isActive ? "active" : ""}`}
               >
                 <i className={`isax ${tabIcon} me-2`} aria-hidden="true" />
@@ -139,10 +139,13 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
         </div>
       </nav>
 
-      {activeTab === "pages" && <ContentWithQAErrorsPagesView />}
-      {activeTab === "pdf" && <ContentWithQAErrorsPdfView />}
-      {activeTab === "other" && <ContentWithQAErrorsOtherView />}
-      {activeTab === "all" && (
+      {(activeTab === "pdf" || activeTab === "other") && (
+        <QaPanelEmpty
+          title={activeTab === "pdf" ? "PDF documents" : "Other documents"}
+          message="Document-level breakdown is not available from the current scan. Use the All or Pages tab to see affected web pages."
+        />
+      )}
+      {(activeTab === "all" || activeTab === "pages") && (
         <>
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm mb-4 overflow-hidden">
             <div className="card-body p-0">
@@ -156,7 +159,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                           className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
                           onClick={() => handleSort("title")}
                         >
-                          Title and URL
+                          {QA_TABLE.pageTitleUrl}
                           <SortIcon column="title" />
                         </button>
                       </th>
@@ -166,7 +169,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                           className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
                           onClick={() => handleSort("notifications")}
                         >
-                          Notifications
+                          {QA_TABLE.issueCount}
                           <SortIcon column="notifications" />
                         </button>
                       </th>
@@ -204,7 +207,12 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedRows.map((row) => (
+                    <QaTableStatusRow
+                      colSpan={5}
+                      loading={loading}
+                      isEmpty={!loading && paginatedRows.length === 0}
+                    />
+                    {!loading && paginatedRows.map((row) => (
                       <tr key={row.id}>
                         <td className="py-3 ps-4">
                           <div className="d-flex flex-column">

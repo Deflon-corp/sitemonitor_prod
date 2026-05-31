@@ -8,7 +8,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const SAMPLE_ROWS = Array.from({ length: 10 }, (_, i) => ({
   id: `doc-${i + 1}`,
   title: i % 2 === 0 ? "(No title found)" : `File ${i + 1}.docx`,
-  url: `https://www.bajajfinserv.in/files/document-${i + 1}`,
+  url: `https://example.com/files/document-${i + 1}`,
   unwanted: i % 2,
   required: 0,
   matches: 1,
@@ -54,7 +54,7 @@ const ContentWithPolicyMatchesDocumentsTabContent = ({ domainUrl, onOpenPageDeta
                       onChange={(e) => { setTitleSearch(e.target.value); setCurrentPage(1); }}
                       aria-label="Search title and URL"
                     />
-                    <span className="text-muted small">{domainUrl ?? "https://www.bajajfinserv.in/"}</span>
+                    <span className="text-muted small">{domainUrl ?? "https://example.com/"}</span>
                   </div>
                 </th>
                 <th className="py-3 text-body fs-13 fw-semibold text-center">Unwanted</th>

@@ -1,27 +1,67 @@
-import React, { useState, useMemo  } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { getQaBrokenLinksApi, patchQaLinkStatusApi } from "@/api/qaApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import toast from "react-hot-toast";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = [
-  { id: 201, url: "https://www.bajajfinserv.in/careers", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 120 },
-  { id: 202, url: "https://www.bajajfinserv.in/contact", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 95 },
-  { id: 203, url: "https://www.bajajfinserv.in/faq", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 67 },
-  { id: 204, url: "https://cdn.bajajfinserv.in/assets/hero-image.jpg", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 44 },
-  { id: 205, url: "https://www.bajajfinserv.in/terms", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 38 },
-  { id: 206, url: "https://www.bajajfinserv.in/privacy", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 28 },
-  { id: 207, url: "https://partner.com/updated-page", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 18 },
-  { id: 208, url: "https://www.bajajfinserv.in/offers/current", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 12 },
-  { id: 209, url: "https://www.bajajfinserv.in/help/guide", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 7 },
-  { id: 210, url: "https://api.bajajfinserv.in/health", responseCode: "200", type: "link", documentsCount: 0, pagesCount: 4 },
-];
-
 export default function BrokenLinksMarkedAsFixedView({ onOpenContentDrawer, onOpenDocumentsDrawer }) {
+  const [rows, setRows] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortByUrl, setSortByUrl] = useState(null);
 
-  const filteredRows = SAMPLE_ROWS;
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchFixedLinks = useCallback(async () => {
+    if (!domainId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await getQaBrokenLinksApi(domainId, { tab: "fixed", limit: "500" });
+      if (res.success && res.data?.links) {
+        setRows(res.data.links);
+      } else {
+        setRows([]);
+      }
+    } catch (err) {
+      console.error("Error fetching fixed links:", err);
+      setRows([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    fetchFixedLinks();
+  }, [fetchFixedLinks]);
+
+  const handleAction = async (row, actionType) => {
+    if (!domainId) return;
+    try {
+      let res;
+      if (actionType === "reopen") {
+        res = await patchQaLinkStatusApi(domainId, { href: row.url, isFixed: false });
+      } else if (actionType === "ignore") {
+        res = await patchQaLinkStatusApi(domainId, { href: row.url, isFixed: false, isIgnored: true });
+      }
+      if (res?.success) {
+        toast.success(actionType === "reopen" ? "Link reopened successfully" : "Link ignored successfully");
+        fetchFixedLinks();
+      } else {
+        toast.error(res?.message || "Failed to update link status");
+      }
+    } catch (err) {
+      console.error("Error updating link status:", err);
+      toast.error("Failed to update link status");
+    }
+  };
+
+  const filteredRows = rows;
 
   const sortedRows = useMemo(() => {
     if (!sortByUrl) return filteredRows;
@@ -79,69 +119,100 @@ export default function BrokenLinksMarkedAsFixedView({ onOpenContentDrawer, onOp
               </tr>
             </thead>
             <tbody>
-              {paginatedRows.map((row) => (
-                <tr key={row.id}>
-                  <td className="ps-4 py-3">
-                    <input type="checkbox" className="form-check-input" aria-label={`Select link ${row.id}`} />
-                  </td>
-                  <td className="py-3">
-                    <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none">
-                      {row.url}
-                    </a>
-                  </td>
-                  <td className="py-3">
-                    <span className="text-body">{row.responseCode}</span>
-                  </td>
-                  <td className="py-3">
-                    <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{row.type}</span>
-                  </td>
-                  <td className="py-3 text-center">
-                    {onOpenDocumentsDrawer ? (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 border-0 text-decoration-none"
-                        onClick={() => onOpenDocumentsDrawer(row.url)}
-                        title="View documents with this broken link"
-                      >
-                        <span className="text-primary fw-medium">{row.documentsCount}</span>
-                      </button>
-                    ) : (
-                      <span className="text-primary fw-medium">{row.documentsCount}</span>
-                    )}
-                  </td>
-                  <td className="py-3 text-center">
-                    {onOpenContentDrawer ? (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 border-0 text-decoration-none"
-                        onClick={() => onOpenContentDrawer(row.url)}
-                        title="View content with this broken link"
-                      >
-                        <span className="text-primary fw-medium">{row.pagesCount}</span>
-                      </button>
-                    ) : (
-                      <span className="text-primary fw-medium">{row.pagesCount}</span>
-                    )}
-                  </td>
-                  <td className="py-3 pe-4">
-                    <div className="dropdown">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-light d-inline-flex align-items-center gap-1"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        Action
-                        <i className="isax isax-arrow-down-1 fs-12" aria-hidden="true"></i>
-                      </button>
-                      <ul className="dropdown-menu dropdown-menu-end">
-                        <li><button type="button" className="dropdown-item">Reopen issue</button></li>
-                        <li><button type="button" className="dropdown-item">Ignore</button></li>
-                      </ul>
-                    </div>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-5">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <span className="text-muted">Loading fixed links...</span>
                   </td>
                 </tr>
-              ))}
+              ) : paginatedRows.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-5">
+                    <span className="text-muted">No marked as fixed links found.</span>
+                  </td>
+                </tr>
+              ) : (
+                paginatedRows.map((row) => (
+                  <tr key={row.id || row.url}>
+                    <td className="ps-4 py-3">
+                      <input type="checkbox" className="form-check-input" aria-label={`Select link ${row.id}`} />
+                    </td>
+                    <td className="py-3">
+                      <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none">
+                        {row.url}
+                      </a>
+                    </td>
+                    <td className="py-3">
+                      <span className="text-body">{row.responseCode}</span>
+                    </td>
+                    <td className="py-3">
+                      <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{row.linkType || row.type}</span>
+                    </td>
+                    <td className="py-3 text-center">
+                      {onOpenDocumentsDrawer ? (
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-decoration-none"
+                          onClick={() => onOpenDocumentsDrawer(row.url)}
+                          title="View documents with this broken link"
+                        >
+                          <span className="text-primary fw-medium">{row.documentsCount}</span>
+                        </button>
+                      ) : (
+                        <span className="text-primary fw-medium">{row.documentsCount}</span>
+                      )}
+                    </td>
+                    <td className="py-3 text-center">
+                      {onOpenContentDrawer ? (
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-decoration-none"
+                          onClick={() => onOpenContentDrawer(row.url)}
+                          title="View content with this broken link"
+                        >
+                          <span className="text-primary fw-medium">{row.pagesCount}</span>
+                        </button>
+                      ) : (
+                        <span className="text-primary fw-medium">{row.pagesCount}</span>
+                      )}
+                    </td>
+                    <td className="py-3 pe-4">
+                      <div className="dropdown">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-light d-inline-flex align-items-center gap-1"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          Action
+                          <i className="isax isax-arrow-down-1 fs-12" aria-hidden="true"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li>
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={() => handleAction(row, "reopen")}
+                            >
+                              Reopen issue
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={() => handleAction(row, "ignore")}
+                            >
+                              Ignore
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -14,11 +14,11 @@ const OTHER_CHECKS_SAMPLE = [
 ];
 
 const PAGES_WITH_ISSUE_SAMPLE = [
-  { title: null, url: "https://www.bajajfinserv.in/bmall/laptops/hp-intel-core-i3-3rd-gen-15-6-inch-laptop" },
-  { title: null, url: "https://www.bajajfinserv.in/bmall/laptops/acer-aspire-5-intel-core-i5-13th-gen-15-6-inch-laptop" },
-  { title: null, url: "https://www.bajajfinserv.in/bmall/laptops/dell-vostro-3520-intel-core-i5-12th-gen-15-6-inch-laptop" },
-  { title: null, url: "https://www.bajajfinserv.in/bmall/laptops/lenovo-ideapad-slim-3-intel-core-i5-12th-gen" },
-  { title: null, url: "https://www.bajajfinserv.in/bmall/laptops/asus-vivobook-15-intel-core-i3-12th-gen" },
+  { title: null, url: "https://www.example.com/products/laptop-a" },
+  { title: null, url: "https://www.example.com/products/laptop-b" },
+  { title: null, url: "https://www.example.com/products/laptop-c" },
+  { title: null, url: "https://www.example.com/products/tablet-a" },
+  { title: null, url: "https://www.example.com/products/tablet-b" },
 ];
 
 const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {

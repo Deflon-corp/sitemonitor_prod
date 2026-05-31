@@ -41,7 +41,7 @@ const ISSUE_DRAWER_SNIPPET_HTML = `<section class="listing-icons carousel-style 
     <div class="swiper-wrapper">
       <div class="swiper-slide" style="margin-right: 16px;">
         <a title="Health">
-          <img src="https://cms-assets.bajajfinserv.in/is/image/.../health-insurance-2?scl=1&amp;fmt=png-alpha" alt="Health" width="50" height="50" loading="lazy">
+          <img src="https://cms-assets.example.com/is/image/.../health-insurance-2?scl=1&amp;fmt=png-alpha" alt="Health" width="50" height="50" loading="lazy">
           <h3>Health</h3>
         </a>
       </div>
@@ -467,7 +467,7 @@ const AccessibilitySection = ({ data, score }) => {
                                     effectOnCompliance: "0.00 %",
                                     snippetHtml: inst.snippet || ISSUE_DRAWER_SNIPPET_HTML,
                                     pageTitle: "Search",
-                                    pageUrl: "https://www.bajajfinserv.in/search",
+                                    pageUrl: "https://example.com/search",
                                     responsibility: selectedCheck.roles,
                                     successCriteria: selectedCheck.successCriteria?.replace(/^Part of success criteria\s*/i, "").trim() || "1.1.1",
                                     difficulty: "Easy",

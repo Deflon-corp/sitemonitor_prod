@@ -4,53 +4,14 @@ import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import PageDetailsDrawerFromMisspelling from "@/components/prioritized-content/PageDetailsDrawerFromMisspelling";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-const DEFAULT_PAGES_WITH_MISSPELLING = [
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", language: "English (Australian)", misspellings: 2, potentialMisspellings: 113, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-15s-dua-3560-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-15-6-inch-laptop/p/29186", language: "English (Australian)", misspellings: 2, potentialMisspellings: 115, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-3520-intel-core-i5-12th-gen-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29187", language: "English (Australian)", misspellings: 2, potentialMisspellings: 116, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-3-amd-ryzen-5-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29188", language: "English (Australian)", misspellings: 2, potentialMisspellings: 117, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29189", language: "English (Australian)", misspellings: 2, potentialMisspellings: 119, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29190", language: "English (Australian)", misspellings: 2, potentialMisspellings: 112, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29191", language: "English (Australian)", misspellings: 2, potentialMisspellings: 118, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29192", language: "English (Australian)", misspellings: 2, potentialMisspellings: 114, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-thinkpad-e15-amd-ryzen-5-8-gb-512-gb-ssd-15-6-inch-laptop/p/29193", language: "English (Australian)", misspellings: 2, potentialMisspellings: 121, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-swift-3-intel-core-i5-8-gb-512-gb-ssd-14-inch-laptop/p/29194", language: "English (Australian)", misspellings: 2, potentialMisspellings: 110, views: 0 },
-];
-
-
 
 export default function MisspellingIssueDrawer({
   open,
   onClose,
   issue,
-  pagesWithMisspelling = DEFAULT_PAGES_WITH_MISSPELLING,
+  pagesWithMisspelling = [],
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -246,6 +207,9 @@ export default function MisspellingIssueDrawer({
                 )
               )
               , React.createElement('tbody', {}
+                , pagesWithMisspelling.length === 0 && React.createElement('tr', null
+                  , React.createElement('td', { colSpan: 6, className: "text-center py-5 text-muted fs-13" }, "No pages found for this word.")
+                )
                 , paginatedPages.map((p, idx) => (
                   React.createElement('tr', { key: `${p.url}-${idx}`}
                     , React.createElement('td', { className: "py-3 ps-4" }

@@ -8,15 +8,15 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
 /** Sample data for PDF Documents – replace with API */
-const SAMPLE_ROWS = Array.from({ length: 18 }, (_, i) => ({
+const SAMPLE_ROWS = Array.from({ length: 1 }, (_, i) => ({
   id: `pdf-${i + 1}`,
-  title: i % 3 === 0 ? "(No title found)" : `Document ${i + 1}.pdf`,
-  url: `https://www.bajajfinserv.in/docs/document-${i + 1}.pdf`,
+  title: "Example Document.pdf",
+  url: `https://www.example.com/docs/document-${i + 1}.pdf`,
   unwanted: 0,
-  required: i % 2,
+  required: 0,
   matches: 1,
-  priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-  views: Math.floor(Math.random() * 200),
+  priority: "Low",
+  views: 0,
 }));
 
 const ContentWithPolicyMatchesPdfView = ({ data = [] }) => {

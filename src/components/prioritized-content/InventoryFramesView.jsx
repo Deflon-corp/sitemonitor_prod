@@ -15,19 +15,19 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, url: "https://www.bajajfinserv.in/frames/nav", pageCount: 1 },
-  { id: 2, url: "https://www.bajajfinserv.in/frames/sidebar", pageCount: 1 },
-  { id: 3, url: "https://www.bajajfinserv.in/frames/content", pageCount: 2 },
-  { id: 4, url: "https://www.bajajfinserv.in/frames/footer", pageCount: 1 },
-  { id: 5, url: "https://www.bajajfinserv.in/legacy/frame-main", pageCount: 1 },
+  { id: 1, url: "https://example.com/frames/nav", pageCount: 1 },
+  { id: 2, url: "https://example.com/frames/sidebar", pageCount: 1 },
+  { id: 3, url: "https://example.com/frames/content", pageCount: 2 },
+  { id: 4, url: "https://example.com/frames/footer", pageCount: 1 },
+  { id: 5, url: "https://example.com/legacy/frame-main", pageCount: 1 },
 ];
 
 const DETAILS_SAMPLE = [
-  { id: 1, link: "https://www.bajajfinserv.in/frames/nav", type: "Frame", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/frames/sidebar", type: "Frame", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/frames/content", type: "Frame", responseCode: "200" },
-  { id: 4, link: "https://www.bajajfinserv.in/frames/footer", type: "Frame", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/legacy/frame-main", type: "Frame", responseCode: "200" },
+  { id: 1, link: "https://example.com/frames/nav", type: "Frame", responseCode: "200" },
+  { id: 2, link: "https://example.com/frames/sidebar", type: "Frame", responseCode: "200" },
+  { id: 3, link: "https://example.com/frames/content", type: "Frame", responseCode: "200" },
+  { id: 4, link: "https://example.com/frames/footer", type: "Frame", responseCode: "200" },
+  { id: 5, link: "https://example.com/legacy/frame-main", type: "Frame", responseCode: "200" },
 ];
 
 const TITLE = "Frames";
@@ -77,7 +77,7 @@ export default function InventoryFramesView({ items = SAMPLE, variant }) {
   }, [filteredItems, reportBase]);
 
   if (variant === "details") {
-    const detailsFiltered = !search.trim() ? DETAILS_SAMPLE : DETAILS_SAMPLE.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
+    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
     const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);

@@ -2,10 +2,10 @@ import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import NewPerformancePageDrawer from "./NewPerformancePageDrawer";
-import PerformanceDiagnosticsView from "./PerformanceDiagnosticsView";
 import PerformanceHistoryView from "./PerformanceHistoryView";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
 
 const CONFIG_OPTIONS = [
   { key: "profile", label: "Viewing as Profile", value: "Desktop cable", icon: "isax-user" },
@@ -22,19 +22,32 @@ const MEASUREMENT_BAR_OPTIONS = [
   { label: "Check frequency", value: "Once a week", icon: "isax-refresh" },
 ];
 
-const CORE_WEB_VITALS = [
-  { label: "First Contentful Paint (FCP)", value: "0 ms", color: "#7c3aed" },
-  { label: "Largest Contentful Paint (LCP)", value: "0 ms", color: "#db2777" },
-  { label: "Speed Index (SI)", value: "0 ms", color: "#fb923c" },
-  { label: "Total Blocking Time (TBT)", value: "0 ms", color: "#ea580c" },
-  { label: "Cumulative Layout Shift (CLS)", value: "0", color: "#3b82f6" },
-];
+const getCoreWebVitals = (page) => {
+  const perf = page?.performance || {};
+  
+  const formatVal = (val, unit = "") => {
+    if (val === null || val === undefined || isNaN(Number(val))) return "N/A";
+    return `${Number(val).toFixed(2)}${unit}`;
+  };
+
+  const fcp = perf.coreWebVitals?.FCP ?? perf.fcp ?? perf.firstContentfulPaint;
+  const lcp = perf.coreWebVitals?.LCP ?? perf.lcp ?? perf.largestContentfulPaint;
+  const si = perf.coreWebVitals?.SpeedIndex ?? perf.speedIndex ?? perf.speed_index;
+  const tbt = perf.coreWebVitals?.TBT ?? perf.tbt ?? perf.totalBlockingTime;
+  const cls = perf.coreWebVitals?.CLS ?? perf.cls ?? perf.cumulativeLayoutShift;
+
+  return [
+    { label: "First Contentful Paint (FCP)", value: formatVal(fcp, "s"), color: "#7c3aed" },
+    { label: "Largest Contentful Paint (LCP)", value: formatVal(lcp, "s"), color: "#db2777" },
+    { label: "Speed Index (SI)", value: formatVal(si, "s"), color: "#fb923c" },
+    { label: "Total Blocking Time (TBT)", value: formatVal(tbt, "ms"), color: "#ea580c" },
+    { label: "Cumulative Layout Shift (CLS)", value: formatVal(cls), color: "#3b82f6" },
+  ];
+};
 
 const SIDEBAR_ITEMS = [
-  { key: "dashboard", label: "Dashboard", icon: "isax-home-2" },
-  { key: "opportunities", label: "Opportunities", icon: "isax-cloud" },
-  { key: "diagnostics", label: "Diagnostics", icon: "isax-info-circle" },
-  { key: "history", label: "History", icon: "isax-chart-2" },
+  { key: "summary", label: "Summary", icon: "isax-home-2" },
+  { key: "quick-help", label: "Quick Help", icon: "isax-message-question" },
 ];
 
 const LAST_CHECK = "February 22, 2026 5:32:03 PM";
@@ -51,7 +64,15 @@ const PERFORMANCE_REPORT_ROWS = [
   { metric: "Check frequency", value: "No Frequency" },
 ];
 
-const PerformanceScoreCard = () => {
+const PerformanceScoreCard = ({ page }) => {
+  const score = page?.lighthousePerformanceScore || 0;
+  const circumference = 2 * Math.PI * 52;
+  const strokeDasharray = `${(score / 100) * circumference} ${circumference}`;
+  
+  let strokeColor = "#dc2626";
+  if (score >= 90) strokeColor = "#22c55e";
+  else if (score >= 50) strokeColor = "#f59e0b";
+
   return (
     <div className="card border-0 shadow-sm h-100">
       <div className="card-body">
@@ -65,14 +86,15 @@ const PerformanceScoreCard = () => {
                 cy="60"
                 r="52"
                 fill="none"
-                stroke="#dc2626"
+                stroke={strokeColor}
                 strokeWidth="10"
                 strokeLinecap="round"
-                strokeDasharray={`${0} ${2 * Math.PI * 52}`}
+                strokeDasharray={strokeDasharray}
+                style={{ transition: "stroke-dasharray 1s ease" }}
               />
             </svg>
             <span className="position-absolute fw-bold text-body" style={{ fontSize: "1.5rem" }}>
-              0
+              {score}
             </span>
           </div>
           <div className="d-flex flex-column gap-2">
@@ -94,26 +116,6 @@ const PerformanceScoreCard = () => {
                 0-49
               </span>
             </div>
-          </div>
-          <div className="d-flex flex-column gap-2">
-            <span
-              className="btn btn-sm bg-body-secondary text-body border-0 rounded-2 px-3 py-2 fw-medium"
-              style={{ fontSize: "0.75rem", cursor: "default" }}
-            >
-              Performance Errors: 100
-            </span>
-          </div>
-          <div className="flex-grow-1 min-w-0" style={{ minWidth: 140 }}>
-            <div className="bg-danger bg-opacity-10 rounded mb-1" style={{ height: 6 }} />
-            <div className="d-flex justify-content-end">
-              <span className="rounded-circle bg-danger d-inline-block" style={{ width: 8, height: 8 }} aria-hidden="true" />
-            </div>
-            <span className="text-muted" style={{ fontSize: "0.7rem" }}>
-              Timeline
-            </span>
-            <span className="ms-1 d-inline-flex" title="Timeline" aria-label="Info">
-              <i className="isax isax-information text-muted" style={{ fontSize: 10 }} aria-hidden="true" />
-            </span>
           </div>
         </div>
       </div>
@@ -167,7 +169,7 @@ const CHART_LEGEND = [
   { label: "Cumulative Layout Shift", color: "#3b82f6" },
 ];
 
-const UserLoadingExperienceCard = () => {
+const UserLoadingExperienceCard = ({ page }) => {
   return (
     <div className="card border-0 shadow-sm">
       <div className="card-body p-4">
@@ -202,7 +204,7 @@ const UserLoadingExperienceCard = () => {
             {LOAD_TIMES_TREND_LABEL}
           </p>
           <div className="d-flex flex-wrap gap-4 mb-4">
-            {LOAD_TIMES_KPIS.map(({ label, value, color }) => (
+            {getCoreWebVitals(page).map(({ label, value, color }) => (
               <div key={label} className="d-flex align-items-center gap-2">
                 <div className="rounded" style={{ width: 8, height: 48, backgroundColor: color }} aria-hidden="true" />
                 <div>
@@ -271,9 +273,6 @@ const UserLoadingExperienceCard = () => {
 const REPORT_BASE = "Performance-Report";
 const EXPAND_DRAWER_Z_BACKDROP = 1065;
 const EXPAND_DRAWER_Z_PANEL = 1070;
-
-const OPPORTUNITIES_ROWS = [];
-
 const escapeCsvCell = (value) => {
   const s = String(value ?? "");
   if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -283,8 +282,11 @@ const escapeCsvCell = (value) => {
 const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandDrawerOpen, setExpandDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [opportunitiesFilter, setOpportunitiesFilter] = useState("passed");
+  const [activeTab, setActiveTab] = useState("summary");
+  const [opportunitiesFilter, setOpportunitiesFilter] = useState("errors");
+
+  const domainId = useQaDomainId();
+
   const lastCheck = LAST_CHECK;
   const baseName = safeFilename(REPORT_BASE);
 
@@ -304,17 +306,6 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
     downloadBlob(blob, `${baseName}.csv`);
   }, [baseName]);
 
-  const exportOpportunitiesCsv = useCallback(() => {
-    const header = ["Audit", "Description", "Difficulty", "Priority", "Relevant for"];
-    const rows = opportunitiesFilter === "errors" ? OPPORTUNITIES_ROWS : OPPORTUNITIES_ROWS;
-    const lines = [
-      header.map(escapeCsvCell).join(","),
-      ...rows.map((r) => [r.title, r.description, r.difficulty, r.priority, r.relevantFor ?? ""].map(escapeCsvCell).join(",")),
-    ];
-    const csv = lines.join("\r\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    downloadBlob(blob, "Opportunities_report.csv");
-  }, [opportunitiesFilter]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
@@ -463,7 +454,7 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
           </nav>
 
           <div className="flex-grow-1 overflow-auto px-4 py-4 d-flex flex-column min-w-0">
-            {activeTab === "dashboard" &&
+            {activeTab === "summary" &&
               (showReferenceLayout || embeddedInDrawer ? (
                 <>
                   <h6 className="fw-semibold text-body mb-1">Performance score</h6>
@@ -475,22 +466,37 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
                       className="position-relative d-inline-flex align-items-center justify-content-center flex-shrink-0"
                       style={{ width: 120, height: 120 }}
                     >
-                      <svg width={120} height={120} viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="10" />
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="52"
-                          fill="none"
-                          stroke="#e5e7eb"
-                          strokeWidth="10"
-                          strokeLinecap="round"
-                          strokeDasharray={`${0} ${2 * Math.PI * 52}`}
-                        />
-                      </svg>
-                      <span className="position-absolute fw-bold text-body" style={{ fontSize: "1.75rem" }}>
-                        0
-                      </span>
+                      {(() => {
+                        const score = page?.lighthousePerformanceScore || 0;
+                        const circumference = 2 * Math.PI * 52;
+                        const strokeDasharray = `${(score / 100) * circumference} ${circumference}`;
+                        
+                        let strokeColor = "#dc2626";
+                        if (score >= 90) strokeColor = "#22c55e";
+                        else if (score >= 50) strokeColor = "#f59e0b";
+
+                        return (
+                          <>
+                            <svg width={120} height={120} viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
+                              <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="10" />
+                              <circle
+                                cx="60"
+                                cy="60"
+                                r="52"
+                                fill="none"
+                                stroke={strokeColor}
+                                strokeWidth="10"
+                                strokeLinecap="round"
+                                strokeDasharray={strokeDasharray}
+                                style={{ transition: "stroke-dasharray 1s ease" }}
+                              />
+                            </svg>
+                            <span className="position-absolute fw-bold text-body" style={{ fontSize: "1.75rem" }}>
+                              {score}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="d-flex flex-column gap-2">
                       <div className="d-flex align-items-center gap-2">
@@ -524,7 +530,7 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
                         </span>
                       </div>
                     </div>
-                    {CORE_WEB_VITALS.map((m) => (
+                    {getCoreWebVitals(page).map((m) => (
                       <div key={m.label} className="d-flex flex-column align-items-center gap-1" style={{ minWidth: 100 }}>
                         <div className="rounded" style={{ width: 6, height: 48, backgroundColor: m.color }} aria-hidden="true" />
                         <span className="text-muted text-center" style={{ fontSize: "0.7rem" }}>
@@ -548,100 +554,53 @@ const PerformanceSection = ({ page = null, embeddedInDrawer = false }) => {
                       </span>
                     ))}
                   </div>
+                  <div className="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <PerformanceHistoryView domainId={domainId} pageUrl={page?.url} />
+                  </div>
                 </>
               ) : (
                 <div className="row g-4 mb-0">
                   <div className="col-12 col-lg-6">
-                    <PerformanceScoreCard />
+                    <PerformanceScoreCard page={page} />
                   </div>
                   <div className="col-12 col-lg-6">
                     <OpportunitiesByPriorityCard />
                   </div>
                   <div className="col-12 mt-1">
-                    <UserLoadingExperienceCard />
+                    <UserLoadingExperienceCard page={page} />
                   </div>
-                </div>
-              ))}
-            {activeTab === "opportunities" && (
-              <div className="d-flex flex-column gap-3">
-                <div className="d-flex align-items-start gap-2">
-                  <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i className="isax isax-cloud fs-22" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <h6 className="mb-2 fw-semibold text-body">Opportunities</h6>
-                    <p className="text-muted mb-0" style={{ fontSize: "0.75rem", lineHeight: 1.5 }}>
-                      Opportunities present areas for improvement that can boost the page load speed of your site and improve its performance.
-                      The suggestions provided are highly targeted, with examples including enabling text compression and identifying
-                      render-blocking resources. Recommendations are presented in a way that is easy to understand with documentation coming
-                      from Google resources.
-                    </p>
-                  </div>
-                </div>
-                <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom border-secondary border-opacity-25 pb-3">
-                  <div className="d-flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setOpportunitiesFilter("errors")}
-                      className={`btn btn-sm border-0 rounded-0 bg-transparent px-0 pb-2 pt-0 ${
-                        opportunitiesFilter === "errors" ? "text-primary border-bottom border-2 border-primary fw-medium" : "text-body"
-                      }`}
-                    >
-                      Errors (0)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOpportunitiesFilter("passed")}
-                      className={`btn btn-sm border-0 rounded-0 bg-transparent px-0 pb-2 pt-0 ms-3 ${
-                        opportunitiesFilter === "passed" ? "text-primary border-bottom border-2 border-primary fw-medium" : "text-body"
-                      }`}
-                    >
-                      Passed (0)
-                    </button>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={exportOpportunitiesCsv}
-                      className="btn btn-sm btn-light border border-primary text-primary d-inline-flex align-items-center gap-2"
-                    >
-                      <i className="isax isax-document-download fs-16" aria-hidden="true" />
-                      Export
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
-                      title="Filter"
-                      aria-label="Filter"
-                    >
-                      <i className="isax isax-filter fs-18" aria-hidden="true" />
-                    </button>
-                    <div
-                      className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
-                      style={{ minWidth: 180 }}
-                    >
-                      <span className="d-flex align-items-center ps-2 pe-1 text-muted" aria-hidden="true">
-                        <i className="isax isax-search-normal-1" style={{ fontSize: 14 }} aria-hidden="true" />
-                      </span>
-                      <input
-                        type="search"
-                        className="form-control form-control-sm border-0 shadow-none bg-transparent py-2"
-                        placeholder="Search..."
-                        style={{ fontSize: "0.8rem" }}
-                        aria-label="Search opportunities"
-                      />
+                  <div className="col-12 mt-1">
+                    <div className="card border border-secondary border-opacity-25 shadow-sm p-4">
+                      <PerformanceHistoryView domainId={domainId} pageUrl={page?.url} />
                     </div>
                   </div>
                 </div>
+              ))}
+            {activeTab === "quick-help" && (
+              <div className="d-flex flex-column gap-3">
+                <div className="d-flex align-items-start gap-2">
+                  <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0">
+                    <i className="isax isax-message-question fs-22" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h6 className="mb-2 fw-semibold text-body">Quick Help</h6>
+                    <p className="text-muted mb-0" style={{ fontSize: "0.75rem", lineHeight: 1.5 }}>
+                      Information on resolving performance options.
+                    </p>
+                  </div>
+                </div>
                 <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm">
-                  <div className="card-body py-5 text-center text-muted" style={{ fontSize: "0.9rem" }}>
-                    No opportunities were found
+                  <div className="card-body py-4">
+                    <h6 className="fw-semibold text-body mb-3">How to resolve this performance option</h6>
+                    <p className="text-muted mb-0" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
+                      Here is some content to help you resolve this performance option. You can improve your page's performance score by addressing the render-blocking resources, deferring offscreen images, and minifying your CSS and JS files.
+                      <br /><br />
+                      This quick help provides the necessary content for your performance options!
+                    </p>
                   </div>
                 </div>
               </div>
             )}
-            {activeTab === "diagnostics" && <PerformanceDiagnosticsView />}
-            {activeTab === "history" && <PerformanceHistoryView />}
           </div>
         </div>
 

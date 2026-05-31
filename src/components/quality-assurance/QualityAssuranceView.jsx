@@ -30,30 +30,30 @@ const SUMMARY_SPELLCHECK_VIEW_KEYS = ["summary-potential-misspellings", "summary
 const READABILITY_VIEW_KEYS = ["readability", "readability-summary", "readability-checker"];
 
 const LINKS_SUB_NAV = [
-  { key: "content-broken-links", label: "Content with Broken Links", icon: "isax-document-text", href: "/domain/quality-assurance?view=content-broken-links" },
-  { key: "broken-links", label: "Broken Links", icon: "isax-link-2", href: "/domain/quality-assurance?view=broken-links" },
-  { key: "broken-images", label: "Broken Images", icon: "isax-image", href: "/domain/quality-assurance?view=broken-images" },
-  { key: "broken-links-sitemap", label: "Broken Links on Sitemap", icon: "isax-menu", href: "/domain/quality-assurance?view=broken-links-sitemap" },
+  { key: "content-broken-links", label: "Pages with broken links", icon: "isax-document-text", href: "/domain/quality-assurance?view=content-broken-links" },
+  { key: "broken-links", label: "Broken links", icon: "isax-link-2", href: "/domain/quality-assurance?view=broken-links" },
+  { key: "broken-images", label: "Broken images", icon: "isax-image", href: "/domain/quality-assurance?view=broken-images" },
+  { key: "broken-links-sitemap", label: "Broken links on sitemap", icon: "isax-menu", href: "/domain/quality-assurance?view=broken-links-sitemap" },
 ];
 
 const SPELLCHECK_SUB_NAV = [
-  { key: "spellcheck-summary", label: "Spellcheck Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=spellcheck-summary" },
-  { key: "spellcheck-pages", label: "Pages with Misspellings", icon: "isax-document-text", href: "/domain/quality-assurance?view=spellcheck-pages" },
+  { key: "spellcheck-summary", label: "Overview", icon: "isax-home-2", href: "/domain/quality-assurance?view=spellcheck-summary" },
+  { key: "spellcheck-pages", label: "Pages with misspellings", icon: "isax-document-text", href: "/domain/quality-assurance?view=spellcheck-pages" },
   { key: "spellcheck-misspellings", label: "Misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-misspellings" },
-  { key: "spellcheck-potential", label: "Potential Misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-potential" },
-  { key: "spellcheck-dictionary", label: "Dictionary", icon: "isax-book-1", href: "/domain/quality-assurance?view=spellcheck-dictionary" },
-  { key: "spellcheck-ignored", label: "Ignored Misspellings", icon: "isax-eye-slash", href: "/domain/quality-assurance?view=spellcheck-ignored" },
+  { key: "spellcheck-potential", label: "Possible misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-potential" },
+  { key: "spellcheck-dictionary", label: "Custom dictionary", icon: "isax-book-1", href: "/domain/quality-assurance?view=spellcheck-dictionary" },
+  { key: "spellcheck-ignored", label: "Ignored words", icon: "isax-eye-slash", href: "/domain/quality-assurance?view=spellcheck-ignored" },
 ];
 
 const READABILITY_SUB_NAV = [
-  { key: "readability-summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=readability-summary" },
-  { key: "readability-checker", label: "Readability Checker", icon: "isax-discovery", href: "/domain/quality-assurance?view=readability-checker" },
+  { key: "readability-summary", label: "Overview", icon: "isax-home-2", href: "/domain/quality-assurance?view=readability-summary" },
+  { key: "readability-checker", label: "By page", icon: "isax-discovery", href: "/domain/quality-assurance?view=readability-checker" },
 ];
 
 
 const QA_NAV = [
-  { key: "summary", label: "Summary", icon: "isax-home-2", href: "/domain/quality-assurance?view=summary" },
-  { key: "qa-errors", label: "Content with QA Errors", icon: "isax-document-copy", href: "/domain/quality-assurance?view=qa-errors" },
+  { key: "summary", label: "Overview", icon: "isax-home-2", href: "/domain/quality-assurance?view=summary" },
+  { key: "qa-errors", label: "Pages with issues", icon: "isax-document-copy", href: "/domain/quality-assurance?view=qa-errors" },
   { key: "links", label: "Links", icon: "isax-link-2", href: "/domain/quality-assurance?view=content-broken-links", children: LINKS_SUB_NAV },
   { key: "spellcheck", label: "Spellcheck", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-summary", children: SPELLCHECK_SUB_NAV },
   { key: "readability", label: "Readability", icon: "isax-book-1", href: "/domain/quality-assurance?view=readability-summary", children: READABILITY_SUB_NAV },
@@ -65,9 +65,17 @@ function buildQASummaryExportRows(qa) {
   if (!qa) return [];
   return [
     { category: "Unique broken links", value: String(qa.uniqueBrokenLinks ?? 0), detail: `Affects ${qa.pagesWithBrokenLinks ?? 0} pages` },
-    { category: "Potential misspellings", value: String(qa.totalPotentialMisspellings ?? 0), detail: `Affects ${qa.pagesWithPotentialMisspellings ?? 0} pages` },
+    {
+      category: "Possible misspellings (unique words)",
+      value: String(qa.uniquePotentialMisspellings ?? qa.topPotentialMisspellings?.length ?? 0),
+      detail: `Affects ${qa.pagesWithPotentialMisspellings ?? 0} pages`,
+    },
     { category: "Broken images", value: String(qa.uniqueBrokenImages ?? 0), detail: `Affects ${qa.pagesWithBrokenImages ?? 0} pages` },
-    { category: "Misspellings", value: String(qa.totalMisspellings ?? 0), detail: `Affects ${qa.pagesWithMisspellings ?? 0} pages` },
+    {
+      category: "Misspellings (unique words)",
+      value: String(qa.uniqueMisspellings ?? qa.topMisspellings?.length ?? 0),
+      detail: `Affects ${qa.pagesWithMisspellings ?? 0} pages`,
+    },
     { category: "QA Compliance", value: `${qa.qaCompliancePercent ?? 0}%`, detail: "Pages compliant with all QA checks" },
     { category: "Industry average", value: `${INDUSTRY_AVERAGE_PERCENT}%`, detail: "Industry benchmark" },
     { category: "Total QA issues", value: String(qa.totalQaIssues ?? 0), detail: "Total count of QA issues" },
@@ -101,7 +109,9 @@ function DonutChart({ percent, label, strokeColor = "#0d9488", showInfo = false 
           />
         </svg>
         <div className="position-absolute top-50 start-50 translate-middle text-center">
-          <span className="d-block fs-5 fw-bold text-body">{percent.toFixed(2)}%</span>
+          <span className="d-block fs-5 fw-bold text-body">
+            {Number.isFinite(percent) ? percent.toFixed(2) : "0.00"}%
+          </span>
         </div>
       </div>
       <span className="d-flex align-items-center gap-1 mt-2 fs-13 text-muted">
@@ -237,7 +247,16 @@ export default function QualityAssuranceView() {
 
   const showSummaryLoader = isLoading && currentView === "summary";
 
-  const qaScore = qaSummary?.qaCompliancePercent ?? 0;
+  const qaScore = React.useMemo(() => {
+    if (qaSummary == null) return 0;
+    const stored = qaSummary.qaCompliancePercent;
+    if (typeof stored === "number" && !Number.isNaN(stored)) return stored;
+    const total = qaSummary.totalPagesScanned ?? 0;
+    const withIssues =
+      qaSummary.pagesWithQaErrors ?? qaSummary.contentWithQaErrors ?? 0;
+    if (total <= 0) return 100;
+    return Math.round(((total - withIssues) / total) * 10000) / 100;
+  }, [qaSummary]);
   const totalIssues = qaSummary?.totalQaIssues ?? 0;
   const contentWithIssues = qaSummary?.contentWithQaErrors ?? 0;
   const totalPages = qaSummary?.totalPagesScanned ?? 0;
@@ -350,6 +369,11 @@ export default function QualityAssuranceView() {
 
       {/* Main content */}
       <div className="min-w-0 p-4 bg-body-tertiary rounded-3 overflow-auto">
+        {!domainId && (
+          <div className="alert alert-warning fs-13 mb-3" role="status">
+            Select a domain from the sidebar to view quality assurance results.
+          </div>
+        )}
         {showSummaryLoader ? (
           <div className="d-flex justify-content-center p-5">
             <div className="spinner-border text-primary" role="status">
@@ -358,6 +382,11 @@ export default function QualityAssuranceView() {
           </div>
         ) : currentView === "summary" ? (
           <React.Fragment>
+            {!qaSummary && domainId && !isLoading && (
+              <div className="alert alert-info fs-13 mb-3" role="status">
+                No QA scan data yet. Click <strong>Run QA scan</strong> to analyze this domain.
+              </div>
+            )}
             {/* Header */}
             <div className="mb-4 pb-3 border-bottom border-secondary border-opacity-25">
               <div className="d-flex flex-wrap align-items-start justify-content-between gap-3">
@@ -411,9 +440,13 @@ export default function QualityAssuranceView() {
                               <span className="d-inline-flex align-items-center justify-content-center rounded-2 bg-warning bg-opacity-10 text-warning" style={{ width: 32, height: 32 }}>
                                 <i className="isax isax-text fs-16" aria-hidden="true"></i>
                               </span>
-                              <span className="fs-13 text-body">Potential misspellings</span>
+                              <span className="fs-13 text-body">Possible misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">{qaSummary?.totalPotentialMisspellings ?? 0}</div>
+                            <div className="fs-4 fw-bold text-body">
+                              {qaSummary?.uniquePotentialMisspellings ??
+                                qaSummary?.topPotentialMisspellings?.length ??
+                                0}
+                            </div>
                             <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithPotentialMisspellings ?? 0} pages</span>
                           </div>
                         </Link>
@@ -441,7 +474,9 @@ export default function QualityAssuranceView() {
                               </span>
                               <span className="fs-13 text-body">Misspellings</span>
                             </div>
-                            <div className="fs-4 fw-bold text-body">{qaSummary?.totalMisspellings ?? 0}</div>
+                            <div className="fs-4 fw-bold text-body">
+                              {qaSummary?.uniqueMisspellings ?? qaSummary?.topMisspellings?.length ?? 0}
+                            </div>
                             <span className="fs-12 text-muted">Affects {qaSummary?.pagesWithMisspellings ?? 0} pages</span>
                           </div>
                         </Link>

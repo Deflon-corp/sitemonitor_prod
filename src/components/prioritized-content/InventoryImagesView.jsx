@@ -4,16 +4,16 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/images/hero-banner.jpg", type: "Image", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/images/logo.png", type: "Image", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/images/product-card.webp", type: "Image", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/images/team-photo.jpg", type: "Image", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/images/icon-check.svg", type: "Image", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/images/thumbnail-promo.png", type: "Image", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/images/banner-home.gif", type: "Image", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/images/favicon.ico", type: "Image", responseCode: "200" },
-  { id: 9, link: "https://cms-assets.bajajfinserv.in/images/og-image.jpg", type: "Image", responseCode: "200" },
-  { id: 10, link: "https://cms-assets.bajajfinserv.in/images/partner-logos.png", type: "Image", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/images/hero-banner.jpg", type: "Image", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/images/logo.png", type: "Image", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/images/product-card.webp", type: "Image", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/images/team-photo.jpg", type: "Image", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/images/icon-check.svg", type: "Image", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/images/thumbnail-promo.png", type: "Image", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/images/banner-home.gif", type: "Image", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/images/favicon.ico", type: "Image", responseCode: "200" },
+  { id: 9, link: "https://cms-assets.example.com/images/og-image.jpg", type: "Image", responseCode: "200" },
+  { id: 10, link: "https://cms-assets.example.com/images/partner-logos.png", type: "Image", responseCode: "200" },
 ];
 
 const InventoryImagesView = ({ items = SAMPLE }) => {

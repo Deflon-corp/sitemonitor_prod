@@ -205,8 +205,8 @@ export default function PotentialMisspellingsSectionPageDetails({
                     )
                   )
                   , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold" }, "Lookup in Google")
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold" }, "Language")
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold" }, "Confirm")
+                 
+                 
                   , React.createElement('th', { className: "py-3 pe-4 text-body fs-13 fw-semibold", style: { width: 140 } }, "Action")
                 )
               )
@@ -230,17 +230,8 @@ export default function PotentialMisspellingsSectionPageDetails({
                         , React.createElement('span', { className: "fw-bold" }, "G")
                       )
                     )
-                    , React.createElement('td', { className: "py-3 text-body fs-13" }, row.language)
-                    , React.createElement('td', { className: "py-3" }
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-link btn-sm p-0 border-0 bg-transparent text-primary text-decoration-none",
-                        onClick: () => setConfirmMisspellingId(row.id)
-                      }
-                        , "Confirm misspelling"
-
-                      )
-                    )
+                   
+                   
                     , React.createElement('td', { className: "py-3 pe-4" }
                       , React.createElement('div', { className: "d-inline-flex align-items-center gap-1" }
                         , React.createElement('div', { className: "dropdown d-inline-block" }

@@ -8,19 +8,12 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const DEFAULT_PAGES_WITH_ENTRY = [
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", language: "English (Australian)", pages: 2, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-15s-dua-3560-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-15-6-inch-laptop/p/29186", language: "English (Australian)", pages: 2, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-3520-intel-core-i5-12th-gen-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29187", language: "English (Australian)", pages: 2, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-3-amd-ryzen-5-8-gb-ram-512-gb-ssd-15-6-inch-laptop/p/29188", language: "English (Australian)", pages: 2, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i3-8-gb-256-gb-ssd-15-6-inch-laptop/p/29189", language: "English (Australian)", pages: 2, views: 0 },
-];
-
 const DictionaryIssueDrawer = ({
   open,
   onClose,
   issue,
-  pagesWithEntry = DEFAULT_PAGES_WITH_ENTRY,
+  pagesWithEntry = [],
+  page,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -29,11 +22,17 @@ const DictionaryIssueDrawer = ({
   const [sortDir, setSortDir] = useState("asc");
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
 
+  const resolvedPagesWithEntry = useMemo(() => {
+    if (pagesWithEntry && pagesWithEntry.length > 0) return pagesWithEntry;
+    if (page) return [{ title: page.title || "Untitled Page", url: page.url, language: "N/A", pages: 0, views: 0 }];
+    return [];
+  }, [pagesWithEntry, page]);
+
   const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return pagesWithEntry;
+    if (!searchQuery.trim()) return resolvedPagesWithEntry;
     const q = searchQuery.toLowerCase();
-    return pagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
-  }, [pagesWithEntry, searchQuery]);
+    return resolvedPagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+  }, [resolvedPagesWithEntry, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
@@ -65,7 +64,7 @@ const DictionaryIssueDrawer = ({
   const exportCSV = useCallback(() => {
     const header = "Title,URL,Language,Pages,Views\n";
     const body = sortedPages
-      .map((p) => `"${(p.title || "").replace(/"/g, '""')}","${p.url.replace(/"/g, '""')}","${p.language.replace(/"/g, '""')}",${p.pages},${p.views}`)
+      .map((p) => `"${(p.title || "").replace(/"/g, '""')}","${p.url.replace(/"/g, '""')}","${(p.language || "").replace(/"/g, '""')}",${p.pages || 0},${p.views || 0}`)
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -73,7 +72,7 @@ const DictionaryIssueDrawer = ({
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = sortedPages.map((p) => ({ Title: p.title || "", URL: p.url, Language: p.language, Pages: p.pages, Views: p.views }));
+    const rows = sortedPages.map((p) => ({ Title: p.title || "", URL: p.url, Language: p.language || "", Pages: p.pages || 0, Views: p.views || 0 }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -85,7 +84,7 @@ const DictionaryIssueDrawer = ({
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Title", "URL", "Language", "Pages", "Views"]];
-    const body = sortedPages.map((p) => [(p.title || "").slice(0, 30), p.url.slice(0, 50), p.language, String(p.pages), String(p.views)]);
+    const body = sortedPages.map((p) => [(p.title || "").slice(0, 30), p.url.slice(0, 50), p.language || "", String(p.pages || 0), String(p.views || 0)]);
     autoTable(doc, { head, body, startY: 10, styles: { fontSize: 7 }, columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 55 }, 2: { cellWidth: 28 }, 3: { cellWidth: 14 }, 4: { cellWidth: 14 } } });
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedPages]);
@@ -236,6 +235,11 @@ const DictionaryIssueDrawer = ({
                 </tr>
               </thead>
               <tbody>
+                {resolvedPagesWithEntry.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-5 text-center text-muted">No pages found</td>
+                  </tr>
+                )}
                 {paginatedPages.map((p, idx) => (
                   <tr key={`${p.url}-${idx}`}>
                     <td className="py-3 ps-4">
@@ -286,7 +290,7 @@ const DictionaryIssueDrawer = ({
                 {ROWS_PER_PAGE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
               <span className="text-muted small">
-                {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                {sortedPages.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
               </span>
             </div>
             <nav aria-label="Pages with dictionary entry pagination">

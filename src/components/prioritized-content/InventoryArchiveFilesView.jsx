@@ -4,14 +4,14 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/downloads/backup-2024-q4.zip", type: "Archive", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/downloads/compliance-docs.zip", type: "Archive", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/downloads/audit-reports-2025.zip", type: "Archive", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/downloads/policy-templates.zip", type: "Archive", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/downloads/legacy-documents.rar", type: "Archive", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/downloads/quarterly-data-mar25.zip", type: "Archive", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/downloads/attachments-bundle.zip", type: "Archive", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/downloads/forms-archive.zip", type: "Archive", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/downloads/backup-2024-q4.zip", type: "Archive", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/downloads/compliance-docs.zip", type: "Archive", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/downloads/audit-reports-2025.zip", type: "Archive", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/downloads/policy-templates.zip", type: "Archive", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/downloads/legacy-documents.rar", type: "Archive", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/downloads/quarterly-data-mar25.zip", type: "Archive", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/downloads/attachments-bundle.zip", type: "Archive", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/downloads/forms-archive.zip", type: "Archive", responseCode: "200" },
 ];
 
 const InventoryArchiveFilesView = ({ items = SAMPLE }) => {

@@ -7,7 +7,9 @@ const CountdownTimer = ({ targetDate }) => {
         if (!targetDate) return;
 
         const calculateTimeLeft = () => {
-            const difference = new Date(targetDate) - new Date();
+            const target = new Date(targetDate);
+            if (isNaN(target.getTime())) return 'Invalid date';
+            const difference = target - new Date();
             
             if (difference <= 0) {
                 return 'Scanning soon...';

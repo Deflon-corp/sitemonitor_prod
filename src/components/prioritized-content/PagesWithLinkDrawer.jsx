@@ -18,49 +18,58 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 
 
 
+import inventoryApi from "@/api/inventoryApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-function getSamplePages() {
-  const base = "https://www.bajajfinserv.in/bmall";
-  const paths = [
-    "/nipha-turbo-thresher-paddy-4-fan-plus-1-red/p/29185",
-    "/godrej-343-l-3-star-frost-free-double-door-refrigerator-lush-white-rteon-343-p-33-lush-w-219jlw/p/29185",
-    "/samsung-253-l-3-star-frost-free-double-door-refrigerator/p/29184",
-    "/lg-260-l-3-star-frost-free-double-door-refrigerator/p/29183",
-    "/whirlpool-265-l-3-star-frost-free-double-door-refrigerator/p/29182",
-    "/haier-324-l-frost-free-double-door-refrigerator/p/29181",
-    "/ifb-279-l-3-star-frost-free-double-door-refrigerator/p/29180",
-    "/mitra-230-l-3-star-single-door-refrigerator/p/29179",
-    "/kelvinator-192-l-single-door-refrigerator/p/29178",
-    "/televisions/bpl-tv",
-    "/televisions/amstrad-tv",
-    "/televisions/elista-tv",
-    "/laptops/16gb-ram-laptops",
-    "/search",
-    "/washing-machines/front-load",
-  ];
-  return paths.map((path, i) => ({
-    id: `page-${i + 1}`,
-    title: "(No title found)",
-    url: path.startsWith("http") ? path : `${base}${path}`,
-    views: 0,
-  }));
-}
-
-const SAMPLE_PAGES = getSamplePages();
-
 export default function PagesWithLinkDrawer({ open, onClose, linkUrl, onOpenPageDetails }) {
+  const [pages, setPages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortViewsAsc, setSortViewsAsc] = useState(true);
 
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  useEffect(() => {
+    if (!open || !domainId || !linkUrl) return;
+    const fetchPages = async () => {
+      setIsLoading(true);
+      try {
+        const res = await inventoryApi.getInventoryDetails(domainId, {
+          type: "links",
+          search: linkUrl,
+          limit: 100,
+        });
+        if (res.success && res.data?.items) {
+          const mapped = res.data.items.map((item, idx) => ({
+            id: item._id || idx,
+            title: item.anchor_text || "(No anchor text found)",
+            url: item.page_url,
+            views: 0,
+          }));
+          setPages(mapped);
+        } else {
+          setPages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching pages with link:", err);
+        setPages([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPages();
+  }, [open, domainId, linkUrl]);
+
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_PAGES;
+    if (!search.trim()) return pages;
     const q = search.trim().toLowerCase();
-    return SAMPLE_PAGES.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
-  }, [search]);
+    return pages.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+  }, [search, pages]);
 
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((a, b) => (sortViewsAsc ? a.views - b.views : b.views - a.views));
@@ -195,42 +204,55 @@ export default function PagesWithLinkDrawer({ open, onClose, linkUrl, onOpenPage
                 )
               )
               , React.createElement('tbody', {}
-                , paginatedRows.map((row) => (
-                  React.createElement('tr', { key: row.id}
-                    , React.createElement('td', { className: "py-3 ps-4" }
-                      , React.createElement('div', { className: "d-flex flex-column" }
-                        , React.createElement('span', { className: "text-muted small" }, row.title)
-                        , React.createElement('a', {
-                          href: row.url,
-                          target: "_blank",
-                          rel: "noopener noreferrer" ,
-                          className: "text-primary text-decoration-none small d-inline-flex align-items-center mt-1"     }
+                , isLoading ? (
+                    React.createElement('tr', null,
+                      React.createElement('td', { colSpan: 3, className: "text-center py-5 text-muted" },
+                        React.createElement('div', { className: "spinner-border spinner-border-sm text-primary me-2", role: "status" }),
+                        "Loading pages..."
+                      )
+                    )
+                  ) : paginatedRows.length === 0 ? (
+                    React.createElement('tr', null,
+                      React.createElement('td', { colSpan: 3, className: "text-center py-5 text-muted" }, "No pages found embedding this link.")
+                    )
+                  ) : (
+                    paginatedRows.map((row) => (
+                      React.createElement('tr', { key: row.id}
+                        , React.createElement('td', { className: "py-3 ps-4" }
+                          , React.createElement('div', { className: "d-flex flex-column" }
+                            , React.createElement('span', { className: "text-muted small" }, row.title)
+                            , React.createElement('a', {
+                              href: row.url,
+                              target: "_blank",
+                              rel: "noopener noreferrer" ,
+                              className: "text-primary text-decoration-none small d-inline-flex align-items-center mt-1"     }
 
-                          , row.url
-                          , React.createElement('span', { className: "ms-1 d-inline-flex" , 'aria-hidden': true}
-                            , React.createElement('svg', { width: "14", height: "14", viewBox: "0 0 24 24"   , fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-primary"}
-                              , React.createElement('path', { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"               } )
-                              , React.createElement('path', { d: "M15 3h6v6" } )
-                              , React.createElement('path', { d: "M10 14L21 3"  } )
+                              , row.url
+                              , React.createElement('span', { className: "ms-1 d-inline-flex" , 'aria-hidden': true}
+                                , React.createElement('svg', { width: "14", height: "14", viewBox: "0 0 24 24"   , fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-primary"}
+                                  , React.createElement('path', { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"               } )
+                                  , React.createElement('path', { d: "M15 3h6v6" } )
+                                  , React.createElement('path', { d: "M10 14L21 3"  } )
+                                )
+                              )
                             )
                           )
                         )
-                      )
-                    )
-                    , React.createElement('td', { className: "py-3 text-body" }, row.views)
-                    , React.createElement('td', { className: "py-3 pe-4 text-end"  }
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-icon btn-sm btn-primary rounded-2"    ,
-                        'aria-label': "Open page details"  ,
-                        title: "Open page details"  ,
-                        onClick: () => _optionalChain([onOpenPageDetails, 'optionalCall', _2 => _2(row)])}
+                        , React.createElement('td', { className: "py-3 text-body" }, row.views)
+                        , React.createElement('td', { className: "py-3 pe-4 text-end"  }
+                          , React.createElement('button', {
+                            type: "button",
+                            className: "btn btn-icon btn-sm btn-primary rounded-2"    ,
+                            'aria-label': "Open page details"  ,
+                            title: "Open page details"  ,
+                            onClick: () => _optionalChain([onOpenPageDetails, 'optionalCall', _2 => _2(row)])}
 
-                        , React.createElement('i', { className: "isax isax-document-text" , 'aria-hidden': true} )
+                            , React.createElement('i', { className: "isax isax-document-text" , 'aria-hidden': true} )
+                          )
+                        )
                       )
-                    )
+                    ))
                   )
-                ))
               )
             )
           )

@@ -5,9 +5,9 @@ import { createUserApi, getUserByIdApi, updateUserApi } from "../../api/userApi"
 import { showToast } from "../common/alerts/ToastAlert";
 
 const MOCK_CURRENT_USER = {
-    firstName: "Irfan",
-    lastName: "Shaikh",
-    email: "irfan.shaikh3@bajajfinserv.in",
+    firstName: "John",
+    lastName: "Doe",
+    email: "user@example.com",
     phone: "",
     language: "en",
     isAccountAdmin: false,

@@ -15,6 +15,13 @@ export const getQaSummaryApi = async (domainId) => {
   return response.data;
 };
 
+export const getQaPageDetailApi = async (domainId, pageUrl) => {
+  const response = await axiosInstance.get(
+    `/qa/page-detail/${domainId}?pageUrl=${encodeURIComponent(pageUrl)}`
+  );
+  return response.data;
+};
+
 export const getQaPagesApi = async (domainId, params = {}) => {
   const qs = new URLSearchParams(params).toString();
   const response = await axiosInstance.get(`/qa/pages/${domainId}?${qs}`);

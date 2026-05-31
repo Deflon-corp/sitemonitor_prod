@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageDetailsMisspellingsDrawer from "../prioritized-content/PageDetailsMisspellingsDrawer";
-import { useQaPagesList } from "../../hooks/useQaPagesList";
+import { QaPanelEmpty } from "./QaDataStates";
 
 const TABS = [
   { key: "incorrect", label: "Pages with incorrect language", icon: "isax-danger" },
@@ -32,19 +32,13 @@ export default function PagesWithLanguageIssuesView() {
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
 
-  const { rows: fetchedRows, loading } = useQaPagesList({
-    filter: "qa-errors",
-    page: currentPage,
-    limit: rowsPerPage,
-    search,
-    enabled: true,
-  });
+  const fetchedRows = [];
+  const loading = false;
 
   const filteredByTab = useMemo(() => {
-    if (activeTab === "incorrect")
-      return fetchedRows.filter((r) => r.declaredLanguage !== "—" && r.declaredLanguage !== r.detectedLanguage);
-    return fetchedRows.filter((r) => r.declaredLanguage === "—");
-  }, [activeTab, fetchedRows]);
+    if (activeTab === "incorrect") return [];
+    return [];
+  }, [activeTab]);
 
   const filteredRows = useMemo(() => {
     if (!search.trim()) return filteredByTab;
@@ -150,7 +144,7 @@ export default function PagesWithLanguageIssuesView() {
       <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-4" aria-label="Issue type">
         {TABS.map(({ key, label, icon }) => {
           const isActive = activeTab === key;
-          const href = `/quality-assurance?view=language-issues&${TAB_PARAM}=${key}`;
+          const href = `/domain/quality-assurance?view=language-issues&${TAB_PARAM}=${key}`;
           return (
             <Link
               key={key}
@@ -164,7 +158,13 @@ export default function PagesWithLanguageIssuesView() {
         })}
       </nav>
 
-      <div className="card border-0 shadow-sm rounded-3 flex-grow-1">
+      <QaPanelEmpty
+        title="Language validation not available"
+        message="Page language checks are not included in the current QA scan. This view will populate when language metadata is added to scan results."
+        icon="isax-global"
+      />
+
+      <div className="card border-0 shadow-sm rounded-3 flex-grow-1 d-none">
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover table-striped table-borderless align-middle mb-0">

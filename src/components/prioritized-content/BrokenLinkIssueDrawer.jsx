@@ -4,18 +4,7 @@ import { Link } from "react-router-dom";
 const ROWS_PER_PAGE_OPTIONS = [10, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const DEFAULT_PAGES_WITH_LINK = [
-  { title: "Latest BPL Televisions - Online at Best Prices in India | EMI Starting at ₹1078/Month", url: "https://www.bajajfinserv.in/bmall/televisions/bpl-tv", priority: "High", views: 0 },
-  { title: "TVs - Latest Television Prices in India | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions", priority: "Low", views: 0 },
-  { title: "16GB RAM Laptops - Buy 16GB RAM Laptop Online at Best Prices", url: "https://www.bajajfinserv.in/bmall/laptops/16gb-ram-laptops", priority: "High", views: 0 },
-  { title: "Washing Machines - Buy Washing Machine Online at Best Prices", url: "https://www.bajajfinserv.in/bmall/washing-machines", priority: "Medium", views: 42 },
-  { title: "Smartphones - Latest Mobile Phones in India | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/smartphones", priority: "High", views: 128 },
-  { title: "Refrigerators - Buy Refrigerator Online | EMI Options", url: "https://www.bajajfinserv.in/bmall/refrigerators", priority: "Low", views: 15 },
-  { title: "Air Conditioners - AC Price in India | Best Deals", url: "https://www.bajajfinserv.in/bmall/air-conditioners", priority: "High", views: 89 },
-  { title: "Kitchen Appliances - Mixer, Grinder & More", url: "https://www.bajajfinserv.in/bmall/kitchen-appliances", priority: "Medium", views: 31 },
-  { title: "Gaming Laptops - Best Gaming Laptop Deals in India", url: "https://www.bajajfinserv.in/bmall/laptops/gaming", priority: "High", views: 56 },
-  { title: "LED TVs - Smart TV & 4K TV at Best Prices", url: "https://www.bajajfinserv.in/bmall/televisions/led-tv", priority: "Low", views: 22 },
-];
+const DEFAULT_PAGES_WITH_LINK = [];
 
 const BrokenLinkIssueDrawer = ({
   open,
@@ -27,11 +16,17 @@ const BrokenLinkIssueDrawer = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
-  const totalPages = Math.max(1, Math.ceil(pagesWithLink.length / rowsPerPage));
+  const resolvedPagesWithLink = useMemo(() => {
+    if (pagesWithLink && pagesWithLink.length > 0) return pagesWithLink;
+    if (page) return [{ title: page.title || "Untitled Page", url: page.url, priority: "Medium", views: 0 }];
+    return [];
+  }, [pagesWithLink, page]);
+
+  const totalPages = Math.max(1, Math.ceil(resolvedPagesWithLink.length / rowsPerPage));
   const paginatedPages = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return pagesWithLink.slice(start, start + rowsPerPage);
-  }, [pagesWithLink, currentPage, rowsPerPage]);
+    return resolvedPagesWithLink.slice(start, start + rowsPerPage);
+  }, [resolvedPagesWithLink, currentPage, rowsPerPage]);
 
   useEffect(() => {
     if (!open) return;
@@ -150,6 +145,11 @@ const BrokenLinkIssueDrawer = ({
                     </tr>
                   </thead>
                   <tbody>
+                    {resolvedPagesWithLink.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-5 text-center text-muted">No pages found</td>
+                      </tr>
+                    )}
                     {paginatedPages.map((p, idx) => (
                       <tr key={`${p.url}-${idx}`}>
                         <td className="py-2">
@@ -203,7 +203,7 @@ const BrokenLinkIssueDrawer = ({
                     {ROWS_PER_PAGE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, pagesWithLink.length)} of {pagesWithLink.length}
+                    {resolvedPagesWithLink.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, resolvedPagesWithLink.length)} of {resolvedPagesWithLink.length}
                   </span>
                 </div>
                 <nav aria-label="Pages with broken link pagination">

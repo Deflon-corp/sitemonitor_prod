@@ -5,11 +5,7 @@ import DictionaryPageDetailsDrawer from "@/components/prioritized-content/Dictio
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-const DEFAULT_PAGES = [
-  { title: "Compare", url: "https://www.bajajfinserv.in/bmall/compare", language: "English (Australian)", pages: 1, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185", language: "English (Australian)", pages: 2, views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-15s-dua-3560-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-15-6-inch-laptop/p/29186", language: "English (Australian)", pages: 2, views: 0 },
-];
+const DEFAULT_PAGES = [];
 
 const formatDateAdded = (dateStr) => {
   try {
@@ -32,6 +28,7 @@ const DictionaryDetailDrawer = ({
   onClose,
   issue,
   pagesWithEntry = DEFAULT_PAGES,
+  page,
   onOpenPageDetails,
   backdropZIndex = DEFAULT_BACKDROP_Z,
   panelZIndex = DEFAULT_PANEL_Z,
@@ -43,11 +40,17 @@ const DictionaryDetailDrawer = ({
   const [sortDir, setSortDir] = useState("asc");
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
 
+  const resolvedPagesWithEntry = useMemo(() => {
+    if (pagesWithEntry && pagesWithEntry.length > 0) return pagesWithEntry;
+    if (page) return [{ title: page.title || "Untitled Page", url: page.url, priority: "Medium", views: 0 }];
+    return [];
+  }, [pagesWithEntry, page]);
+
   const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return pagesWithEntry;
+    if (!searchQuery.trim()) return resolvedPagesWithEntry;
     const q = searchQuery.toLowerCase();
-    return pagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
-  }, [pagesWithEntry, searchQuery]);
+    return resolvedPagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+  }, [resolvedPagesWithEntry, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
@@ -75,7 +78,7 @@ const DictionaryDetailDrawer = ({
   };
 
   const handleCopyUrl = () => {
-    const url = issue && pagesWithEntry.length > 0 ? pagesWithEntry[0].url : window.location.href;
+    const url = issue && resolvedPagesWithEntry.length > 0 ? resolvedPagesWithEntry[0].url : window.location.href;
     void navigator.clipboard.writeText(url);
   };
 
@@ -97,7 +100,7 @@ const DictionaryDetailDrawer = ({
   if (!open || !issue) return null;
 
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(issue.word)}`;
-  const firstPage = pagesWithEntry[0];
+  const firstPage = resolvedPagesWithEntry[0];
 
   const drawerContent = (
     <>
@@ -239,6 +242,11 @@ const DictionaryDetailDrawer = ({
                     </tr>
                   </thead>
                   <tbody>
+                    {resolvedPagesWithEntry.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-5 text-center text-muted">No pages found</td>
+                      </tr>
+                    )}
                     {paginatedPages.map((p, idx) => (
                       <tr key={`${p.url}-${idx}`}>
                         <td className="py-2 ps-4">
@@ -256,8 +264,8 @@ const DictionaryDetailDrawer = ({
                           </div>
                         </td>
                         <td className="py-2 text-body fs-13">{p.language}</td>
-                        <td className="py-2 fs-13 text-body">{p.pages}</td>
-                        <td className="py-2 fs-13 text-body">{p.views}</td>
+                        <td className="py-2 fs-13 text-body">{p.pages ?? 0}</td>
+                        <td className="py-2 fs-13 text-body">{p.views ?? 0}</td>
                         <td className="py-2 pe-4">
                           <button
                             type="button"
@@ -292,7 +300,7 @@ const DictionaryDetailDrawer = ({
                     {ROWS_PER_PAGE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                    {resolvedPagesWithEntry.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, resolvedPagesWithEntry.length)} of {resolvedPagesWithEntry.length}
                   </span>
                 </div>
                 <nav aria-label="Pagination">

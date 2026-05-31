@@ -321,9 +321,9 @@ export default function PerformancePageDetailsDrawer({
           , activeTab === "dashboard" && React.createElement(PageDashboardContent, {} )
           , activeTab === "policies" && React.createElement(PoliciesTabContent, {} )
           , activeTab === "qa" && React.createElement(QualityAssuranceTabContent, {} )
-          , activeTab === "accessibility" && React.createElement(AccessibilitySection, {} )
-          , activeTab === "seo" && React.createElement(SeoSection, {} )
-          , activeTab === "inventory" && React.createElement(InventorySection, {} )
+          , activeTab === "accessibility" && React.createElement(AccessibilitySection, { page: page, embeddedInDrawer: true } )
+          , activeTab === "seo" && React.createElement(SeoSection, { page: page, embeddedInDrawer: true } )
+          , activeTab === "inventory" && React.createElement(InventorySection, { page: page, embeddedInDrawer: true } )
           , activeTab === "performance" && (
             React.createElement(PerformanceSection, { page: page, embeddedInDrawer: true} )
           )

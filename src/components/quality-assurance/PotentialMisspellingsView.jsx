@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { mapPagesForMisspellingDrawer } from "./qaMisspellingUtils";
 import PotentialMisspellingsSection from "../prioritized-content/PotentialMisspellingsSection";
 import { useQaMisspellings } from "../../hooks/useQaMisspellings";
 import PotentialMisspellingIssueDrawer from "../prioritized-content/PotentialMisspellingIssueDrawer";
@@ -23,6 +24,14 @@ export default function PotentialMisspellingsView() {
   const selectedIssue =
     selectedIssueId != null ? items.find((r) => r.id === selectedIssueId) ?? null : null;
 
+  const pagesWithMisspelling = useMemo(
+    () =>
+      selectedIssue
+        ? mapPagesForMisspellingDrawer(selectedIssue.pagesList, selectedIssue.language)
+        : [],
+    [selectedIssue]
+  );
+
   function openPageDetails(page, qaSubView) {
     setSelectedPageForDetails(page);
     setDefaultQaSubView(qaSubView ?? "misspellings");
@@ -31,15 +40,23 @@ export default function PotentialMisspellingsView() {
 
   return (
     <React.Fragment>
-      {loading && <p className="text-muted py-2">Loading potential misspellings…</p>}
-      <PotentialMisspellingsSection
-        items={items}
-        onOpenIssue={(id) => setSelectedIssueId(id)}
-        onOpenPageDetails={() => setOpenPageDetailsDrawerOpen(true)}
-      />
+      {loading && <p className="text-muted py-2">Loading possible misspellings…</p>}
+      {!loading && !items.length && (
+        <div className="card border border-secondary border-opacity-25 rounded-3 p-5 text-center text-muted mb-3">
+          <p className="mb-0 fs-13">No possible misspellings found. Run a QA scan to refresh results.</p>
+        </div>
+      )}
+      {!loading && items.length > 0 && (
+        <PotentialMisspellingsSection
+          items={items}
+          onOpenIssue={(id) => setSelectedIssueId(id)}
+          onOpenPageDetails={() => setOpenPageDetailsDrawerOpen(true)}
+        />
+      )}
       <PotentialMisspellingIssueDrawer
         open={selectedIssueId != null}
         onClose={() => setSelectedIssueId(null)}
+        pagesWithMisspelling={pagesWithMisspelling}
         issue={
           selectedIssue
             ? {

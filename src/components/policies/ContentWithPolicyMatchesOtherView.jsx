@@ -11,7 +11,7 @@ const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 const SAMPLE_ROWS = Array.from({ length: 12 }, (_, i) => ({
   id: `other-${i + 1}`,
   title: i % 2 === 0 ? "(No title found)" : `File ${i + 1}.docx`,
-  url: `https://www.bajajfinserv.in/files/other-${i + 1}`,
+  url: `https://example.com/files/other-${i + 1}`,
   unwanted: i % 2,
   required: 0,
   matches: 1,

@@ -102,13 +102,17 @@ export default function DashboardCharts({ historyData = [] }) {
 
       const history = [...historyData].reverse(); // Show oldest to newest
       const categories = history.map(h => {
+          if (!h || !h.lastScanDate) return "Unknown";
           const d = new Date(h.lastScanDate);
+          if (isNaN(d.getTime())) return "Unknown";
           return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + 
                  d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       });
 
       const fullDates = history.map(h => {
+          if (!h || !h.lastScanDate) return "Unknown";
           const d = new Date(h.lastScanDate);
+          if (isNaN(d.getTime())) return "Unknown";
           return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
                  d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       });

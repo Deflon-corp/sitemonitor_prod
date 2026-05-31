@@ -23,7 +23,7 @@ const SAMPLE_ROWS = [
   {
     id: "1",
     title: "(No title found)",
-    url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185",
+    url: "https://example.com/bmall/lenovo-intel-core-i3-6th-gen-4-gb-ram-1-tb-hdd-dos-15-6-inch-laptop-black-rel-491297624-ip310/p/29185",
     unwanted: 0,
     required: 0,
     matches: 1,
@@ -33,7 +33,7 @@ const SAMPLE_ROWS = [
   {
     id: "2",
     title: "(No title found)",
-    url: "https://www.bajajfinserv.in/search",
+    url: "https://example.com/search",
     unwanted: 0,
     required: 0,
     matches: 1,
@@ -43,7 +43,7 @@ const SAMPLE_ROWS = [
   {
     id: "3",
     title: "(No title found)",
-    url: "https://www.bajajfinserv.in/",
+    url: "https://example.com/",
     unwanted: 0,
     required: 0,
     matches: 1,
@@ -255,7 +255,7 @@ const ContentWithPolicyMatchesDrawer = ({
                                 onChange={(e) => setTitleSearch(e.target.value)}
                                 aria-label="Search title and URL"
                               />
-                              <span className="text-muted small">{domainUrl ?? "https://www.bajajfinserv.in/search"}</span>
+                              <span className="text-muted small">{domainUrl ?? "https://example.com/search"}</span>
                             </div>
                           </th>
                           <th className="py-3 text-body fs-13 fw-semibold text-center">Unwanted</th>

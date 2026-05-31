@@ -23,6 +23,7 @@ const MisspellingsSection = ({
   onOpenIssue,
   variant = "default",
   hideDetailsColumn = false,
+  showLanguage = true,
 }) => {
   const [languageFilter, setLanguageFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +43,7 @@ const MisspellingsSection = ({
       list = list.filter((r) => r.word.toLowerCase().includes(q));
     }
     return list;
-  }, [items, languageFilter, searchQuery]);
+  }, [items, languageFilter, searchQuery, showLanguage]);
 
   const sortedItems = useMemo(() => {
     if (!sortBy) return filteredItems;
@@ -75,27 +76,45 @@ const MisspellingsSection = ({
   const baseName = safeFilename("Misspellings-Report");
 
   const exportCSV = useCallback(() => {
-    const header = "Word,Language,Date found,Pages\n";
-    const body = items.map((r) => `"${r.word.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}","${r.dateFound}",${r.pages}`).join("\n");
+    const header = showLanguage ? "Word,Language,Date found,Pages\n" : "Word,Date found,Pages\n";
+    const body = items
+      .map((r) =>
+        showLanguage
+          ? `"${r.word.replace(/"/g, '""')}","${(r.language || "").replace(/"/g, '""')}","${r.dateFound}",${r.pages}`
+          : `"${r.word.replace(/"/g, '""')}","${r.dateFound}",${r.pages}`
+      )
+      .join("\n");
     downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${baseName}.csv`);
-  }, [items, baseName]);
+  }, [items, baseName, showLanguage]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = items.map((r) => ({ Word: r.word, Language: r.language, "Date found": r.dateFound }));
+    const rows = items.map((r) =>
+      showLanguage
+        ? { Word: r.word, Language: r.language, "Date found": r.dateFound, Pages: r.pages }
+        : { Word: r.word, "Date found": r.dateFound, Pages: r.pages }
+    );
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Misspellings");
     XLSX.writeFile(wb, `${baseName}.xlsx`);
-  }, [items, baseName]);
+  }, [items, baseName, showLanguage]);
 
   const exportPDF = useCallback(async () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    autoTable(doc, { head: [["Word", "Language", "Date found", "Pages"]], body: items.map((r) => [r.word, r.language, r.dateFound, String(r.pages)]), startY: 10, styles: { fontSize: 8 } });
+    const head = showLanguage
+      ? [["Word", "Language", "Date found", "Pages"]]
+      : [["Word", "Date found", "Pages"]];
+    const body = items.map((r) =>
+      showLanguage
+        ? [r.word, r.language, r.dateFound, String(r.pages)]
+        : [r.word, r.dateFound, String(r.pages)]
+    );
+    autoTable(doc, { head, body, startY: 10, styles: { fontSize: 8 } });
     doc.save(`${baseName}.pdf`);
-  }, [items, baseName]);
+  }, [items, baseName, showLanguage]);
 
   return (
     <div className="d-flex flex-column h-100">
@@ -104,23 +123,30 @@ const MisspellingsSection = ({
         <p className="text-muted fs-13 mb-0">{wordCountLabel}</p>
       </div>
 
-      <div className="d-flex flex-nowrap align-items-center justify-content-between gap-3 mb-4">
-        <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0 flex-shrink-0" aria-label="Language filter">
-          {LANGUAGES.map((lang) => {
-            const isActive = languageFilter === lang.key;
-            return (
-              <button key={lang.key} type="button"
-                className={`nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"}`}
-                onClick={() => { setLanguageFilter(lang.key); setCurrentPage(1); }}
-              >
-                <i className="isax isax-edit-2" aria-hidden="true" />
-                {lang.label}
-                {lang.key !== "all" && <span className="text-muted">({languageCount(lang.key)})</span>}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="d-flex align-items-center gap-2 flex-shrink-0">
+      <div className={`d-flex flex-nowrap align-items-center gap-3 mb-4 ${showLanguage ? "justify-content-between" : "justify-content-end"}`}>
+        {showLanguage && (
+          <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0 flex-shrink-0" aria-label="Language filter">
+            {LANGUAGES.map((lang) => {
+              const isActive = languageFilter === lang.key;
+              return (
+                <button
+                  key={lang.key}
+                  type="button"
+                  className={`nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"}`}
+                  onClick={() => {
+                    setLanguageFilter(lang.key);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <i className="isax isax-edit-2" aria-hidden="true" />
+                  {lang.label}
+                  {lang.key !== "all" && <span className="text-muted">({languageCount(lang.key)})</span>}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+        <div className="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
           <div className="dropdown">
             <button type="button" className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 d-inline-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" title="Download Report">
               <i className="isax isax-document-download text-primary fs-18" aria-hidden="true" /> Download Report
@@ -151,7 +177,7 @@ const MisspellingsSection = ({
                   </button>
                 </th>
                 <th className="py-3 text-body fs-13 fw-semibold">Lookup in Google</th>
-                <th className="py-3 text-body fs-13 fw-semibold">Language</th>
+                {showLanguage && <th className="py-3 text-body fs-13 fw-semibold">Language</th>}
                 {variant === "default" && (
                   <>
                     <th className="py-3 text-body fs-13 fw-semibold">
@@ -183,13 +209,13 @@ const MisspellingsSection = ({
                       <span className="fw-bold">G</span>
                     </a>
                   </td>
-                  <td className="py-3 text-body">{row.language}</td>
+                  {showLanguage && <td className="py-3 text-body">{row.language}</td>}
                   {variant === "default" && (
                     <>
                       <td className="py-3">
                         <div className="d-flex flex-column">
-                          <span className="fw-medium text-primary">{row.pages.toLocaleString()}</span>
-                          <span className="text-muted small">{row.pages === 1 ? "PAGE" : "PAGES"}</span>
+                          <span className="fw-medium text-primary">{Number(row.pages ?? row.pagesCount ?? 0).toLocaleString()}</span>
+                          <span className="text-muted small">{Number(row.pages ?? row.pagesCount ?? 0) === 1 ? "PAGE" : "PAGES"}</span>
                         </div>
                       </td>
                       <td className="py-3">

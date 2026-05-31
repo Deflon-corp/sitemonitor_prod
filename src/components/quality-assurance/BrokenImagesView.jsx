@@ -63,7 +63,7 @@ export default function BrokenImagesView() {
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(function() {
-    const header = "Broken link,Response code,Type,Documents,Pages\n";
+    const header = "Broken image URL,HTTP status,Type,Documents,Pages affected\n";
     const body = sortedRows
       .map((r) => `"${r.url.replace(/"/g, '""')}","${r.responseCode}","${r.type}",${r.documentsCount},${r.pagesCount}`)
       .join("\n");

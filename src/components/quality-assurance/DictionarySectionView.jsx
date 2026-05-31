@@ -1,28 +1,47 @@
-import React, { useState  } from "react";
-import DictionarySection, { DICTIONARY_SAMPLE, } from "../prioritized-content/DictionarySection";
+import React, { useState } from "react";
+import DictionarySection from "../prioritized-content/DictionarySection";
 import DictionaryIssueDrawer from "../prioritized-content/DictionaryIssueDrawer";
+import { useQaDictionary } from "../../hooks/useQaDictionary";
+import { QaPanelEmpty } from "./QaDataStates";
+import { QA_EMPTY } from "./qaConstants";
 
 /**
- * QA Spellcheck >> Dictionary view.
- * Renders DictionarySection and opens DictionaryIssueDrawer when "Open issue page" is clicked.
+ * Custom dictionary — words allowed by your domain settings (ignored spellings).
  */
 export default function DictionarySectionView() {
   const [selectedDictionaryId, setSelectedDictionaryId] = useState(null);
+  const { items, loading, error } = useQaDictionary();
 
   const selectedIssue =
-    selectedDictionaryId != null
-      ? DICTIONARY_SAMPLE.find((r) => r.id === selectedDictionaryId) ?? null
-      : null;
+    selectedDictionaryId != null ? items.find((r) => r.id === selectedDictionaryId) ?? null : null;
+
+  if (loading) {
+    return <p className="text-muted py-4">Loading custom dictionary…</p>;
+  }
+
+  if (error) {
+    return <QaPanelEmpty title="Could not load dictionary" message={error} icon="isax-danger" />;
+  }
+
+  if (items.length === 0) {
+    return (
+      <QaPanelEmpty
+        title="Custom dictionary is empty"
+        message="Add words to your domain’s ignored spellings list to treat them as valid during spellcheck."
+        icon="isax-book-1"
+      />
+    );
+  }
 
   return (
-    <React.Fragment>
+    <>
       <DictionarySection
-        items={DICTIONARY_SAMPLE}
-        onOpenIssue={function(id) { setSelectedDictionaryId(id); }}
+        items={items}
+        onOpenIssue={(id) => setSelectedDictionaryId(id)}
       />
       <DictionaryIssueDrawer
         open={selectedDictionaryId != null}
-        onClose={function() { setSelectedDictionaryId(null); }}
+        onClose={() => setSelectedDictionaryId(null)}
         issue={
           selectedIssue
             ? {
@@ -34,7 +53,6 @@ export default function DictionarySectionView() {
             : null
         }
       />
-    </React.Fragment>
+    </>
   );
 }
-

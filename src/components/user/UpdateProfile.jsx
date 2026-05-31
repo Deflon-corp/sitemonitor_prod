@@ -1,28 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { getDomainsApi } from "../../api/domainApi";
-
-const MOCK_CURRENT_USER = {
-    firstName: "Irfan",
-    lastName: "Shaikh",
-    email: "irfan.shaikh3@bajajfinserv.in",
-    phone: "",
-    language: "en",
-    isAccountAdmin: false,
-    enableExportEmailNotification: false,
-    sendWelcomeMail: true,
-    domains: [{}],
-    allModules: true,
-    visiblePolicies: true,
-    visibleQualityAssurance: true,
-    visibleAccessibility: true,
-    visibleSeo: true,
-    visibleHeartbeat: true,
-    visibleInventory: true,
-    visibleStatistics: true,
-    visiblePrioritizedContent: true,
-    visiblePerformance: true,
-};
+import { getUserByIdApi, updateUserApi } from "../../api/userApi";
+import { showToast } from "../common/alerts/ToastAlert";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -57,6 +37,7 @@ function validateConfirmPassword(value, passwordValue) {
 
 const UpdateProfile = ({ isEditMode = true }) => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
@@ -90,64 +71,71 @@ const UpdateProfile = ({ isEditMode = true }) => {
     const [visiblePerformance, setVisiblePerformance] = useState(true);
 
     useEffect(() => {
-        const fetchAvailableDomains = async () => {
+        const loadInitialData = async () => {
             try {
-                const response = await getDomainsApi(1, 10);
-                if (response.success && response.data?.domains) {
-                    const apiDomains = response.data.domains.map((d) => ({
-                        id: d.dm_id || d._id,
+                setLoading(true);
+                // 1. Fetch available domains
+                const domainsRes = await getDomainsApi(1, 100);
+                let apiDomains = [];
+                if (domainsRes.success && domainsRes.data?.domains) {
+                    apiDomains = domainsRes.data.domains.map((d) => ({
+                        id: String(d.dm_id || d._id),
                         name: d.dm_title,
                         url: d.dm_url,
                         visible: false,
                         sendReport: false,
                     }));
+                }
 
-                    if (isEditMode && MOCK_CURRENT_USER?.domains) {
-                        const mergedDomains = apiDomains.map((ad) => {
-                            const userDomain = MOCK_CURRENT_USER.domains.find(
-                                (ud) => ud.id === ad.id || ud.dm_id === ad.id
-                            );
-                            return {
-                                ...ad,
-                                visible: userDomain ? !!userDomain.visible : false,
-                                sendReport: userDomain ? !!userDomain.sendReport : false,
-                            };
-                        });
-                        setDomains(mergedDomains);
-                    } else {
-                        setDomains(apiDomains);
+                // 2. Fetch current logged-in user profile details
+                const loggedInUserStr = localStorage.getItem("user");
+                if (loggedInUserStr) {
+                    const parsedUser = JSON.parse(loggedInUserStr);
+                    const userId = parsedUser._id || parsedUser.id;
+                    if (userId) {
+                        const userRes = await getUserByIdApi(userId);
+                        if (userRes.success && userRes.data) {
+                            const u = userRes.data;
+                            setFirstName(u.user_first_name || "");
+                            setLastName(u.user_last_name || "");
+                            setEmail(u.user_email || "");
+                            setPhone(u.user_phone || "");
+                            setLanguage(u.user_language || "en");
+                            setIsAccountAdmin(!!u.user_is_account_admin);
+                            setEnableExportEmailNotification(!!u.user_enable_export_notification);
+                            setSendWelcomeMail(!!u.user_send_welcome_mail);
+                            setAllModules(!!u.user_all_modules_access);
+                            setVisiblePolicies(!!u.user_visible_policies);
+                            setVisibleQualityAssurance(!!u.user_visible_qa);
+                            setVisibleAccessibility(!!u.user_visible_accessibility);
+                            setVisibleSeo(!!u.user_visible_seo);
+                            setVisibleHeartbeat(!!u.user_visible_heartbeat);
+                            setVisibleInventory(!!u.user_visible_inventory);
+                            setVisibleStatistics(!!u.user_visible_statistics);
+                            setVisiblePrioritizedContent(!!u.user_visible_prioritized_content);
+                            setVisiblePerformance(!!u.user_visible_performance);
+
+                            // 3. Merge user's domain settings
+                            if (u.user_domains) {
+                                apiDomains = apiDomains.map((ad) => {
+                                    const ud = u.user_domains.find((d) => String(d.dm_id) === ad.id);
+                                    return ud
+                                        ? { ...ad, visible: !!ud.visible, sendReport: !!ud.send_report }
+                                        : ad;
+                                });
+                            }
+                        }
                     }
                 }
+                setDomains(apiDomains);
             } catch (error) {
-                console.error("Failed to fetch domains for user:", error);
+                console.error("Failed to load user profile details dynamically:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchAvailableDomains();
-    }, [isEditMode]);
-
-    useEffect(() => {
-        if (isEditMode && MOCK_CURRENT_USER) {
-            setFirstName(MOCK_CURRENT_USER.firstName || "");
-            setLastName(MOCK_CURRENT_USER.lastName || "");
-            setEmail(MOCK_CURRENT_USER.email || "");
-            setPhone(MOCK_CURRENT_USER.phone || "");
-            setLanguage(MOCK_CURRENT_USER.language || "en");
-            setIsAccountAdmin(!!MOCK_CURRENT_USER.isAccountAdmin);
-            setEnableExportEmailNotification(!!MOCK_CURRENT_USER.enableExportEmailNotification);
-            setSendWelcomeMail(!!MOCK_CURRENT_USER.sendWelcomeMail);
-            // setDomains(Array.isArray(MOCK_CURRENT_USER.domains) ? MOCK_CURRENT_USER.domains : []); // Handled in fetchAvailableDomains useEffect
-            setAllModules(!!MOCK_CURRENT_USER.allModules);
-            setVisiblePolicies(!!MOCK_CURRENT_USER.visiblePolicies);
-            setVisibleQualityAssurance(!!MOCK_CURRENT_USER.visibleQualityAssurance);
-            setVisibleAccessibility(!!MOCK_CURRENT_USER.visibleAccessibility);
-            setVisibleSeo(!!MOCK_CURRENT_USER.visibleSeo);
-            setVisibleHeartbeat(!!MOCK_CURRENT_USER.visibleHeartbeat);
-            setVisibleInventory(!!MOCK_CURRENT_USER.visibleInventory);
-            setVisibleStatistics(!!MOCK_CURRENT_USER.visibleStatistics);
-            setVisiblePrioritizedContent(!!MOCK_CURRENT_USER.visiblePrioritizedContent);
-            setVisiblePerformance(!!MOCK_CURRENT_USER.visiblePerformance);
-        }
+        loadInitialData();
     }, [isEditMode]);
 
     const setPhoneValue = (value) => {
@@ -176,7 +164,7 @@ const UpdateProfile = ({ isEditMode = true }) => {
         return !firstErr && !phoneErr && !emailErr && !passwordErr && !confirmErr;
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
         if (!validateAll()) {
             console.error("Validation failed:", errors);
@@ -184,38 +172,67 @@ const UpdateProfile = ({ isEditMode = true }) => {
         }
 
         const userData = {
-            firstName,
-            lastName,
-            phone,
-            email,
-            password,
-            isAccountAdmin,
-            enableExportEmailNotification,
-            sendWelcomeMail,
-            permissions: {
-                allModules,
-                visiblePolicies,
-                visibleQualityAssurance,
-                visibleAccessibility,
-                visibleSeo,
-                visibleHeartbeat,
-                visibleInventory,
-                visibleStatistics,
-                visiblePrioritizedContent,
-                visiblePerformance,
-            },
-            domains,
+            user_first_name: firstName,
+            user_last_name: lastName,
+            user_phone: phone,
+            user_email: email,
+            user_language: language,
+            user_is_account_admin: isAccountAdmin,
+            user_enable_export_notification: enableExportEmailNotification,
+            user_send_welcome_mail: sendWelcomeMail,
+            user_status: "active",
+            user_login_id: email,
+            user_all_modules_access: allModules,
+            user_visible_policies: visiblePolicies,
+            user_visible_qa: visibleQualityAssurance,
+            user_visible_accessibility: visibleAccessibility,
+            user_visible_seo: visibleSeo,
+            user_visible_heartbeat: visibleHeartbeat,
+            user_visible_inventory: visibleInventory,
+            user_visible_statistics: visibleStatistics,
+            user_visible_prioritized_content: visiblePrioritizedContent,
+            user_visible_performance: visiblePerformance,
+            user_domains: domains.map((d) => ({
+                dm_id: d.id,
+                visible: d.visible,
+                send_report: d.sendReport,
+            })),
         };
 
-        if (isEditMode) {
-            console.log("Updating user profile with data:", userData);
-            alert("User profile updated successfully! (Mock)");
-        } else {
-            console.log("Creating new user with data:", userData);
-            alert("New user created successfully! (Mock)");
+        if (password) {
+            userData.user_password = password;
         }
 
-        navigate("/home/users");
+        try {
+            setLoading(true);
+            const loggedInUserStr = localStorage.getItem("user");
+            if (loggedInUserStr) {
+                const parsedUser = JSON.parse(loggedInUserStr);
+                const userId = parsedUser._id || parsedUser.id;
+                if (userId) {
+                    const response = await updateUserApi(userId, userData);
+                    if (response.success) {
+                        const updatedUser = {
+                            ...parsedUser,
+                            user_first_name: firstName,
+                            user_last_name: lastName,
+                            user_email: email,
+                            user_phone: phone,
+                        };
+                        localStorage.setItem("user", JSON.stringify(updatedUser));
+                        showToast(response.message || "Profile updated successfully", "success");
+                        navigate("/home/users");
+                    } else {
+                        showToast(response.message || "Failed to update profile", "error");
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error updating user profile:", error);
+            showToast("Failed to update profile", "error");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -618,7 +635,13 @@ const UpdateProfile = ({ isEditMode = true }) => {
 
             {/* Action Buttons */}
             <div className="add-domain-actions d-flex gap-2 mt-4 pt-3 border-top justify-content-end">
-                <button type="button" className="btn btn-primary" onClick={handleSave}>
+                <button
+                    type="button"
+                    className="btn btn-primary d-flex align-items-center gap-2"
+                    onClick={handleSave}
+                    disabled={loading}
+                >
+                    {loading && <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>}
                     {isEditMode ? "Update profile" : "Save User"}
                 </button>
                 <Link className="btn btn-light border text-body" to="/home/users">

@@ -7,8 +7,8 @@ const TABS = [
 ];
 
 const SAMPLE_PDFS = [
-  { id: "1", url: "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/framework-2.0-for-covid19-related-stressdocxpdf?scl=1&fmt=pdf" },
-  { id: "2", url: "https://cms-assets.bajajfinserv.in/docs/accessibility-statement.pdf" },
+  { id: "1", url: "https://cms-assets.example.com/is/content/examplefinance/framework-2.0-for-covid19-related-stressdocxpdf?scl=1&fmt=pdf" },
+  { id: "2", url: "https://cms-assets.example.com/docs/accessibility-statement.pdf" },
   { id: "3", url: "https://example.com/external-policy.pdf" },
 ];
 

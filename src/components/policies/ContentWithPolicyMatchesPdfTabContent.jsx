@@ -8,7 +8,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const SAMPLE_ROWS = Array.from({ length: 12 }, (_, i) => ({
   id: `pdf-${i + 1}`,
   title: i % 3 === 0 ? "(No title found)" : `Document ${i + 1}.pdf`,
-  url: `https://www.bajajfinserv.in/docs/document-${i + 1}.pdf`,
+  url: `https://example.com/docs/document-${i + 1}.pdf`,
   unwanted: 0,
   required: i % 2,
   matches: 1,
@@ -54,7 +54,7 @@ const ContentWithPolicyMatchesPdfTabContent = ({ domainUrl, onOpenPageDetails })
                       onChange={(e) => { setTitleSearch(e.target.value); setCurrentPage(1); }}
                       aria-label="Search title and URL"
                     />
-                    <span className="text-muted small">{domainUrl ?? "https://www.bajajfinserv.in/"}</span>
+                    <span className="text-muted small">{domainUrl ?? "https://example.com/"}</span>
                   </div>
                 </th>
                 <th className="py-3 text-body fs-13 fw-semibold text-center">Unwanted</th>

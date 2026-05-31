@@ -17,6 +17,7 @@ const inventoryApi = {
     getScanStatus: (scanId) => axiosInstance.get(`/domain/inventory/status/${scanId}`).then(res => res.data),
     getInventorySummary: (domainId) => axiosInstance.get(`/domain/inventory/summary/${domainId}`).then(res => res.data),
     getInventoryDetails: (domainId, params) => axiosInstance.get(`/domain/inventory/details/${domainId}`, { params }).then(res => res.data),
+    getInventoryHistory: (domainId) => axiosInstance.get(`/domain/inventory/history/${domainId}`).then(res => res.data),
 };
 
 export default inventoryApi;

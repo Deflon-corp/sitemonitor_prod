@@ -6,7 +6,7 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SNIPPETS_SAMPLE = [
-  { id: "1", html: '<body class="global-wrapper-url pdppage basepage page basicpage BajajmallHeader r-header-secondary-nav" id="pdppage-bd907fa6f2" data-cmp-link-accessibility-enabled=""...', effectPercent: 3.44 },
+  { id: "1", html: '<body class="global-wrapper-url pdppage basepage page basicpage ExamplemallHeader r-header-secondary-nav" id="pdppage-bd907fa6f2" data-cmp-link-accessibility-enabled=""...', effectPercent: 3.44 },
   { id: "2", html: "<div class=\"backdrop\"></div>", effectPercent: 2.3 },
   { id: "3", html: '<img src="/content/dam/bfs-logo.png" alt="" />', effectPercent: 2.24 },
   { id: "4", html: "<h3 class=\"product-title\">Laptop</h3>", effectPercent: 1.38 },

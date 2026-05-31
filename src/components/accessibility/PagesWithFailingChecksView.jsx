@@ -9,16 +9,16 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const TOTAL_PAGES_WITH_FAILING = 500;
 
 const SAMPLE_PAGES = [
-  { title: "Search", url: "https://www.bajajfinserv.in/search", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-intel-core-i3-6th-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 43, compliancePercent: 59.81, priority: "High", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-15r-intel-core-i5-3rd-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 42, compliancePercent: 60.75, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", failingChecks: 41, compliancePercent: 61.2, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 40, compliancePercent: 62.1, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", failingChecks: 39, compliancePercent: 63.5, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 37, compliancePercent: 65.2, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 36, compliancePercent: 66, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://www.bajajfinserv.in/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 35, compliancePercent: 67.1, priority: "Low", views: 0 },
+  { title: "Search", url: "https://example.com/search", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/lenovo-intel-core-i3-6th-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 43, compliancePercent: 59.81, priority: "High", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/dell-15r-intel-core-i5-3rd-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 42, compliancePercent: 60.75, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", failingChecks: 41, compliancePercent: 61.2, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 40, compliancePercent: 62.1, priority: "Low", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", failingChecks: 39, compliancePercent: 63.5, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 37, compliancePercent: 65.2, priority: "Low", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 36, compliancePercent: 66, priority: "Medium", views: 0 },
+  { title: "(No title found)", url: "https://example.com/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 35, compliancePercent: 67.1, priority: "Low", views: 0 },
 ];
 
 const TEAL = "#14b8a6";
@@ -295,13 +295,12 @@ const PagesWithFailingChecksView = () => {
                     </td>
                     <td className="py-3">
                       <span
-                        className={`badge rounded-pill ${
-                          p.priority === "High"
+                        className={`badge rounded-pill ${p.priority === "High"
                             ? "bg-danger bg-opacity-10 text-danger"
                             : p.priority === "Medium"
                               ? "bg-warning bg-opacity-10 text-warning"
                               : "bg-secondary bg-opacity-10 text-secondary"
-                        }`}
+                          }`}
                       >
                         {p.priority}
                       </span>

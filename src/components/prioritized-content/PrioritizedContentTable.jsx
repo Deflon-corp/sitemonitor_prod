@@ -18,16 +18,16 @@ const FILTERS = [
 
 // Sample Data
 const SAMPLE_PRIORITIZED_CONTENT = [
-    { id: 1, title: "Latest BPL Televisions - Online at Best Prices in India | EMI Starting at ₹1078/Month", url: "https://www.bajajfinserv.in/bmall/televisions/bpl-tv", notifications: 53, priority: "High", views: 0 },
-    { id: 2, title: "Amstrad Televisions - Buy Amstrad TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/amstrad-tv", notifications: 54, priority: "High", views: 0 },
-    { id: 3, title: "Elista Televisions - Buy Elista TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/elista-tv", notifications: 41, priority: "High", views: 0 },
-    { id: 4, title: "Hyundai Televisions - Buy Hyundai TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/hyundai-tv", notifications: 52, priority: "High", views: 0 },
-    { id: 5, title: "Kodak Televisions - Buy Kodak TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/kodak-tv", notifications: 48, priority: "High", views: 0 },
-    { id: 6, title: "Realme Televisions - Buy Realme TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/realme-tv", notifications: 50, priority: "High", views: 0 },
-    { id: 7, title: "Philips Televisions - Buy Philips TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/philips-tv", notifications: 45, priority: "High", views: 0 },
-    { id: 8, title: "Vise Televisions - Buy Vise TV Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions/vise-tv", notifications: 44, priority: "High", views: 0 },
-    { id: 9, title: "16GB RAM Laptops - Buy 16GB RAM Laptop Online at Best Prices | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/laptops/16gb-ram-laptops", notifications: 39, priority: "High", views: 0 },
-    { id: 10, title: "Bajaj Finserv: Loans, Cards, Insurance, Investments, Payments and more", url: "https://www.bajajfinserv.in", notifications: 60, priority: "High", views: 0 },
+    { id: 1, title: "Premium Televisions - Buy Smart TVs Online | Store", url: "https://example.com/store/televisions/bpl-tv", notifications: 53, priority: "High", views: 0 },
+    { id: 2, title: "High Definition Televisions - Shop Best TV Deals", url: "https://example.com/store/televisions/amstrad-tv", notifications: 54, priority: "High", views: 0 },
+    { id: 3, title: "Elista Smart TVs - Online Shopping at Best Prices", url: "https://example.com/store/televisions/elista-tv", notifications: 41, priority: "High", views: 0 },
+    { id: 4, title: "Hyundai TVs - Buy Hyundai Smart TVs Online", url: "https://example.com/store/televisions/hyundai-tv", notifications: 52, priority: "High", views: 0 },
+    { id: 5, title: "Kodak Smart TV Series - Best Offers and Deals", url: "https://example.com/store/televisions/kodak-tv", notifications: 48, priority: "High", views: 0 },
+    { id: 6, title: "Realme LED Televisions - Buy Online | Electronics Store", url: "https://example.com/store/televisions/realme-tv", notifications: 50, priority: "High", views: 0 },
+    { id: 7, title: "Philips Smart TV - High Quality Displays Online", url: "https://example.com/store/televisions/philips-tv", notifications: 45, priority: "High", views: 0 },
+    { id: 8, title: "Vise LED TVs - Shop Vise Brand TVs Online", url: "https://example.com/store/televisions/vise-tv", notifications: 44, priority: "High", views: 0 },
+    { id: 9, title: "16GB RAM High Performance Laptops - Shop Online", url: "https://example.com/store/laptops/16gb-ram-laptops", notifications: 39, priority: "High", views: 0 },
+    { id: 10, title: "Example Financial Services: Loans, Cards, Insurance & More", url: "https://example.com", notifications: 60, priority: "High", views: 0 },
 ];
 
 const SAMPLE_PDF_DOCUMENTS = [];

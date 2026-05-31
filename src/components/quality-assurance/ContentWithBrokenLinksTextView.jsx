@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect  } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 
@@ -6,24 +6,24 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_ROWS = [
-  { id: "bl-txt1", title: "Readme", url: "https://www.bajajfinserv.in/docs/readme.txt", notifications: 8, priority: "Medium", views: 0 },
-  { id: "bl-txt2", title: "(No title found)", url: "https://www.bajajfinserv.in/legacy/changelog.txt", notifications: 5, priority: "Low", views: 4 },
-  { id: "bl-txt3", title: "License", url: "https://www.bajajfinserv.in/legal/license.txt", notifications: 10, priority: "High", views: 18 },
-  { id: "bl-txt4", title: "Data Export", url: "https://www.bajajfinserv.in/exports/sample-data.txt", notifications: 6, priority: "Medium", views: 32 },
-  { id: "bl-txt5", title: "API Changelog", url: "https://www.bajajfinserv.in/api/changelog.txt", notifications: 12, priority: "High", views: 9 },
-  { id: "bl-txt6", title: "(No title found)", url: "https://www.bajajfinserv.in/old/notes.txt", notifications: 3, priority: "Low", views: 0 },
-  { id: "bl-txt7", title: "Terms of Service", url: "https://www.bajajfinserv.in/terms/terms-of-service.txt", notifications: 7, priority: "Medium", views: 21 },
-  { id: "bl-txt8", title: "Cookie Policy", url: "https://www.bajajfinserv.in/policies/cookies.txt", notifications: 4, priority: "Low", views: 11 },
-  { id: "bl-txt9", title: "Sitemap Index", url: "https://www.bajajfinserv.in/sitemap-index.txt", notifications: 9, priority: "High", views: 45 },
-  { id: "bl-txt10", title: "Error Log Sample", url: "https://www.bajajfinserv.in/dev/error-sample.txt", notifications: 2, priority: "Low", views: 2 },
-  { id: "bl-txt11", title: "(No title found)", url: "https://www.bajajfinserv.in/archive/backup-list.txt", notifications: 11, priority: "High", views: 0 },
-  { id: "bl-txt12", title: "Contact List", url: "https://www.bajajfinserv.in/internal/contacts.txt", notifications: 6, priority: "Medium", views: 7 },
-  { id: "bl-txt13", title: "Release Notes", url: "https://www.bajajfinserv.in/releases/notes-v2.txt", notifications: 8, priority: "Medium", views: 28 },
-  { id: "bl-txt14", title: "FAQ Export", url: "https://www.bajajfinserv.in/help/faq-export.txt", notifications: 5, priority: "Low", views: 15 },
-  { id: "bl-txt15", title: "Disclaimer", url: "https://www.bajajfinserv.in/legal/disclaimer.txt", notifications: 7, priority: "Medium", views: 12 },
-  { id: "bl-txt16", title: "(No title found)", url: "https://www.bajajfinserv.in/temp/upload-log.txt", notifications: 1, priority: "Low", views: 0 },
-  { id: "bl-txt17", title: "Guidelines", url: "https://www.bajajfinserv.in/content/guidelines.txt", notifications: 9, priority: "High", views: 56 },
-  { id: "bl-txt18", title: "Metadata Schema", url: "https://www.bajajfinserv.in/schema/metadata.txt", notifications: 4, priority: "Low", views: 3 },
+  { id: "bl-txt1", title: "Readme", url: "https://example.com/docs/readme.txt", notifications: 8, priority: "Medium", views: 0 },
+  { id: "bl-txt2", title: "(No title found)", url: "https://example.com/legacy/changelog.txt", notifications: 5, priority: "Low", views: 4 },
+  { id: "bl-txt3", title: "License", url: "https://example.com/legal/license.txt", notifications: 10, priority: "High", views: 18 },
+  { id: "bl-txt4", title: "Data Export", url: "https://example.com/exports/sample-data.txt", notifications: 6, priority: "Medium", views: 32 },
+  { id: "bl-txt5", title: "API Changelog", url: "https://example.com/api/changelog.txt", notifications: 12, priority: "High", views: 9 },
+  { id: "bl-txt6", title: "(No title found)", url: "https://example.com/old/notes.txt", notifications: 3, priority: "Low", views: 0 },
+  { id: "bl-txt7", title: "Terms of Service", url: "https://example.com/terms/terms-of-service.txt", notifications: 7, priority: "Medium", views: 21 },
+  { id: "bl-txt8", title: "Cookie Policy", url: "https://example.com/policies/cookies.txt", notifications: 4, priority: "Low", views: 11 },
+  { id: "bl-txt9", title: "Sitemap Index", url: "https://example.com/sitemap-index.txt", notifications: 9, priority: "High", views: 45 },
+  { id: "bl-txt10", title: "Error Log Sample", url: "https://example.com/dev/error-sample.txt", notifications: 2, priority: "Low", views: 2 },
+  { id: "bl-txt11", title: "(No title found)", url: "https://example.com/archive/backup-list.txt", notifications: 11, priority: "High", views: 0 },
+  { id: "bl-txt12", title: "Contact List", url: "https://example.com/internal/contacts.txt", notifications: 6, priority: "Medium", views: 7 },
+  { id: "bl-txt13", title: "Release Notes", url: "https://example.com/releases/notes-v2.txt", notifications: 8, priority: "Medium", views: 28 },
+  { id: "bl-txt14", title: "FAQ Export", url: "https://example.com/help/faq-export.txt", notifications: 5, priority: "Low", views: 15 },
+  { id: "bl-txt15", title: "Disclaimer", url: "https://example.com/legal/disclaimer.txt", notifications: 7, priority: "Medium", views: 12 },
+  { id: "bl-txt16", title: "(No title found)", url: "https://example.com/temp/upload-log.txt", notifications: 1, priority: "Low", views: 0 },
+  { id: "bl-txt17", title: "Guidelines", url: "https://example.com/content/guidelines.txt", notifications: 9, priority: "High", views: 56 },
+  { id: "bl-txt18", title: "Metadata Schema", url: "https://example.com/schema/metadata.txt", notifications: 4, priority: "Low", views: 3 },
 ];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };

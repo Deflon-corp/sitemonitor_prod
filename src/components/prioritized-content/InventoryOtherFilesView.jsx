@@ -4,14 +4,14 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/files/export-2025-03.dat", type: "Other", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/files/config-backup.bak", type: "Other", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/files/template.vsd", type: "Other", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/files/legacy-document.odt", type: "Other", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/files/report.rtf", type: "Other", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/files/data-export.csv", type: "Other", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/files/sitemap.xml", type: "Other", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/files/manifest.json", type: "Other", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/files/export-2025-03.dat", type: "Other", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/files/config-backup.bak", type: "Other", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/files/template.vsd", type: "Other", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/files/legacy-document.odt", type: "Other", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/files/report.rtf", type: "Other", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/files/data-export.csv", type: "Other", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/files/sitemap.xml", type: "Other", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/files/manifest.json", type: "Other", responseCode: "200" },
 ];
 
 const InventoryOtherFilesView = ({ items = SAMPLE }) => {

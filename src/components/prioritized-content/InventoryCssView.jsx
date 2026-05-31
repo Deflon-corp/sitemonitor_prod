@@ -4,7 +4,7 @@ import PagesWithCssDrawer from "./PagesWithCssDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 
- 
+
 
 
 
@@ -14,34 +14,12 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE = [
-  { id: 1, url: "https://www.bajajfinserv.in/assets/css/main.css", pageCount: 3 },
-  { id: 2, url: "https://www.bajajfinserv.in/assets/css/vendor.css", pageCount: 1 },
-  { id: 3, url: "https://www.bajajfinserv.in/assets/css/components.css", pageCount: 2 },
-  { id: 4, url: "https://www.bajajfinserv.in/assets/css/layout.css", pageCount: 1 },
-  { id: 5, url: "https://www.bajajfinserv.in/assets/css/theme.css", pageCount: 1 },
-  { id: 6, url: "https://www.bajajfinserv.in/assets/css/print.css", pageCount: 1 },
-  { id: 7, url: "https://www.bajajfinserv.in/assets/css/responsive.css", pageCount: 1 },
-  { id: 8, url: "https://www.bajajfinserv.in/assets/css/forms.css", pageCount: 1 },
-];
-
-const DETAILS_SAMPLE = [
-  { id: 1, link: "https://www.bajajfinserv.in/assets/css/main.css", type: "CSS", responseCode: "200" },
-  { id: 2, link: "https://www.bajajfinserv.in/assets/css/vendor.css", type: "CSS", responseCode: "200" },
-  { id: 3, link: "https://www.bajajfinserv.in/assets/css/components.css", type: "CSS", responseCode: "200" },
-  { id: 4, link: "https://www.bajajfinserv.in/assets/css/layout.css", type: "CSS", responseCode: "200" },
-  { id: 5, link: "https://www.bajajfinserv.in/assets/css/theme.css", type: "CSS", responseCode: "200" },
-  { id: 6, link: "https://www.bajajfinserv.in/assets/css/print.css", type: "CSS", responseCode: "200" },
-  { id: 7, link: "https://www.bajajfinserv.in/assets/css/responsive.css", type: "CSS", responseCode: "200" },
-  { id: 8, link: "https://www.bajajfinserv.in/assets/css/forms.css", type: "CSS", responseCode: "200" },
-];
-
 const TITLE = "CSS";
 const ICON = "isax-code";
 const REPORT_BASE = "CSS-Report";
 const DEFAULT_INVENTORY_SUB_VIEW = "css";
 
-export default function InventoryCssView({ items = SAMPLE, variant }) {
+export default function InventoryCssView({ items = [], variant }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -83,7 +61,7 @@ export default function InventoryCssView({ items = SAMPLE, variant }) {
   }, [filteredItems, reportBase]);
 
   if (variant === "details") {
-    const detailsFiltered = !search.trim() ? DETAILS_SAMPLE : DETAILS_SAMPLE.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
+    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.link || "").toLowerCase().includes(search.trim().toLowerCase()));
     const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);

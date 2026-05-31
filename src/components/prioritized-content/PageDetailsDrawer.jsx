@@ -5,7 +5,7 @@ import BrokenImageIssueDrawer from "./BrokenImageIssueDrawer";
 import BrokenImagesSection, { BROKEN_IMAGES_SAMPLE } from "./BrokenImagesSection";
 import MisspellingsSection, { MISSPELLINGS_SAMPLE } from "./MisspellingsSection";
 import MisspellingIssueDrawer from "./MisspellingIssueDrawer";
-import PotentialMisspellingsSection, { POTENTIAL_MISSPELLINGS_SAMPLE } from "./PotentialMisspellingsSection";
+import PotentialMisspellingsSectionPageDetails from "./PotentialMisspellingsSectionPageDetails";
 import PotentialMisspellingIssueDrawer from "./PotentialMisspellingIssueDrawer";
 import IgnoredSpellingsSection, { IGNORED_SPELLINGS_SAMPLE } from "./IgnoredSpellingsSection";
 import IgnoredSpellingIssueDrawer from "./IgnoredSpellingIssueDrawer";
@@ -15,6 +15,9 @@ import InventorySection from "./InventorySection";
 import PerformanceSection from "./PerformanceSection";
 import DownloadReportDropdown from "../ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "../../lib/download";
+import PageDashboardContent from "./PageDashboardContent";
+import { usePageDetails } from "../../hooks/usePageDetails";
+import { useQaDomainId } from "../../hooks/useQaDomainId";
 const TABS = [
   { key: "dashboard", label: "Page dashboard", icon: "isax-document-text" },
   { key: "policies", label: "Policies", icon: "isax-shield-tick" },
@@ -53,22 +56,6 @@ function PolicyComplianceDonut({ percent }) {
   );
 }
 
-const QA_SIDEBAR_ITEMS = [
-  { key: "broken-links", label: "Broken Links", icon: "isax-link-2", badge: 9, badgeVariant: "danger" },
-  { key: "broken-images", label: "Broken Images", icon: "isax-document-text", status: "ok" },
-  { key: "misspellings", label: "Misspellings", icon: "isax-edit-2", badge: 1, badgeVariant: "danger" },
-  { key: "potential-misspellings", label: "Potential Misspellings", icon: "isax-edit-2", badge: 121, badgeVariant: "primary" },
-  { key: "ignored-misspellings", label: "Ignored Misspellings", icon: "isax-edit-2" },
-  { key: "readability", label: "Readability", icon: "isax-book5" },
-  { key: "language", label: "Language Validation", icon: "isax-tick-circle", status: "ok" },
-];
-
-const BROKEN_LINKS_SAMPLE = [
-  { id: 1, url: "https://bflcareers.peoplestrong.com/home", responseCode: "404", type: "link", dateFound: "2025-01-15" },
-  { id: 2, url: "https://example.com/missing-page", responseCode: "404", type: "link", dateFound: "2025-01-14" },
-  { id: 3, url: "https://example.com/old-link", responseCode: "404", type: "link", dateFound: "2025-01-13" },
-];
-
 const DEFAULT_BACKDROP_Z = 1050;
 const DEFAULT_PANEL_Z = 1055;
 
@@ -95,38 +82,68 @@ export default function PageDetailsDrawer({
   const [brokenLinksPage, setBrokenLinksPage] = useState(1);
   const [brokenLinksRowsPerPage, setBrokenLinksRowsPerPage] = useState(10);
 
+  const domainId = useQaDomainId();
+  const pageUrl = _optionalChain([page, 'optionalAccess', _u => _u.url]);
+  const { page: fetchedPage, loading: pageLoading } = usePageDetails(domainId, pageUrl, open && !!pageUrl);
+  const effectivePage = fetchedPage || page || {};
+
+  const brokenLinksList = effectivePage.brokenLinks || [];
+  const brokenLinksCount = brokenLinksList.length;
+  const brokenImagesCount = (effectivePage.brokenImages || []).length;
+  const misspellingsCount = (effectivePage.misspellings || []).length;
+  const potentialCount = (effectivePage.potentialMisspellings || []).length;
+
+  const filteredPolicies = useMemo(() => {
+    const list = effectivePage.policies || [];
+    if (policyFilterTab === "All") return list;
+    const key = policyFilterTab.toLowerCase();
+    return list.filter((p) => String(p.category || "").toLowerCase() === key);
+  }, [effectivePage.policies, policyFilterTab]);
+
+  const policyCompliancePct = effectivePage.policyCompliancePercent ?? 100;
+
+  const qaSidebarItems = useMemo(() => [
+    { key: "broken-links", label: "Broken Links", icon: "isax-link-2", badge: brokenLinksCount, badgeVariant: "danger" },
+    { key: "broken-images", label: "Broken Images", icon: "isax-document-text", badge: brokenImagesCount, badgeVariant: "danger" },
+    { key: "misspellings", label: "Misspellings", icon: "isax-edit-2", badge: misspellingsCount, badgeVariant: "danger" },
+    { key: "potential-misspellings", label: "Potential Misspellings", icon: "isax-edit-2", badge: potentialCount, badgeVariant: "primary" },
+    { key: "ignored-misspellings", label: "Ignored Misspellings", icon: "isax-edit-2" },
+    { key: "readability", label: "Readability", icon: "isax-book5" },
+    { key: "language", label: "Language Validation", icon: "isax-tick-circle", status: "ok" },
+  ], [brokenLinksCount, brokenImagesCount, misspellingsCount, potentialCount]);
+
   const BROKEN_LINKS_PAGE_OPTIONS = [10, 50, 100, 500];
-  const brokenLinksTotalPages = Math.max(1, Math.ceil(BROKEN_LINKS_SAMPLE.length / brokenLinksRowsPerPage));
+  const brokenLinksTotalPages = Math.max(1, Math.ceil(brokenLinksList.length / brokenLinksRowsPerPage));
   const brokenLinksPaginated = useMemo(() => {
     const start = (brokenLinksPage - 1) * brokenLinksRowsPerPage;
-    return BROKEN_LINKS_SAMPLE.slice(start, start + brokenLinksRowsPerPage);
-  }, [brokenLinksPage, brokenLinksRowsPerPage]);
+    return brokenLinksList.slice(start, start + brokenLinksRowsPerPage);
+  }, [brokenLinksPage, brokenLinksRowsPerPage, brokenLinksList]);
 
   const brokenLinksReportName = "Broken-Links-Report";
   const baseName = safeFilename(brokenLinksReportName);
 
   const exportBrokenLinksCSV = useCallback(() => {
     const header = "Broken link,Response code,Type\n";
-    const body = BROKEN_LINKS_SAMPLE.map((r) => `"${r.url.replace(/"/g, '""')}","${r.responseCode}","${r.type}"`).join("\n");
+    const body = brokenLinksList.map((r) => `"${(r.url || "").replace(/"/g, '""')}","${r.responseCode || ""}","${r.type || ""}"`).join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
-  }, [baseName]);
+  }, [baseName, brokenLinksList]);
 
   const exportBrokenLinksExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = BROKEN_LINKS_SAMPLE.map((r) => ({ "Broken link": r.url, "Response code": r.responseCode, Type: r.type }));
+    const rows = brokenLinksList.map((r) => ({ "Broken link": r.url, "Response code": r.responseCode, Type: r.type }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Broken Links");
     XLSX.writeFile(wb, `${baseName}.xlsx`);
-  }, [baseName]);
+  }, [baseName, brokenLinksList]);
 
   const exportBrokenLinksPDF = useCallback(async () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Broken link", "Response code", "Type"]];
-    const body = BROKEN_LINKS_SAMPLE.map((r) => [r.url, r.responseCode, r.type]);
+    const body = brokenLinksList.map((r) => [r.url, r.responseCode, r.type]);
     autoTable(doc, {
       head,
       body,
@@ -135,7 +152,7 @@ export default function PageDetailsDrawer({
       columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: 28 }, 2: { cellWidth: 20 } },
     });
     doc.save(`${baseName}.pdf`);
-  }, [baseName]);
+  }, [baseName, brokenLinksList]);
 
   useEffect(() => {
     if (open && defaultTab) setActiveTab(defaultTab);
@@ -242,267 +259,13 @@ export default function PageDetailsDrawer({
         /* Content */
         , React.createElement('div', { className: "p-4 flex-grow-1 overflow-auto" }
           , activeTab === "dashboard" && (
-            React.createElement('div', { className: "row g-4 page-details-drawer-dashboard" }
-              /* Content Policies & Quality Assurance */
-              , React.createElement('div', { className: "col-md-6 d-flex" }
-                , React.createElement('div', { className: "card flex-fill dashboard-metric-card" }
-                  , React.createElement('div', { className: "card-body" }
-                    , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
-                      , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-tick-circle5 dashboard-metric-icon fs-18" }), "Content Policies"
-
-                      )
-                      , React.createElement(Link, { to: "#" }
-                        , React.createElement('i', { className: "isax isax-arrow-right-1" })
-                      )
-                    )
-                    , React.createElement('div', { className: "row align-items-center g-3" }
-                      , React.createElement('div', { className: "col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1" }
-                        , React.createElement('div', { className: "position-relative d-inline-flex align-items-center justify-content-center" }
-                          , React.createElement('svg', { className: "content-policies-ring", width: "120", height: "120", viewBox: "0 0 140 140" }
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#e5e7eb", strokeWidth: "12" })
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#14b8a6", strokeWidth: "12", strokeLinecap: "round", strokeDasharray: "384 389", transform: "rotate(-90 70 70)" })
-                          )
-                          , React.createElement('div', { className: "position-absolute text-center px-1", style: { maxWidth: 70, lineHeight: 1.2 } }
-                            , React.createElement('span', { className: "d-block fs-4 fw-bold text-body" }, "98.6 %")
-                            , React.createElement('span', { className: "d-block text-muted", style: { fontSize: "0.65rem" } }, "overall compliance")
-                          )
-                        )
-                      )
-                      , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1" }, "Policies with violations")
-                        , React.createElement('p', { className: "fs-2 fw-bold text-body mb-2" }, "1")
-                        , React.createElement('div', { className: "d-flex flex-wrap gap-3" }
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-muted fs-13" }
-                            , React.createElement('i', { className: "isax isax-close-circle fs-18" })
-                            , React.createElement('span', {}, "0")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-muted fs-13" }
-                            , React.createElement('i', { className: "isax isax-danger fs-18" })
-                            , React.createElement('span', {}, "0")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-muted fs-13" }
-                            , React.createElement('i', { className: "isax isax-search-normal-1 fs-18" })
-                            , React.createElement('span', {}, "1")
-                          )
-                        )
-                      )
-                    )
-                    , React.createElement('div', { className: "d-flex justify-content-end mt-3 pt-2 border-top" }
-                      , React.createElement(Link, { to: "#", className: "show-history-link d-inline-flex align-items-center" }, "Show history"
-                        , React.createElement('i', { className: "isax isax-arrow-right-1 ms-1" })
-                      )
-                    )
-                  )
-                )
-              )
-              , React.createElement('div', { className: "col-md-6 d-flex" }
-                , React.createElement('div', { className: "card flex-fill dashboard-metric-card" }
-                  , React.createElement('div', { className: "card-body" }
-                    , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
-                      , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-document-text5 dashboard-metric-icon fs-18" }), "Quality Assurance"
-
-                      )
-                      , React.createElement(Link, { to: "#" }
-                        , React.createElement('i', { className: "isax isax-arrow-right-1" })
-                      )
-                    )
-                    , React.createElement('div', { className: "row align-items-center g-3" }
-                      , React.createElement('div', { className: "col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1" }
-                        , React.createElement('div', { className: "position-relative d-inline-flex align-items-center justify-content-center" }
-                          , React.createElement('svg', { width: "120", height: "120", viewBox: "0 0 140 140" }
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#e5e7eb", strokeWidth: "12" })
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#14b8a6", strokeWidth: "12", strokeLinecap: "round", strokeDasharray: "1 389", transform: "rotate(-90 70 70)" })
-                          )
-                          , React.createElement('div', { className: "position-absolute text-center px-1", style: { maxWidth: 70, lineHeight: 1.2 } }
-                            , React.createElement('span', { className: "d-block fs-4 fw-bold text-body" }, "0 %")
-                            , React.createElement('span', { className: "d-block text-muted", style: { fontSize: "0.65rem" } }, "overall compliance")
-                          )
-                        )
-                      )
-                      , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1" }, "QA Issues")
-                        , React.createElement('p', { className: "fs-2 fw-bold text-body mb-1" }, "45")
-                        , React.createElement('p', { className: "fs-13 text-muted mb-2" }, "Affects "
-                          , React.createElement('strong', { className: "text-body" }, "500"), " pages and ", React.createElement('strong', { className: "text-body" }, "0"), " documents"
-                        )
-                        , React.createElement('div', { className: "d-flex flex-wrap gap-3" }
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-danger fs-13" }
-                            , React.createElement('i', { className: "isax isax-danger fs-18" })
-                            , React.createElement('span', {}, "37")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-muted fs-13" }
-                            , React.createElement('i', { className: "isax isax-document-text fs-18" })
-                            , React.createElement('span', {}, "8")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-danger fs-13" }
-                            , React.createElement('i', { className: "isax isax-text fs-18" })
-                            , React.createElement('span', {}, "0")
-                          )
-                        )
-                      )
-                    )
-                    , React.createElement('div', { className: "d-flex justify-content-end mt-3 pt-2 border-top" }
-                      , React.createElement(Link, { to: "#", className: "show-history-link d-inline-flex align-items-center" }, "Show history"
-                        , React.createElement('i', { className: "isax isax-arrow-right-1 ms-1" })
-                      )
-                    )
-                  )
-                )
-              )
-
-              /* Accessibility & SEO */
-              , React.createElement('div', { className: "col-md-6 d-flex" }
-                , React.createElement('div', { className: "card flex-fill dashboard-metric-card" }
-                  , React.createElement('div', { className: "card-body" }
-                    , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
-                      , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-people5 dashboard-metric-icon fs-18" }), "Accessibility"
-
-                      )
-                      , React.createElement(Link, { to: "#" }
-                        , React.createElement('i', { className: "isax isax-arrow-right-1" })
-                      )
-                    )
-                    , React.createElement('div', { className: "row align-items-center g-3" }
-                      , React.createElement('div', { className: "col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1" }
-                        , React.createElement('div', { className: "position-relative d-inline-flex align-items-center justify-content-center" }
-                          , React.createElement('svg', { width: "120", height: "120", viewBox: "0 0 140 140" }
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#e5e7eb", strokeWidth: "12" })
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#7c3aed", strokeWidth: "12", strokeLinecap: "round", strokeDasharray: "240 389", transform: "rotate(-90 70 70)" })
-                          )
-                          , React.createElement('div', { className: "position-absolute text-center px-1", style: { maxWidth: 70, lineHeight: 1.2 } }
-                            , React.createElement('span', { className: "d-block fs-4 fw-bold text-body" }, "61.75 %")
-                            , React.createElement('span', { className: "d-block text-muted", style: { fontSize: "0.65rem" } }, "Overall compliance")
-                          )
-                        )
-                      )
-                      , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1" }, "Failing accessibility checks")
-                        , React.createElement('p', { className: "fs-2 fw-bold text-body mb-0" }, "51")
-                      )
-                    )
-                    , React.createElement('div', { className: "d-flex justify-content-end mt-3 pt-2 border-top" }
-                      , React.createElement(Link, { to: "#", className: "show-history-link d-inline-flex align-items-center" }, "Show history"
-                        , React.createElement('i', { className: "isax isax-arrow-right-1 ms-1" })
-                      )
-                    )
-                  )
-                )
-              )
-              , React.createElement('div', { className: "col-md-6 d-flex" }
-                , React.createElement('div', { className: "card flex-fill dashboard-metric-card" }
-                  , React.createElement('div', { className: "card-body" }
-                    , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
-                      , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-chart-215 dashboard-metric-icon fs-18" }), "SEO Performance Overview"
-
-                      )
-                      , React.createElement(Link, { to: "#" }
-                        , React.createElement('i', { className: "isax isax-arrow-right-1" })
-                      )
-                    )
-                    , React.createElement('div', { className: "row align-items-center g-3" }
-                      , React.createElement('div', { className: "col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1" }
-                        , React.createElement('div', { className: "position-relative d-inline-flex align-items-center justify-content-center" }
-                          , React.createElement('svg', { width: "120", height: "120", viewBox: "0 0 140 140" }
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#e5e7eb", strokeWidth: "12" })
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#14b8a6", strokeWidth: "12", strokeLinecap: "round", strokeDasharray: "306 389", transform: "rotate(-90 70 70)" })
-                          )
-                          , React.createElement('div', { className: "position-absolute text-center px-1", style: { maxWidth: 70, lineHeight: 1.2 } }
-                            , React.createElement('span', { className: "d-block fs-4 fw-bold text-body" }, "78.63 %")
-                            , React.createElement('span', { className: "d-block text-muted", style: { fontSize: "0.65rem" } }, "Overall compliance")
-                          )
-                        )
-                      )
-                      , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('h6', { className: "fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1" }, "Improvement opportunities"
-
-                          , React.createElement('i', { className: "isax isax-info-circle text-muted fs-14", title: "More information" })
-                        )
-                        , React.createElement('p', { className: "fs-2 fw-bold text-body mb-2" }, "1,389")
-                        , React.createElement('div', { className: "d-flex flex-wrap gap-3" }
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-danger fs-13" }
-                            , React.createElement('i', { className: "isax isax-chart-2 fs-18" })
-                            , React.createElement('span', {}, "13")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 fs-13", style: { color: "#ea580c" } }
-                            , React.createElement('i', { className: "isax isax-chart-2 fs-18" })
-                            , React.createElement('span', {}, "515")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 fs-13", style: { color: "#7c3aed" } }
-                            , React.createElement('i', { className: "isax isax-chart-2 fs-18" })
-                            , React.createElement('span', {}, "861")
-                          )
-                          , React.createElement('div', { className: "d-flex align-items-center gap-2 text-muted fs-13" }
-                            , React.createElement('i', { className: "isax isax-chart-2 fs-18" })
-                            , React.createElement('span', {}, "0")
-                          )
-                        )
-                      )
-                    )
-                    , React.createElement('div', { className: "d-flex justify-content-end mt-3 pt-2 border-top" }
-                      , React.createElement(Link, { to: "#", className: "show-history-link d-inline-flex align-items-center" }, "Show history"
-                        , React.createElement('i', { className: "isax isax-arrow-right-1 ms-1" })
-                      )
-                    )
-                  )
-                )
-              )
-
-              /* Heartbeat */
-              , React.createElement('div', { className: "col-12" }
-                , React.createElement('div', { className: "card dashboard-metric-card" }
-                  , React.createElement('div', { className: "card-body" }
-                    , React.createElement('div', { className: "d-flex align-items-center justify-content-between mb-3" }
-                      , React.createElement('h6', { className: "mb-0 d-flex align-items-center gap-2" }
-                        , React.createElement('i', { className: "isax isax-heart5 dashboard-metric-icon fs-18" }), "Heartbeat"
-
-                      )
-                      , React.createElement(Link, { to: "#" }
-                        , React.createElement('i', { className: "isax isax-arrow-right-1" })
-                      )
-                    )
-                    , React.createElement('div', { className: "row align-items-center g-3" }
-                      , React.createElement('div', { className: "col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1" }
-                        , React.createElement('div', { className: "position-relative d-inline-flex align-items-center justify-content-center" }
-                          , React.createElement('svg', { width: "120", height: "120", viewBox: "0 0 140 140" }
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#e5e7eb", strokeWidth: "12" })
-                            , React.createElement('circle', { cx: "70", cy: "70", r: "62", fill: "none", stroke: "#14b8a6", strokeWidth: "12", strokeLinecap: "round", strokeDasharray: "385 389", transform: "rotate(-90 70 70)" })
-                          )
-                          , React.createElement('div', { className: "position-absolute text-center px-1", style: { maxWidth: 70, lineHeight: 1.2 } }
-                            , React.createElement('span', { className: "d-block fs-4 fw-bold text-body" }, "98.76 %")
-                            , React.createElement('span', { className: "d-block text-muted", style: { fontSize: "0.65rem" } }, "Uptime last 30 days")
-                          )
-                        )
-                      )
-                      , React.createElement('div', { className: "col-12 col-md-7 order-1 order-md-2 min-w-0" }
-                        , React.createElement('p', { className: "fs-13 text-muted mb-1" }
-                          , React.createElement('span', { className: "text-body" }, "Checkpoint:"), " "
-                          , React.createElement(Link, { to: _nullishCoalesce(_optionalChain([page, 'optionalAccess', _4 => _4.url]), () => ("#")), target: "_blank", rel: "noopener noreferrer", className: "text-primary text-break" }
-                            , _nullishCoalesce(_optionalChain([page, 'optionalAccess', _5 => _5.url]), () => ("—"))
-                          )
-                        )
-                        , React.createElement('p', { className: "fs-13 text-muted mb-0 d-flex align-items-center gap-2" }
-                          , React.createElement('span', { className: "text-body" }, "Current status")
-                          , React.createElement('span', { className: "d-inline-flex align-items-center gap-1 text-success" }
-                            , React.createElement('i', { className: "isax isax-tick-circle fs-16" })
-                            , React.createElement('span', {}, "0")
-                          )
-                        )
-                      )
-                    )
-                    , React.createElement('div', { className: "d-flex justify-content-end mt-3 pt-2 border-top" }
-                      , React.createElement(Link, { to: "#", className: "show-history-link d-inline-flex align-items-center" }, "Show history"
-                        , React.createElement('i', { className: "isax isax-arrow-right-1 ms-1" })
-                      )
-                    )
-                  )
-                )
-              )
-            )
+            React.createElement(PageDashboardContent, {
+              page: effectivePage,
+              loading: pageLoading,
+              onNavigateTab: setActiveTab,
+            })
           )
+
 
           , activeTab === "policies" && (
             React.createElement('div', { className: "row g-4" }
@@ -519,10 +282,10 @@ export default function PageDetailsDrawer({
                           )
                           , React.createElement('div', { className: "d-flex align-items-center gap-3" }
                             , React.createElement('div', { className: "d-flex flex-column align-items-end" }
-                              , React.createElement('span', { className: "text-primary fw-semibold fs-5" }, "66.67%")
+                              , React.createElement('span', { className: "text-primary fw-semibold fs-5" }, `${policyCompliancePct}%`)
                               , React.createElement('span', { className: "text-muted small" }, "Overall policy compliance for this page")
                             )
-                            , React.createElement(PolicyComplianceDonut, { percent: 66.67 })
+                            , React.createElement(PolicyComplianceDonut, { percent: policyCompliancePct })
                           )
                         )
                         , React.createElement('div', { className: "d-flex flex-wrap align-items-center gap-2 gap-md-3 policy-filters-row" }
@@ -561,18 +324,24 @@ export default function PageDetailsDrawer({
                           )
                         )
                         , React.createElement('tbody', {}
-                          , React.createElement('tr', { className: "bg-primary bg-opacity-10" }
-                            , React.createElement('td', { className: "ps-4 py-2 align-middle" }, React.createElement('i', { className: "isax isax-tick-circle text-success fs-24" }))
-                            , React.createElement('td', { className: "py-2 align-middle" }, "Text")
-                            , React.createElement('td', { className: "py-2 align-middle text-muted" }, "—")
-                            , React.createElement('td', { className: "pe-4 py-2 align-middle" }, React.createElement('span', { className: "badge bg-danger bg-opacity-10 text-danger rounded-pill" }, "High"))
-                          )
-                          , React.createElement('tr', {}
-                            , React.createElement('td', { className: "ps-4 py-2 align-middle" }, React.createElement('i', { className: "isax isax-tick-circle text-success fs-24" }))
-                            , React.createElement('td', { className: "py-2 align-middle" }, "Text that starts with Lorem ipsum")
-                            , React.createElement('td', { className: "py-2 align-middle text-muted" }, "—")
-                            , React.createElement('td', { className: "pe-4 py-2 align-middle" }, React.createElement('span', { className: "badge bg-danger bg-opacity-10 text-danger rounded-pill" }, "High"))
-                          )
+                          , filteredPolicies.length === 0
+                            ? React.createElement('tr', {}
+                              , React.createElement('td', { colSpan: 4, className: "text-center py-4 text-muted" }, "No policy results for this page.")
+                            )
+                            : filteredPolicies.map((p) => (
+                              React.createElement('tr', { key: p.id || p.name, className: p.isHit ? "table-danger table-danger-opacity" : "" }
+                                , React.createElement('td', { className: "ps-4 py-2 align-middle" }
+                                  , React.createElement('i', { className: `isax ${p.isHit ? "isax-close-circle text-danger" : "isax-tick-circle text-success"} fs-24` })
+                                )
+                                , React.createElement('td', { className: "py-2 align-middle" }, p.name || "Policy")
+                                , React.createElement('td', { className: "py-2 align-middle text-muted" }, p.note || "—")
+                                , React.createElement('td', { className: "pe-4 py-2 align-middle" }
+                                  , React.createElement('span', { className: `badge ${p.isHit ? "bg-danger" : "bg-success"} bg-opacity-10 text-${p.isHit ? "danger" : "success"} rounded-pill` }
+                                    , p.priority || (p.isHit ? "Violation" : "Passed")
+                                  )
+                                )
+                              )
+                            ))
                         )
                       )
                     )
@@ -621,7 +390,7 @@ export default function PageDetailsDrawer({
                 , React.createElement('div', { className: "card border-0 shadow-sm h-100" }
                   , React.createElement('div', { className: "card-body py-3" }
                     , React.createElement('nav', { className: "nav flex-column gap-1" }
-                      , QA_SIDEBAR_ITEMS.map((item) => {
+                      , qaSidebarItems.map((item) => {
                         const isActive = qaSubView === item.key;
                         return (
                           React.createElement('button', {
@@ -660,7 +429,7 @@ export default function PageDetailsDrawer({
                           )
                           , React.createElement('div', {}
                             , React.createElement('h6', { className: "mb-0 fw-semibold" }, "Broken Links")
-                            , React.createElement('p', { className: "text-muted fs-13 mb-0" }, BROKEN_LINKS_SAMPLE.length, " issues found")
+                            , React.createElement('p', { className: "text-muted fs-13 mb-0" }, brokenLinksCount, " issues found")
                           )
                         )
                         , React.createElement('div', { className: "d-flex flex-wrap align-items-center gap-2 gap-md-3 border-bottom" }
@@ -742,7 +511,7 @@ export default function PageDetailsDrawer({
                               ))
                             )
                             , React.createElement('span', { className: "text-muted small" }
-                              , (brokenLinksPage - 1) * brokenLinksRowsPerPage + 1, "-", Math.min(brokenLinksPage * brokenLinksRowsPerPage, BROKEN_LINKS_SAMPLE.length), " of ", BROKEN_LINKS_SAMPLE.length
+                              , (brokenLinksPage - 1) * brokenLinksRowsPerPage + 1, "-", Math.min(brokenLinksPage * brokenLinksRowsPerPage, brokenLinksCount), " of ", brokenLinksCount
                             )
                           )
                           , React.createElement('nav', { 'aria-label': "Broken links pagination" }
@@ -787,21 +556,23 @@ export default function PageDetailsDrawer({
                 )
                 , qaSubView === "broken-images" && (
                   React.createElement(BrokenImagesSection, {
-                    items: BROKEN_IMAGES_SAMPLE,
+                    items: effectivePage.brokenImages || [],
                     onOpenIssue: setSelectedBrokenImageId
                   }
                   )
                 )
                 , qaSubView === "misspellings" && (
                   React.createElement(MisspellingsSection, {
-                    items: MISSPELLINGS_SAMPLE,
+                    variant: "page",
+                    showLanguage: false,
+                    items: effectivePage.misspellings || [],
                     onOpenIssue: setSelectedMisspellingId
                   }
                   )
                 )
                 , qaSubView === "potential-misspellings" && (
-                  React.createElement(PotentialMisspellingsSection, {
-                    items: POTENTIAL_MISSPELLINGS_SAMPLE,
+                  React.createElement(PotentialMisspellingsSectionPageDetails, {
+                    items: effectivePage.potentialMisspellings || [],
                     onOpenIssue: setSelectedPotentialMisspellingId
                   }
                   )
@@ -816,7 +587,7 @@ export default function PageDetailsDrawer({
                 , qaSubView !== "broken-links" && qaSubView !== "broken-images" && qaSubView !== "misspellings" && qaSubView !== "potential-misspellings" && qaSubView !== "ignored-misspellings" && (
                   React.createElement('div', { className: "card border-0 shadow-sm" }
                     , React.createElement('div', { className: "card-body" }
-                      , React.createElement('h6', { className: "mb-2" }, _nullishCoalesce(_optionalChain([QA_SIDEBAR_ITEMS, 'access', _6 => _6.find, 'call', _7 => _7((i) => i.key === qaSubView), 'optionalAccess', _8 => _8.label]), () => ("Report")))
+                      , React.createElement('h6', { className: "mb-2" }, _nullishCoalesce(_optionalChain([qaSidebarItems, 'access', _6 => _6.find, 'call', _7 => _7((i) => i.key === qaSubView), 'optionalAccess', _8 => _8.label]), () => ("Report")))
                       , React.createElement('p', { className: "text-muted fs-13 mb-0" }, "Report content for this page.")
                     )
                   )
@@ -825,39 +596,45 @@ export default function PageDetailsDrawer({
             )
           )
 
-          , activeTab === "accessibility" && React.createElement(AccessibilitySection, {})
+          , activeTab === "accessibility" && React.createElement(AccessibilitySection, {
+            data: effectivePage.accessibility,
+            score: effectivePage.lighthouseAccessibilityScore || 0
+          })
 
-          , activeTab === "seo" && React.createElement(SeoSection, {})
+          , activeTab === "seo" && React.createElement(SeoSection, {
+            issues: effectivePage.seoImprovements || [],
+            score: effectivePage.seoScore || effectivePage.lighthouseSeoScore || 0
+          })
 
-          , activeTab === "inventory" && React.createElement(InventorySection, { defaultView: defaultInventorySubView, embeddedInDrawer: true })
+          , activeTab === "inventory" && React.createElement(InventorySection, { page: effectivePage, defaultView: defaultInventorySubView, embeddedInDrawer: true, domainId: domainId })
 
-          , activeTab === "performance" && React.createElement(PerformanceSection, { page: page ? { title: page.title, url: page.url } : null, embeddedInDrawer: _nullishCoalesce(performanceSectionEmbedded, () => (false)) })
+          , activeTab === "performance" && React.createElement(PerformanceSection, { page: effectivePage, embeddedInDrawer: _nullishCoalesce(performanceSectionEmbedded, () => (true)) })
         )
       )
       , React.createElement(BrokenLinkIssueDrawer, {
         open: selectedBrokenLinkId != null,
         onClose: () => setSelectedBrokenLinkId(null),
-        issue: selectedBrokenLinkId != null ? _nullishCoalesce(BROKEN_LINKS_SAMPLE.find((r) => r.id === selectedBrokenLinkId), () => (null)) : null,
-        page: page ? { title: page.title, url: page.url } : undefined
+        issue: selectedBrokenLinkId != null ? _nullishCoalesce(brokenLinksList.find((r) => r.id === selectedBrokenLinkId), () => (null)) : null,
+        page: effectivePage ? { title: effectivePage.title, url: effectivePage.url } : undefined
       }
       )
       , React.createElement(BrokenImageIssueDrawer, {
         open: selectedBrokenImageId != null,
         onClose: () => setSelectedBrokenImageId(null),
-        issue: selectedBrokenImageId != null ? _nullishCoalesce(BROKEN_IMAGES_SAMPLE.find((r) => r.id === selectedBrokenImageId), () => (null)) : null,
-        page: page ? { title: page.title, url: page.url } : undefined
+        issue: selectedBrokenImageId != null ? _nullishCoalesce((effectivePage.brokenImages || []).find((r) => r.id === selectedBrokenImageId), () => (null)) : null,
+        page: effectivePage ? { title: effectivePage.title, url: effectivePage.url } : undefined
       }
       )
       , React.createElement(MisspellingIssueDrawer, {
         open: selectedMisspellingId != null,
         onClose: () => setSelectedMisspellingId(null),
-        issue: selectedMisspellingId != null ? _nullishCoalesce(MISSPELLINGS_SAMPLE.find((r) => r.id === selectedMisspellingId), () => (null)) : null
+        issue: selectedMisspellingId != null ? _nullishCoalesce((effectivePage.misspellings || []).find((r) => r.id === selectedMisspellingId), () => (null)) : null
       }
       )
       , React.createElement(PotentialMisspellingIssueDrawer, {
         open: selectedPotentialMisspellingId != null,
         onClose: () => setSelectedPotentialMisspellingId(null),
-        issue: selectedPotentialMisspellingId != null ? _nullishCoalesce(POTENTIAL_MISSPELLINGS_SAMPLE.find((r) => r.id === selectedPotentialMisspellingId), () => (null)) : null
+        issue: selectedPotentialMisspellingId != null ? _nullishCoalesce((effectivePage.potentialMisspellings || []).find((r) => r.id === selectedPotentialMisspellingId), () => (null)) : null
       }
       )
       , React.createElement(IgnoredSpellingIssueDrawer, {
@@ -868,7 +645,7 @@ export default function PageDetailsDrawer({
       }
       )
 
-      /* Run policy again – confirm modal (same pattern as app/page.tsx start-scan confirm) */
+      /* Run policy again â€“ confirm modal (same pattern as app/page.tsx start-scan confirm) */
       , runPolicyAgainConfirmOpen && (
         React.createElement(React.Fragment, null
           , React.createElement('div', {

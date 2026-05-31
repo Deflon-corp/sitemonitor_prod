@@ -71,9 +71,17 @@ export default function InventoryPage() {
       setDomainName(domain.dm_title || hostname);
 
       // Load summary & scan status from our new high-performance APIs
-      const sumRes = await inventoryApi.getInventorySummary(selDomainId);
+      const [sumRes, historyRes] = await Promise.all([
+        inventoryApi.getInventorySummary(selDomainId).catch(e => null),
+        inventoryApi.getInventoryHistory(selDomainId).catch(e => null)
+      ]);
+
       if (sumRes && sumRes.success && sumRes.summary) {
-        setScanStatus(sumRes.summary);
+        const fullSummary = {
+          ...sumRes.summary,
+          history: (historyRes && historyRes.success) ? historyRes.history : []
+        };
+        setScanStatus(fullSummary);
         if (sumRes.summary.status === "pending" || sumRes.summary.status === "scanning") {
           setIsScanning(true);
           setProgressPercent(sumRes.summary.progress || 0);
@@ -202,7 +210,7 @@ export default function InventoryPage() {
     links: 0,
     emails: scanStatus.totalEmails || 0,
     headlinks: scanStatus.totalHeadlinks || 0,
-    history: []
+    history: scanStatus.history || []
   } : null;
 
   const supportedDetailViews = ["html-pages", "documents", "images", "css", "js", "emails", "personal", "headlinks", "links", "forms", "iframes", "frames"];
@@ -281,7 +289,6 @@ export default function InventoryPage() {
             )
           )
         )
-
         /* Navigation Tabs */
         , React.createElement('div', { className: "card mb-4" }
           , React.createElement('div', { className: "card-body py-3" }
@@ -372,10 +379,11 @@ export default function InventoryPage() {
           )
         )
 
+        /* Inventory Summary Graph (Displayed below tabs when on summary view) */
+        , !loading && currentView === "summary" && React.createElement(InventorySummaryView, { data: summaryDataMapped })
+
         /* Loader & View render */
         , loading && React.createElement('div', { className: "text-center py-5" }, React.createElement('div', { className: "spinner-border text-primary", role: "status" }, React.createElement('span', { className: "visually-hidden" }, "Loading...")))
-        
-        , !loading && currentView === "summary" && React.createElement(InventorySummaryView, { data: summaryDataMapped })
         
         , !loading && supportedDetailViews.includes(currentView) && React.createElement(InventoryDetailsView, { domainId: domainId, currentView: finalDetailViewKey })
         

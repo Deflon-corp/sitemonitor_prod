@@ -11,14 +11,14 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE = [
-  { id: 1, link: "https://cms-assets.bajajfinserv.in/presentations/investor-deck-q1-2025.pptx", type: "Slides", responseCode: "200" },
-  { id: 2, link: "https://cms-assets.bajajfinserv.in/presentations/board-update-mar-25.pptx", type: "Slides", responseCode: "200" },
-  { id: 3, link: "https://cms-assets.bajajfinserv.in/presentations/product-overview.pptx", type: "Slides", responseCode: "200" },
-  { id: 4, link: "https://cms-assets.bajajfinserv.in/presentations/compliance-training.pptx", type: "Slides", responseCode: "200" },
-  { id: 5, link: "https://cms-assets.bajajfinserv.in/presentations/quarterly-results-fy25.pptx", type: "Slides", responseCode: "200" },
-  { id: 6, link: "https://cms-assets.bajajfinserv.in/presentations/risk-assessment.pptx", type: "Slides", responseCode: "200" },
-  { id: 7, link: "https://cms-assets.bajajfinserv.in/presentations/customer-journey.pptx", type: "Slides", responseCode: "200" },
-  { id: 8, link: "https://cms-assets.bajajfinserv.in/presentations/strategy-2025.pptx", type: "Slides", responseCode: "200" },
+  { id: 1, link: "https://cms-assets.example.com/presentations/investor-deck-q1-2025.pptx", type: "Slides", responseCode: "200" },
+  { id: 2, link: "https://cms-assets.example.com/presentations/board-update-mar-25.pptx", type: "Slides", responseCode: "200" },
+  { id: 3, link: "https://cms-assets.example.com/presentations/product-overview.pptx", type: "Slides", responseCode: "200" },
+  { id: 4, link: "https://cms-assets.example.com/presentations/compliance-training.pptx", type: "Slides", responseCode: "200" },
+  { id: 5, link: "https://cms-assets.example.com/presentations/quarterly-results-fy25.pptx", type: "Slides", responseCode: "200" },
+  { id: 6, link: "https://cms-assets.example.com/presentations/risk-assessment.pptx", type: "Slides", responseCode: "200" },
+  { id: 7, link: "https://cms-assets.example.com/presentations/customer-journey.pptx", type: "Slides", responseCode: "200" },
+  { id: 8, link: "https://cms-assets.example.com/presentations/strategy-2025.pptx", type: "Slides", responseCode: "200" },
 ];
 
 

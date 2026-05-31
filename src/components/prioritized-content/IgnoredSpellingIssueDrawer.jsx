@@ -28,13 +28,7 @@ import IgnoredSpellingPageDetailsDrawer from "@/components/prioritized-content/I
 const ROWS_PER_PAGE_OPTIONS = [10, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const DEFAULT_PAGES_WITH_IGNORED_SPELLING = [
-  { title: "Latest BPL Televisions - Online at Best Prices in India | EMI Starting at ₹1078/Month", url: "https://www.bajajfinserv.in/bmall/televisions/bpl-tv", priority: "High", views: 0 },
-  { title: "TVs - Latest Television Prices in India | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/televisions", priority: "Low", views: 0 },
-  { title: "16GB RAM Laptops - Buy 16GB RAM Laptop Online at Best Prices", url: "https://www.bajajfinserv.in/bmall/laptops/16gb-ram-laptops", priority: "High", views: 0 },
-  { title: "Washing Machines - Buy Washing Machine Online at Best Prices", url: "https://www.bajajfinserv.in/bmall/washing-machines", priority: "Medium", views: 42 },
-  { title: "Smartphones - Latest Mobile Phones in India | Bajaj Finserv", url: "https://www.bajajfinserv.in/bmall/smartphones", priority: "High", views: 128 },
-];
+const DEFAULT_PAGES_WITH_IGNORED_SPELLING = [];
 
 export default function IgnoredSpellingIssueDrawer({
   open,
@@ -47,11 +41,17 @@ export default function IgnoredSpellingIssueDrawer({
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
 
-  const totalPages = Math.max(1, Math.ceil(pagesWithIgnoredSpelling.length / rowsPerPage));
+  const resolvedPagesWithIgnoredSpelling = useMemo(() => {
+    if (pagesWithIgnoredSpelling && pagesWithIgnoredSpelling.length > 0) return pagesWithIgnoredSpelling;
+    if (page) return [{ title: page.title || "Untitled Page", url: page.url, priority: "Medium", views: 0 }];
+    return [];
+  }, [pagesWithIgnoredSpelling, page]);
+
+  const totalPages = Math.max(1, Math.ceil(resolvedPagesWithIgnoredSpelling.length / rowsPerPage));
   const paginatedPages = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return pagesWithIgnoredSpelling.slice(start, start + rowsPerPage);
-  }, [pagesWithIgnoredSpelling, currentPage, rowsPerPage]);
+    return resolvedPagesWithIgnoredSpelling.slice(start, start + rowsPerPage);
+  }, [resolvedPagesWithIgnoredSpelling, currentPage, rowsPerPage]);
 
   useEffect(() => {
     if (!open) return;
@@ -234,8 +234,8 @@ export default function IgnoredSpellingIssueDrawer({
                   , React.createElement('select', { className: "form-select form-select-sm" , style: { width: "auto" }, value: rowsPerPage, onChange: (e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
                     , ROWS_PER_PAGE_OPTIONS.map((n) => React.createElement('option', { key: n, value: n}, n))
                   )
-                  , React.createElement('span', { className: "text-muted small" }
-                    , (currentPage - 1) * rowsPerPage + 1, "-", Math.min(currentPage * rowsPerPage, pagesWithIgnoredSpelling.length), " of "  , pagesWithIgnoredSpelling.length
+                  , React.createElement('span', { className: "text-muted small" }, 
+                    resolvedPagesWithIgnoredSpelling.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1, "-", Math.min(currentPage * rowsPerPage, resolvedPagesWithIgnoredSpelling.length), " of "  , resolvedPagesWithIgnoredSpelling.length
                   )
                 )
                 , React.createElement('nav', { 'aria-label': "Pages with ignored spelling pagination"    }

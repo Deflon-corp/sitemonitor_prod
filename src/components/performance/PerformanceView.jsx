@@ -212,6 +212,11 @@ const PerformanceView = () => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (avgScore / 100) * circumference;
 
+  const formatVal = (val, unit = "") => {
+    if (val === null || val === undefined || isNaN(Number(val))) return "N/A";
+    return `${Number(val).toFixed(2)}${unit}`;
+  };
+
   let ringColor = "#dc3545"; // Red
   if (avgScore >= 90) ringColor = "#198754"; // Green
   else if (avgScore >= 50) ringColor = "#ffc107"; // Yellow
@@ -329,7 +334,7 @@ const PerformanceView = () => {
                         <div>
                           <span className="text-muted fs-11 d-block text-uppercase mb-1 fw-medium">Loading Speed (LCP)</span>
                           <p className="text-muted fs-10 mb-2 lh-sm">How fast primary content loads on the screen</p>
-                          <span className="fs-18 fw-bold text-dark">{summary?.avgLCP ? `${summary.avgLCP}s` : "N/A"}</span>
+                          <span className="fs-18 fw-bold text-dark">{formatVal(summary?.avgLCP, "s")}</span>
                         </div>
                         <span className={`badge rounded-pill d-block mt-2 py-1 ${getVitalsBadgeClass(summary?.avgLCP, "lcp")}`}>
                           {summary?.avgLCP <= 2.5 ? "Good (< 2.5s)" : summary?.avgLCP <= 4.0 ? "Needs Work (< 4.0s)" : "Poor (> 4.0s)"}
@@ -341,7 +346,7 @@ const PerformanceView = () => {
                         <div>
                           <span className="text-muted fs-11 d-block text-uppercase mb-1 fw-medium">Responsiveness (INP)</span>
                           <p className="text-muted fs-10 mb-2 lh-sm">Delay on user clicks, taps, or keystrokes</p>
-                          <span className="fs-18 fw-bold text-dark">{summary?.avgINP ? `${summary.avgINP}ms` : "N/A"}</span>
+                          <span className="fs-18 fw-bold text-dark">{formatVal(summary?.avgINP, "ms")}</span>
                         </div>
                         <span className={`badge rounded-pill d-block mt-2 py-1 ${getVitalsBadgeClass(summary?.avgINP, "inp")}`}>
                           {summary?.avgINP <= 200 ? "Good (< 200ms)" : summary?.avgINP <= 500 ? "Needs Work (< 500ms)" : "Poor (> 500ms)"}
@@ -353,7 +358,7 @@ const PerformanceView = () => {
                         <div>
                           <span className="text-muted fs-11 d-block text-uppercase mb-1 fw-medium">Visual Stability (CLS)</span>
                           <p className="text-muted fs-10 mb-2 lh-sm">Unexpected layout shifts of page elements</p>
-                          <span className="fs-18 fw-bold text-dark">{summary?.avgCLS !== undefined ? summary.avgCLS : "N/A"}</span>
+                          <span className="fs-18 fw-bold text-dark">{formatVal(summary?.avgCLS)}</span>
                         </div>
                         <span className={`badge rounded-pill d-block mt-2 py-1 ${getVitalsBadgeClass(summary?.avgCLS, "cls")}`}>
                           {summary?.avgCLS <= 0.1 ? "Good (< 0.1)" : summary?.avgCLS <= 0.25 ? "Needs Work (< 0.25)" : "Poor (> 0.25)"}
@@ -539,17 +544,17 @@ const PerformanceView = () => {
                           </td>
                           <td className="text-center">
                             <span className={`badge py-2 px-3 rounded-pill fs-12 ${getVitalsBadgeClass(p.lcp, "lcp")}`}>
-                              {p.lcp ? `${p.lcp}s` : "N/A"}
+                              {formatVal(p.lcp, "s")}
                             </span>
                           </td>
                           <td className="text-center">
                             <span className={`badge py-2 px-3 rounded-pill fs-12 ${getVitalsBadgeClass(p.inp, "inp")}`}>
-                              {p.inp ? `${p.inp}ms` : "N/A"}
+                              {formatVal(p.inp, "ms")}
                             </span>
                           </td>
                           <td className="text-center">
                             <span className={`badge py-2 px-3 rounded-pill fs-12 ${getVitalsBadgeClass(p.cls, "cls")}`}>
-                              {p.cls !== undefined ? p.cls : "N/A"}
+                              {formatVal(p.cls)}
                             </span>
                           </td>
                           <td className="pe-4 text-end">

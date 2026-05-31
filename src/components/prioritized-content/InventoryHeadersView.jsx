@@ -16,7 +16,7 @@ const SAMPLE = [
   { id: 4, headerType: "h2", text: "Choose a store you wish to shop from" },
   { id: 5, headerType: "h3", text: "Our Companies" },
   { id: 6, headerType: "h3", text: "Corporate Identity Number (CIN)" },
-  { id: 7, headerType: "h3", text: "Bajaj Finserv Limited Regd. Office" },
+  { id: 7, headerType: "h3", text: "Example Domain Limited Regd. Office" },
   { id: 8, headerType: "h3", text: "URN - WEB/BFL/23-24/1/V1" },
   { id: 9, headerType: "h3", text: "IRDAI Corporate Agency (Composite) Regn No." },
   { id: 10, headerType: "h3", text: "Corporate Identity Number (CIN)" },

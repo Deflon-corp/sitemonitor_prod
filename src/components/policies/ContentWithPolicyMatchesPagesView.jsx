@@ -8,15 +8,15 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
 /** Sample data for Pages – replace with API */
-const SAMPLE_ROWS = Array.from({ length: 42 }, (_, i) => ({
+const SAMPLE_ROWS = Array.from({ length: 1 }, (_, i) => ({
   id: `page-${i + 1}`,
-  title: i % 4 === 0 ? "(No title found)" : `Page ${i + 1} - Search`,
-  url: `https://www.bajajfinserv.in/page/${i + 1}${i > 0 ? `?ref=${i}` : ""}`,
-  unwanted: i % 3,
-  required: i % 2,
+  title: "Example Page",
+  url: `https://www.example.com/page/${i + 1}`,
+  unwanted: 0,
+  required: 0,
   matches: 1,
-  priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-  views: Math.floor(Math.random() * 500),
+  priority: "Low",
+  views: 0,
 }));
 
 const ContentWithPolicyMatchesPagesView = ({ data = [] }) => {

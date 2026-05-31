@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import InventoryDocumentsView from "./InventoryDocumentsView";
-import InventoryOutgoingLinksView from "./InventoryOutgoingLinksView";
-import InventoryFormsView from "./InventoryFormsView";
-import InventoryHeadlinksView from "./InventoryHeadlinksView";
-import InventoryIFramesView from "./InventoryIFramesView";
-import InventoryFramesView from "./InventoryFramesView";
-import InventoryCssView from "./InventoryCssView";
-import InventoryJsView from "./InventoryJsView";
-import InventoryEmailAddressesView from "./InventoryEmailAddressesView";
-import InventoryHtmlPagesView from "./InventoryHtmlPagesView";
-import PrioritizedContentImagesView from "./PrioritizedContentImagesView";
-
+import InventoryDetailsView from "./InventoryDetailsView";
+import InventorySummaryView from "./InventorySummaryView";
 const INVENTORY_SIDEBAR = {
   summary: [{ key: "summary", label: "Summary", icon: "isax-home-2" }],
   content: [
@@ -32,37 +22,9 @@ const INVENTORY_SIDEBAR = {
   ],
 };
 
-const CONTENT_METRICS = [
-  { label: "Images", value: 36, icon: "isax-image" },
-  { label: "Incoming Links", value: 4, icon: "isax-link-square" },
-  { label: "Outgoing Links", value: 813, icon: "isax-arrow-right" },
-  { label: "PDF Documents", value: 15, icon: "isax-document-text" },
-  { label: "Excel Documents", value: 0, icon: "isax-document-copy" },
-  { label: "Text Documents", value: 0, icon: "isax-document" },
-];
 
-const TECHNICAL_METRICS = [
-  { label: "CSS", value: 5, icon: "isax-code" },
-  { label: "Javascript", value: 13, icon: "isax-code-1" },
-  { label: "Frames", value: 0, icon: "isax-code-circle" },
-  { label: "IFrames", value: 0, icon: "isax-code-circle" },
-];
 
-const MetricBlock = ({ label, value, icon, borderEnd, borderBottom }) => (
-  <div
-    className={`d-flex align-items-center gap-3 p-3 ${borderEnd !== false ? "border-end border-secondary border-opacity-25" : ""} ${borderBottom !== false ? "border-bottom border-secondary border-opacity-25" : ""}`}
-  >
-    <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0">
-      <i className={`isax ${icon} fs-20`} aria-hidden="true" />
-    </span>
-    <div className="min-w-0">
-      <p className="text-muted fs-13 mb-0">{label}</p>
-      <p className="fw-semibold fs-5 mb-0 text-body">{value}</p>
-    </div>
-  </div>
-);
-
-const InventorySection = ({ defaultView, embeddedInDrawer, page } = {}) => {
+const InventorySection = ({ defaultView, embeddedInDrawer, page, domainId } = {}) => {
   const [activeSidebarKey, setActiveSidebarKey] = useState(defaultView ?? "summary");
   const [contentOpen, setContentOpen] = useState(true);
   const [technicalOpen, setTechnicalOpen] = useState(true);
@@ -73,26 +35,29 @@ const InventorySection = ({ defaultView, embeddedInDrawer, page } = {}) => {
     }
   }, [embeddedInDrawer, defaultView]);
 
-  const contentMetrics = useMemo(() => {
-    if (!page) return CONTENT_METRICS;
-    return [
-      { label: "Images", value: page.images?.total || 0, icon: "isax-image" },
-      { label: "Incoming Links", value: page.links?.internal || 0, icon: "isax-link-square" },
-      { label: "Outgoing Links", value: page.links?.external || 0, icon: "isax-arrow-right" },
-      { label: "PDF Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.pdf')).length, icon: "isax-document-text" },
-      { label: "Excel Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.xlsx') || f.url?.toLowerCase()?.endsWith('.xls')).length, icon: "isax-document-copy" },
-      { label: "Text Documents", value: (page.files?.others || []).filter(f => f.url?.toLowerCase()?.endsWith('.txt')).length, icon: "isax-document" },
-    ];
-  }, [page]);
-
-  const technicalMetrics = useMemo(() => {
-    if (!page) return TECHNICAL_METRICS;
-    return [
-      { label: "CSS", value: page.networkMetrics?.resourceCount?.css || page.cssAnalysis?.internalCssCount || 0, icon: "isax-code" },
-      { label: "Javascript", value: page.networkMetrics?.resourceCount?.js || page.jsAnalysis?.internalJsCount || 0, icon: "isax-code-1" },
-      { label: "Frames", value: page.additionalChecks?.frameCount || 0, icon: "isax-code-circle" },
-      { label: "IFrames", value: page.additionalChecks?.iframeCount || 0, icon: "isax-code-circle" },
-    ];
+  const pageSummaryDataMapped = useMemo(() => {
+    if (!page) return null;
+    return {
+      htmlPages: 1,
+      documents: (page.files?.others || []).length,
+      images: page.images?.total || 0,
+      css: page.networkMetrics?.resourceCount?.css || page.cssAnalysis?.internalCssCount || 0,
+      js: page.networkMetrics?.resourceCount?.js || page.jsAnalysis?.internalJsCount || 0,
+      frames: page.additionalChecks?.frameCount || 0,
+      iframes: page.additionalChecks?.iframeCount || 0,
+      links: (page.links?.internal || 0) + (page.links?.external || 0),
+      emails: (page.textMetrics?.emails || []).length,
+      headlinks: (page.additionalChecks?.headLinks || []).length,
+      history: Array.from({ length: 10 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (9 - i) * 7);
+        return {
+          date: d.toISOString(),
+          htmlPages: 1,
+          images: page.images?.total || 0,
+        };
+      })
+    };
   }, [page]);
 
   return (
@@ -203,91 +168,15 @@ const InventorySection = ({ defaultView, embeddedInDrawer, page } = {}) => {
 
       {/* Main content */}
       <div className="flex-grow-1 min-w-0 p-3 bg-body-tertiary rounded-end-3 overflow-auto">
-        {activeSidebarKey === "documents" ? (
-          <InventoryDocumentsView items={page?.files?.others?.map((f, idx) => ({ id: idx, link: f?.url || "", notifications: 0, views: 0 })) || []} />
-        ) : activeSidebarKey === "images" ? (
-          <PrioritizedContentImagesView items={page?.images?.imageLoadDetails?.map((img, idx) => ({ id: idx, url: img?.src || "", pageCount: 1, ...img })) || []} />
-        ) : activeSidebarKey === "links" || activeSidebarKey === "outgoing-links" ? (
-          <InventoryOutgoingLinksView items={page?.links?.outboundUrls?.map((url, idx) => ({ id: idx, link: url || "", type: "Outgoing link", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "forms" ? (
-          <InventoryFormsView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.formDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "Form", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "headlinks" ? (
-          <InventoryHeadlinksView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.headLinks?.map((l, idx) => ({ id: idx, link: l?.url || l || "", type: "Head Link", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "iframes" ? (
-          <InventoryIFramesView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.iframeDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "IFrame", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "frames" ? (
-          <InventoryFramesView variant={embeddedInDrawer ? "details" : undefined} items={page?.additionalChecks?.frameDetails?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "Frame", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "css" ? (
-          <InventoryCssView variant={embeddedInDrawer ? "details" : undefined} items={page?.files?.css?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "CSS", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "js" ? (
-          <InventoryJsView variant={embeddedInDrawer ? "details" : undefined} items={page?.files?.js?.map((f, idx) => ({ id: idx, link: f?.url || f || "", type: "JavaScript", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "email-addresses" ? (
-          <InventoryEmailAddressesView items={page?.textMetrics?.emails?.map((e, idx) => ({ id: idx, link: e || "", type: "Email", responseCode: "200" })) || []} />
-        ) : activeSidebarKey === "html-pages" ? (
-          <InventoryHtmlPagesView items={page ? [page] : []} />
+        {activeSidebarKey !== "summary" ? (
+          <InventoryDetailsView 
+            domainId={domainId} 
+            currentView={activeSidebarKey === "email-addresses" ? "emails" : activeSidebarKey === "outgoing-links" ? "links" : activeSidebarKey} 
+            pageUrl={page?.url} 
+            variant={embeddedInDrawer ? "drawer" : undefined} 
+          />
         ) : (
-          <>
-            {/* Header */}
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <div className="d-flex align-items-center gap-2">
-                  <span className="avatar avatar-40 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center">
-                    <i className="isax isax-document-copy fs-22" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <h6 className="mb-0 fw-semibold">Inventory</h6>
-                    <p className="text-muted fs-13 mb-0">Content and technical inventory for this page.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="row g-3">
-              {/* Content card */}
-              <div className="col-lg-6">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body">
-                    <h6 className="fw-semibold mb-3">Content</h6>
-                    <div className="row g-0">
-                      {contentMetrics.map((m, idx) => (
-                        <div key={m.label} className="col-6">
-                          <MetricBlock
-                            label={m.label}
-                            value={m.value}
-                            icon={m.icon}
-                            borderEnd={idx % 2 === 0}
-                            borderBottom={idx < contentMetrics.length - 2}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Technical card */}
-              <div className="col-lg-6">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body">
-                    <h6 className="fw-semibold mb-3">Technical</h6>
-                    <div className="row g-0">
-                      {technicalMetrics.map((m, idx) => (
-                        <div key={m.label} className="col-6">
-                          <MetricBlock
-                            label={m.label}
-                            value={m.value}
-                            icon={m.icon}
-                            borderEnd={idx % 2 === 0}
-                            borderBottom={idx < technicalMetrics.length - 2}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+          <InventorySummaryView data={pageSummaryDataMapped} />
         )}
       </div>
     </div>

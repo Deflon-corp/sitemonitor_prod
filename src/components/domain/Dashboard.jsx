@@ -29,7 +29,9 @@ const Dashboard = () => {
 
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
-        return new Date(dateString).toLocaleDateString("en-GB", {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "N/A";
+        return date.toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "short",
             year: "numeric",
@@ -38,7 +40,9 @@ const Dashboard = () => {
 
     const formatTime = (dateString) => {
         if (!dateString) return "";
-        return new Date(dateString).toLocaleTimeString("en-US", {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "";
+        return date.toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
@@ -76,7 +80,9 @@ const Dashboard = () => {
         
         // Get the most recent failure
         const lastFailure = failures[0];
+        if (!lastFailure || !lastFailure.lastScanDate) return "Unknown";
         const date = new Date(lastFailure.lastScanDate);
+        if (isNaN(date.getTime())) return "Unknown";
         return date.toLocaleDateString("en-GB", {
             weekday: 'long',
             day: "numeric",
