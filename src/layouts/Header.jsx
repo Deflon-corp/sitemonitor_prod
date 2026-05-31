@@ -242,7 +242,7 @@ export default function Header({
                                             <img alt="Profile" className="img-fluid rounded-circle" src={user.profilePicture} />
                                         </span>
                                     ) : (
-                                        <span className="avatar online bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
+                                        <span className="avatar online rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
                                             {getInitials(user?.name)}
                                         </span>
                                     )}
@@ -254,8 +254,10 @@ export default function Header({
                                             {getInitials(user?.name)}
                                         </span>
                                         <div className="min-w-0">
-                                            <h6 className="fs-14 fw-semibold text-body mb-0">{user?.name || "User"}</h6>
-                                            <p className="fs-13 text-muted mb-1">{user?.email || "user@example.com"}</p>
+                                            <h6 className="fs-14 fw-semibold text-body mb-0">
+                                                {user?.name || (user?.user_first_name ? `${user.user_first_name} ${user.user_last_name || ""}` : "User")}
+                                            </h6>
+                                            <p className="fs-13 text-muted mb-1">{user?.email || user?.user_email || "user@example.com"}</p>
                                             <Link className="text-primary fs-13 text-decoration-none" to="/home/users/update-profile">
                                                 Edit my profile
                                             </Link>
@@ -284,7 +286,7 @@ export default function Header({
                                             <img alt="Img" className="img-fluid rounded-circle" src={user.profilePicture} />
                                         </span>
                                     ) : (
-                                        <span className="avatar avatar-md online bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
+                                        <span className="avatar avatar-md online rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14">
                                             {getInitials(user?.name)}
                                         </span>
                                     )}
@@ -295,8 +297,10 @@ export default function Header({
                                             {getInitials(user?.name)}
                                         </span>
                                         <div className="min-w-0">
-                                            <h6 className="fs-14 fw-semibold mb-0">{user?.name || "User"}</h6>
-                                            <p className="fs-13 text-muted mb-1">{user?.email || "user@example.com"}</p>
+                                            <h6 className="fs-14 fw-semibold mb-0">
+                                                {user?.name || (user?.user_first_name ? `${user.user_first_name} ${user.user_last_name || ""}` : "User")}
+                                            </h6>
+                                            <p className="fs-13 text-muted mb-1">{user?.email || user?.user_email || "user@example.com"}</p>
                                             <Link className="text-primary fs-13" to="/home/users/update-profile">Edit my profile</Link>
                                         </div>
                                     </div>

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { getDomainsApi } from "../../api/domainApi";
 import { getUserByIdApi, updateUserApi } from "../../api/userApi";
+import { getAdminByIdApi, updateAdminApi } from "../../api/adminApi";
 import { showToast } from "../common/alerts/ToastAlert";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -91,17 +92,21 @@ const UpdateProfile = ({ isEditMode = true }) => {
                 const loggedInUserStr = localStorage.getItem("user");
                 if (loggedInUserStr) {
                     const parsedUser = JSON.parse(loggedInUserStr);
-                    const userId = parsedUser._id || parsedUser.id;
+                    const userId = parsedUser._id || parsedUser.id || parsedUser.user_id;
                     if (userId) {
-                        const userRes = await getUserByIdApi(userId);
+                        const isAdmin = parsedUser.role === 'admin' || parsedUser.role === 'super_admin';
+                        const userRes = isAdmin 
+                            ? await getAdminByIdApi(userId) 
+                            : await getUserByIdApi(userId);
+
                         if (userRes.success && userRes.data) {
                             const u = userRes.data;
-                            setFirstName(u.user_first_name || "");
-                            setLastName(u.user_last_name || "");
-                            setEmail(u.user_email || "");
-                            setPhone(u.user_phone || "");
-                            setLanguage(u.user_language || "en");
-                            setIsAccountAdmin(!!u.user_is_account_admin);
+                            setFirstName(u.user_first_name || u.admin_first_name || "");
+                            setLastName(u.user_last_name || u.admin_last_name || "");
+                            setEmail(u.user_email || u.admin_email || "");
+                            setPhone(u.user_phone || u.admin_phone || "");
+                            setLanguage(u.user_language || u.admin_language || "en");
+                            setIsAccountAdmin(!!u.user_is_account_admin || isAdmin);
                             setEnableExportEmailNotification(!!u.user_enable_export_notification);
                             setSendWelcomeMail(!!u.user_send_welcome_mail);
                             setAllModules(!!u.user_all_modules_access);
@@ -208,9 +213,25 @@ const UpdateProfile = ({ isEditMode = true }) => {
             const loggedInUserStr = localStorage.getItem("user");
             if (loggedInUserStr) {
                 const parsedUser = JSON.parse(loggedInUserStr);
-                const userId = parsedUser._id || parsedUser.id;
+                const userId = parsedUser._id || parsedUser.id || parsedUser.user_id;
                 if (userId) {
-                    const response = await updateUserApi(userId, userData);
+                    const isAdmin = parsedUser.role === 'admin' || parsedUser.role === 'super_admin';
+                    
+                    let response;
+                    if (isAdmin) {
+                        const adminData = {
+                            admin_first_name: firstName,
+                            admin_last_name: lastName,
+                            admin_phone: phone,
+                            admin_email: email,
+                            admin_login_id: email,
+                        };
+                        if (password) adminData.admin_password = password;
+                        response = await updateAdminApi(userId, adminData);
+                    } else {
+                        response = await updateUserApi(userId, userData);
+                    }
+
                     if (response.success) {
                         const updatedUser = {
                             ...parsedUser,
@@ -218,6 +239,8 @@ const UpdateProfile = ({ isEditMode = true }) => {
                             user_last_name: lastName,
                             user_email: email,
                             user_phone: phone,
+                            name: `${firstName} ${lastName}`.trim(),
+                            email: email,
                         };
                         localStorage.setItem("user", JSON.stringify(updatedUser));
                         showToast(response.message || "Profile updated successfully", "success");
