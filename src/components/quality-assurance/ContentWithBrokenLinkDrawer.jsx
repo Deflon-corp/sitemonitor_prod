@@ -80,7 +80,7 @@ export default function ContentWithBrokenLinkDrawer({
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(function() {
-    const header = "Title,URL,Priority,Views\n";
+    const header = "Title,URL,Priority\n";
     const body = sortedRows
       .map((r) => `"${r.title.replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.priority}",${r.views}`)
       .join("\n");
@@ -90,7 +90,7 @@ export default function ContentWithBrokenLinkDrawer({
 
   const exportExcel = useCallback(async function() {
     const XLSX = await import("xlsx");
-    const rows = sortedRows.map((r) => ({ Title: r.title, URL: r.url, Priority: r.priority, Views: r.views }));
+    const rows = sortedRows.map((r) => ({ Title: r.title, URL: r.url, Priority: r.priority }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Content");
@@ -101,8 +101,8 @@ export default function ContentWithBrokenLinkDrawer({
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Priority", "Views"]];
-    const body = sortedRows.map((r) => [r.title, r.url, r.priority, String(r.views)]);
+    const head = [["Title", "URL", "Priority"]];
+    const body = sortedRows.map((r) => [r.title, r.url, r.priority]);
     autoTable(doc, {
       head,
       body,
@@ -241,33 +241,13 @@ export default function ContentWithBrokenLinkDrawer({
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-3 ps-4">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center fw-semibold"
-                          onClick={() => handleSort("title")}
-                        >
-                          Title
-                          <SortIcon column="title" />
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                          Title and URL <SortIcon column="title" />
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center fw-semibold"
-                          onClick={() => handleSort("priority")}
-                        >
-                          Priority
-                          <SortIcon column="priority" />
-                        </button>
-                      </th>
-                      <th className="fw-semibold text-body py-3">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center fw-semibold"
-                          onClick={() => handleSort("views")}
-                        >
-                          Views
-                          <SortIcon column="views" />
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
+                          Priority <SortIcon column="priority" />
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3 pe-4" style={{ width: 100 }}></th>
@@ -308,12 +288,7 @@ export default function ContentWithBrokenLinkDrawer({
                             {row.priority}
                           </span>
                         </td>
-                        <td className="py-3">
-                          <span className="text-body">{row.views}</span>
-                          <div className="progress mt-1" style={{ height: 4, width: 60 }}>
-                            <div className="progress-bar bg-secondary" role="progressbar" style={{ width: "0%" }} aria-valuenow={0} aria-valuemin={0} aria-valuemax={100}></div>
-                          </div>
-                        </td>
+
                         <td className="py-3 pe-4">
                           <div className="d-flex align-items-center gap-1">
                             <button type="button" className="btn btn-icon btn-sm btn-light" title="Open page details">

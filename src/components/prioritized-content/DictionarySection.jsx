@@ -151,7 +151,7 @@ const DictionarySection = ({
                   </button>
                 </th>
                 <th className="py-3 text-body fs-13 fw-semibold">Lookup in Google</th>
-                <th className="py-3 text-body fs-13 fw-semibold">Language</th>
+                
                 {variant === "default" && (
                   <>
                     <th className="py-3 text-body fs-13 fw-semibold">
@@ -159,15 +159,15 @@ const DictionarySection = ({
                         Pages {sortBy === "pages" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
                       </button>
                     </th>
-                    <th className="py-3 text-body fs-13 fw-semibold">Open Issue Page</th>
-                    <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} />
+                    <th className="py-3 text-body fs-13 fw-semibold" className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Pages</th>
+                    
                   </>
                 )}
                 {variant === "page" && (
                   <>
-                    <th className="py-3 pe-4 text-body fs-13 fw-semibold text-nowrap text-center" style={{ width: "auto", minWidth: 120 }}>Open issue page</th>
-                    <th className="py-3 text-body fs-13 fw-semibold">Action</th>
-                    {!hideDetailsColumn && <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 80 }}>Details</th>}
+                    <th className="py-3 pe-4 text-body fs-13 fw-semibold text-nowrap text-center" style={{ width: "auto", minWidth: 120 }} className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Pages</th>
+                    
+                    
                   </>
                 )}
               </tr>
@@ -206,18 +206,7 @@ const DictionarySection = ({
                       </button>
                     </td>
                   )}
-                  <td className="py-3 pe-4">
-                    <div className="d-inline-flex align-items-center gap-1">
-                      <div className="dropdown d-inline-block">
-                        <button type="button" className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 dropdown-toggle py-1 px-2" data-bs-toggle="dropdown" aria-expanded="false" title="Action">
-                          Action <i className="isax isax-arrow-down-1 ms-1" aria-hidden="true" />
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li><button type="button" className="dropdown-item">Remove from dictionary</button></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </td>
+                  
                   {variant === "page" && !hideDetailsColumn && (
                     <td className="py-3 pe-4">
                       <button type="button" className="btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary" title="Details" onClick={() => onOpenIssue?.(row.id)} aria-label={`Details for ${row.word}`}>

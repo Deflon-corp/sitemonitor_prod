@@ -168,28 +168,7 @@ export default function PagesWithLanguageIssuesView() {
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover table-striped table-borderless align-middle mb-0">
-              <thead>
-                <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                  <th className="py-3 ps-4 text-body fs-13 fw-semibold">
-                    <SortBtn column="title">Title and URL</SortBtn>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <SortBtn column="declaredLanguage">Declared language</SortBtn>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <SortBtn column="detectedLanguage">Detected language</SortBtn>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <SortBtn column="multiLanguage">Multi-language</SortBtn>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <SortBtn column="views">
-                      Views
-                      <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                        <i className="isax isax-information text-muted fs-12" aria-hidden="true"></i>
-                      </span>
-                    </SortBtn>
-                  </th>
+              
                   <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }} aria-label="Actions"></th>
                 </tr>
               </thead>
@@ -216,7 +195,7 @@ export default function PagesWithLanguageIssuesView() {
                         <i className="isax isax-close-circle text-muted" aria-hidden="true" title="No"></i>
                       )}
                     </td>
-                    <td className="py-3 fs-13 text-body">{row.views}</td>
+                    
                     <td className="py-3 pe-4">
                       <div className="d-inline-flex align-items-center gap-1">
                         <button

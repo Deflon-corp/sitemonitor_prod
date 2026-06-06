@@ -82,7 +82,7 @@ export default function ContentWithBrokenLinksView() {
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Notifications,Priority,Views\n";
+    const header = "Title,URL,Issues Found,Priority\n";
     const body = sortedRows
       .map((r) => `"${(r.title || "").replace(/"/g, '""')}","${(r.url || "").replace(/"/g, '""')}",${r.notifications},"${r.priority}",${r.views}`)
       .join("\n");
@@ -95,9 +95,8 @@ export default function ContentWithBrokenLinksView() {
     const rows = sortedRows.map((r) => ({
       Title: r.title,
       URL: r.url,
-      Notifications: r.notifications,
+      "Issues Found": r.notifications,
       Priority: r.priority,
-      Views: r.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -109,8 +108,8 @@ export default function ContentWithBrokenLinksView() {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Notifications", "Priority", "Views"]];
-    const body = sortedRows.map((r) => [r.title || "", r.url || "", String(r.notifications), r.priority, String(r.views)]);
+    const head = [["Title", "URL", "Issues Found", "Priority"]];
+    const body = sortedRows.map((r) => [r.title || "", r.url || "", String(r.notifications), r.priority]);
     autoTable(doc, {
       head,
       body,
@@ -218,7 +217,7 @@ export default function ContentWithBrokenLinksView() {
                       </th>
                       <th className="fw-semibold text-body">
                         <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("notifications")}>
-                          Notifications
+                          Issues Found
                           <SortIcon column="notifications" />
                         </button>
                       </th>
@@ -230,17 +229,6 @@ export default function ContentWithBrokenLinksView() {
                           </span>
                           <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
                             <SortIcon column="priority" />
-                          </button>
-                        </span>
-                      </th>
-                      <th className="fw-semibold text-body">
-                        <span className="d-inline-flex align-items-center">
-                          Views
-                          <span className="ms-1 opacity-75" title="View count">
-                            <i className="isax isax-info-circle fs-14" aria-hidden="true"></i>
-                          </span>
-                          <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center" onClick={() => handleSort("views")}>
-                            <SortIcon column="views" />
                           </button>
                         </span>
                       </th>
@@ -279,9 +267,7 @@ export default function ContentWithBrokenLinksView() {
                             {row.priority}
                           </span>
                         </td>
-                        <td className="py-3">
-                          <span className="text-body">{row.views}</span>
-                        </td>
+                        
                         <td className="py-3 pe-4 text-end">
                           <button type="button" className="btn btn-icon btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2 text-dark" title="Open page details" onClick={() => openPageDetails(row)}>
                             <i className="isax isax-document-text text-primary" aria-hidden="true"></i>

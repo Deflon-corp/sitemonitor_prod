@@ -202,7 +202,7 @@ const DictionaryIssueDrawer = ({
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">Language</th>
+                  
                   <th className="py-3 text-body fs-13 fw-semibold">
                     <button
                       type="button"
@@ -260,7 +260,7 @@ const DictionaryIssueDrawer = ({
                     <td className="py-3">
                       <span className="fs-13 fw-medium">{p.pages}</span>
                     </td>
-                    <td className="py-3 fs-13 text-body">{p.views}</td>
+                    
                     <td className="py-3 pe-4">
                       <button
                         type="button"

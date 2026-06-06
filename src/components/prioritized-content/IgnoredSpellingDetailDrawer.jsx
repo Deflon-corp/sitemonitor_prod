@@ -147,8 +147,7 @@ export default function IgnoredSpellingDetailDrawer({
               , React.createElement('dl', { className: "row mb-0 fs-13"  }
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Word")
                 , React.createElement('dd', { className: "col-8 mb-2 fw-medium"  }, issue.word)
-                , React.createElement('dt', { className: "col-4 text-muted" }, "Language")
-                , React.createElement('dd', { className: "col-8 mb-2" }, issue.language)
+                
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Date found" )
                 , React.createElement('dd', { className: "col-8 mb-2" }, formatDateFound(issue.dateFound))
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Found on page"  )
@@ -189,7 +188,7 @@ export default function IgnoredSpellingDetailDrawer({
                     , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50"    }
                       , React.createElement('th', { className: "py-3 ps-4 text-body fs-13 fw-semibold text-nowrap"     }, "Title and URL"  )
                       , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold text-nowrap"    }, "Priority")
-                      , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold text-nowrap"    }, "Views")
+                      
                       , React.createElement('th', { className: "py-3 pe-4 text-nowrap"  , style: { width: 100 }, 'aria-label': "Actions"} )
                     )
                   )
@@ -209,7 +208,7 @@ export default function IgnoredSpellingDetailDrawer({
                             , p.priority
                           )
                         )
-                        , React.createElement('td', { className: "py-2 fs-13 text-body"  }, p.views)
+                        
                         , React.createElement('td', { className: "py-2 pe-4" }
                           , React.createElement('button', {
                             type: "button",

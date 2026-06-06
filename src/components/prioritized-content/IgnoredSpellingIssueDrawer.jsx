@@ -147,8 +147,7 @@ export default function IgnoredSpellingIssueDrawer({
               , React.createElement('dl', { className: "row mb-0 fs-13"  }
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Word")
                 , React.createElement('dd', { className: "col-8 mb-2 fw-medium"  }, issue.word)
-                , React.createElement('dt', { className: "col-4 text-muted" }, "Language")
-                , React.createElement('dd', { className: "col-8 mb-2" }, issue.language)
+                
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Date found" )
                 , React.createElement('dd', { className: "col-8 mb-2" }, issue.dateFound)
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Snippet")
@@ -182,7 +181,7 @@ export default function IgnoredSpellingIssueDrawer({
                   , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50"    }
                       , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Title and URL"  )
                       , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Priority")
-                      , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Views")
+                      
                       , React.createElement('th', { className: "py-3 pe-4" , style: { width: 80 }})
                     )
                   )

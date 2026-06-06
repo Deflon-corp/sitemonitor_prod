@@ -216,7 +216,7 @@ export default function PotentialMisspellingIssueDrawer({
                       , sortBy === "title" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
                     )
                   )
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }, "Language")
+                  
                   , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
                     , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("misspellings")}, "Misspellings"
 
@@ -254,7 +254,7 @@ export default function PotentialMisspellingIssueDrawer({
                         )
                       )
                     )
-                    , React.createElement('td', { className: "py-3 text-body fs-13"  }, p.language)
+                    
                     , React.createElement('td', { className: "py-3"}
                       , React.createElement('button', {
                         type: "button",
@@ -279,7 +279,7 @@ export default function PotentialMisspellingIssueDrawer({
                         , React.createElement('span', { className: "fs-13 fw-medium" }, p.potentialMisspellings)
                       )
                     )
-                    , React.createElement('td', { className: "py-3 fs-13 text-body"  }, p.views)
+                    
                     , React.createElement('td', { className: "py-3 pe-4" }
                       , React.createElement('div', { className: "d-flex align-items-center gap-1"  }
                         , React.createElement('button', {

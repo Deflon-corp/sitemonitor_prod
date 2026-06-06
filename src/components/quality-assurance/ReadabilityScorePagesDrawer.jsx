@@ -96,7 +96,7 @@ export default function ReadabilityScorePagesDrawer({
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Readability Score,Readability Level,Total words,Priority,Views\n";
+    const header = "Title,URL,Readability Score,Readability Level,Total words,Priority\n";
     const body = sortedPages
       .map((p) =>
         [
@@ -106,7 +106,6 @@ export default function ReadabilityScorePagesDrawer({
           `"${p.readabilityLevel.replace(/"/g, '""')}"`,
           p.totalWords,
           `"${p.priority}"`,
-          p.views,
         ].join(",")
       )
       .join("\n");
@@ -123,7 +122,6 @@ export default function ReadabilityScorePagesDrawer({
       "Readability Level": p.readabilityLevel,
       "Total words": p.totalWords,
       Priority: p.priority,
-      Views: p.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -135,7 +133,7 @@ export default function ReadabilityScorePagesDrawer({
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Score", "Level", "Words", "Priority", "Views"]];
+    const head = [["Title", "URL", "Score", "Level", "Words", "Priority"]];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 30),
       p.url.slice(0, 40),
@@ -143,7 +141,6 @@ export default function ReadabilityScorePagesDrawer({
       p.readabilityLevel,
       String(p.totalWords),
       p.priority,
-      String(p.views),
     ]);
     autoTable(doc, {
       head,
@@ -315,60 +312,28 @@ export default function ReadabilityScorePagesDrawer({
                 <table className="table table-hover table-striped table-borderless align-middle mb-0">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="py-3 ps-4 text-body fs-13 fw-semibold">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                          onClick={() => handleSort("title")}
-                        >
+                      <th className="fw-semibold text-body py-3 ps-4">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
                           Title and URL
-                          {sortBy === "title" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                          ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                          )}
+                          {sortBy === "title" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
                         </button>
                       </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                          onClick={() => handleSort("readabilityScore")}
-                        >
-                          Readability Score
-                          {sortBy === "readabilityScore" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                          ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                          )}
+                      <th className="fw-semibold text-body py-3">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("readabilityScore")}>
+                          Score & Level
+                          {sortBy === "readabilityScore" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
                         </button>
                       </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">Total words</th>
-                      <th className="py-3 text-body fs-13 fw-semibold">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                          onClick={() => handleSort("priority")}
-                        >
+                      <th className="fw-semibold text-body py-3">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("totalWords")}>
+                          Words
+                          {sortBy === "totalWords" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
+                        </button>
+                      </th>
+                      <th className="fw-semibold text-body py-3">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
                           Priority
-                          <i className="isax isax-arrow-down-1 fs-12 opacity-50" aria-hidden="true" />
-                        </button>
-                      </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                          onClick={() => handleSort("views")}
-                        >
-                          Views
-                          <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                            <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                          </span>
-                          {sortBy === "views" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                          ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                          )}
+                          {sortBy === "priority" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
                         </button>
                       </th>
                       <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }} aria-label="Actions" />
@@ -405,7 +370,7 @@ export default function ReadabilityScorePagesDrawer({
                             {p.priority}
                           </span>
                         </td>
-                        <td className="py-3 fs-13 text-body">{p.views}</td>
+
                         <td className="py-3 pe-4">
                           <div className="d-inline-flex align-items-center gap-1">
                             <button

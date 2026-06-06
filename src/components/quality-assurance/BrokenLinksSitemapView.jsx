@@ -204,7 +204,7 @@ export default function BrokenLinksSitemapView() {
                         <i className="isax isax-arrow-down-1 ms-1 fs-12 opacity-75" aria-hidden="true"></i>
                       </span>
                     </th>
-                    <th className="fw-semibold text-body py-3 pe-4" style={{ width: 100 }}>Action</th>
+                    
                   </tr>
                 </thead>
                 <tbody>

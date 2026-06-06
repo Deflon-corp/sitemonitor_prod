@@ -37,7 +37,6 @@ export default function IgnoredSpellingsSectionView() {
         items={items.map((r) => ({
           id: r.id,
           word: r.word,
-          language: r.language,
           dateIgnored: r.dateAdded,
         }))}
         onOpenIssue={function (id) {
@@ -54,7 +53,7 @@ export default function IgnoredSpellingsSectionView() {
             ? {
                 id: selectedIssue.id,
                 word: selectedIssue.word,
-                language: selectedIssue.language,
+
                 dateIgnored: selectedIssue.dateAdded,
               }
             : null

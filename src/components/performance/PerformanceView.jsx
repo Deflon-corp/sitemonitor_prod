@@ -516,7 +516,7 @@ const PerformanceView = () => {
                             {sortBy === "cls" && (sortOrder === "desc" ? "↓" : "↑")}
                           </button>
                         </th>
-                        <th style={{ width: "14%" }} className="pe-4 text-end">Actions</th>
+                        
                       </tr>
                     </thead>
                     <tbody>

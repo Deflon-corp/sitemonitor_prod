@@ -167,7 +167,7 @@ const GlobalPoliciesView = ({
                     <i className={`isax ms-1 text-muted ${sortHitsDesc ? "isax-arrow-down" : "isax-arrow-up-1"}`} aria-hidden="true" />
                   </button>
                 </th>
-                <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }}>Actions</th>
+                
               </tr>
             </thead>
             <tbody>

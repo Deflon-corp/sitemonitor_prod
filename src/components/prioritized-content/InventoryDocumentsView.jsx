@@ -141,7 +141,7 @@ export default function InventoryDocumentsView({ items = [], variant }) {
                   <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                     <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Link</th>
                     <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Notifications</th>
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Views</th>
+                    
                   </tr>
                 </thead>
                 <tbody>

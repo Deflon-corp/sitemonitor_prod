@@ -143,17 +143,17 @@ export default function IgnoredSpellingsSection({
                   )
                   , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Word")
                   , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Lookup in Google"  )
-                  , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Language")
+                  
                   , variant === "default" && (
                     React.createElement(React.Fragment, null
-                      , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Open Issue Page"  )
+                      , React.createElement('th', { className: "fw-semibold text-body py-3 text-center", style: { width: 100 } }, "Details")
                       , React.createElement('th', { className: "py-3 pe-4" , style: { width: 120 }})
                     )
                   )
                   , variant === "page" && (
                     React.createElement(React.Fragment, null
                       , React.createElement('th', { className: "fw-semibold text-body py-3 text-nowrap text-center"    , style: { width: "auto", minWidth: 120 }}, "Open issue page"  )
-                      , React.createElement('th', { className: "fw-semibold text-body py-3"  }, "Action")
+                      
                       , !hideDetailsColumn && React.createElement('th', { className: "py-3 pe-4 fw-semibold text-body"   , style: { width: 80 }}, "Details")
                     )
                   )
@@ -178,7 +178,7 @@ export default function IgnoredSpellingsSection({
                         , React.createElement('span', { className: "fw-bold"}, "G")
                       )
                     )
-                    , React.createElement('td', { className: "py-2 text-body" }, row.language)
+                    
                     , variant === "default" && (
                       React.createElement(React.Fragment, null
                         , React.createElement('td', { className: "py-2"}

@@ -82,13 +82,13 @@ export default function ContentWithQAErrorsView() {
 
   const displayRows = useMemo(() => {
     if (!useLiveTable) return [];
-    if (sortBy !== "priority" && sortBy !== "views") return apiRows;
+    if (sortBy !== "priority") return apiRows;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...apiRows].sort((a, b) => {
       if (sortBy === "priority") {
         return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
       }
-      return dir * ((a.views || 0) - (b.views || 0));
+      return 0;
     });
   }, [apiRows, sortBy, sortDir, useLiveTable]);
 
@@ -228,7 +228,7 @@ export default function ContentWithQAErrorsView() {
                           className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
                           onClick={() => handleSort("notifications")}
                         >
-                          Notifications
+                          Issues Found
                           <SortIcon column="notifications" />
                         </button>
                       </th>
@@ -244,39 +244,27 @@ export default function ContentWithQAErrorsView() {
                           </button>
                         </span>
                       </th>
-                      <th className="py-3 fw-semibold text-body fs-13">
-                        <span className="d-inline-flex align-items-center">
-                          Views
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center"
-                            onClick={() => handleSort("views")}
-                          >
-                            <SortIcon column="views" />
-                          </button>
-                        </span>
-                      </th>
                       <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end" style={{ width: 100 }} />
                     </tr>
                   </thead>
                   <tbody>
                     {loading && (
                       <tr>
-                        <td colSpan={5} className="text-center py-5 text-muted">
+                        <td colSpan={4} className="text-center py-5 text-muted">
                           Loading pages with QA errors…
                         </td>
                       </tr>
                     )}
                     {!loading && !domainId && (
                       <tr>
-                        <td colSpan={5} className="text-center py-5 text-muted">
+                        <td colSpan={4} className="text-center py-5 text-muted">
                           Select a domain from the sidebar to view QA scan results.
                         </td>
                       </tr>
                     )}
                     {!loading && domainId && displayRows.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="text-center py-5 text-muted">
+                        <td colSpan={4} className="text-center py-5 text-muted">
                           No pages with QA errors found. Click <strong>Run QA scan</strong> above to crawl and
                           analyze your site.
                         </td>
@@ -322,9 +310,6 @@ export default function ContentWithQAErrorsView() {
                             <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill">
                               {row.priority}
                             </span>
-                          </td>
-                          <td className="py-3">
-                            <span className="text-body">{row.views ?? 0}</span>
                           </td>
                           <td className="py-3 pe-4 text-end">
                             <button

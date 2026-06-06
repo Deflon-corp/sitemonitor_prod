@@ -361,7 +361,7 @@ export default function PageDetailsMisspellingsDrawer({
                               <th className="ps-4">Broken link</th>
                               <th>Code</th>
                               <th>Type</th>
-                              <th className="text-end pe-4">Action</th>
+                              
                             </tr>
                           </thead>
                           <tbody>

@@ -56,7 +56,7 @@ export default function DocumentsWithBrokenLinkDrawer({
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(function() {
-    const header = "Title,URL,Type,Views\n";
+    const header = "Title,URL,Type\n";
     const body = filteredRows
       .map((r) => `"${r.title.replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.type}",${r.views}`)
       .join("\n");
@@ -66,7 +66,7 @@ export default function DocumentsWithBrokenLinkDrawer({
 
   const exportExcel = useCallback(async function() {
     const XLSX = await import("xlsx");
-    const rows = filteredRows.map((r) => ({ Title: r.title, URL: r.url, Type: r.type, Views: r.views }));
+    const rows = filteredRows.map((r) => ({ Title: r.title, URL: r.url, Type: r.type }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Documents");
@@ -77,8 +77,8 @@ export default function DocumentsWithBrokenLinkDrawer({
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Type", "Views"]];
-    const body = filteredRows.map((r) => [r.title, r.url, r.type, String(r.views)]);
+    const head = [["Title", "URL", "Type"]];
+    const body = filteredRows.map((r) => [r.title, r.url, r.type]);
     autoTable(doc, {
       head,
       body,
@@ -202,9 +202,12 @@ export default function DocumentsWithBrokenLinkDrawer({
                   <table className="table table-hover table-striped table-borderless align-middle mb-0">
                     <thead>
                       <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                        <th className="fw-semibold text-body py-3 ps-4">Title and URL</th>
-                        <th className="fw-semibold text-body py-3">Type</th>
-                        <th className="fw-semibold text-body py-3">Views</th>
+                        <th className="fw-semibold text-body py-3 ps-4">
+                          Title and URL
+                        </th>
+                        <th className="fw-semibold text-body py-3">
+                          Type
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -234,9 +237,7 @@ export default function DocumentsWithBrokenLinkDrawer({
                           <td className="py-3">
                             <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{row.type}</span>
                           </td>
-                          <td className="py-3">
-                            <span className="text-body">{row.views}</span>
-                          </td>
+                          
                         </tr>
                       ))}
                     </tbody>

@@ -209,7 +209,7 @@ const DictionaryDetailDrawer = ({
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap">Title</th>
-                      <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Language</th>
+                      
                       <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
                         <button
                           type="button"

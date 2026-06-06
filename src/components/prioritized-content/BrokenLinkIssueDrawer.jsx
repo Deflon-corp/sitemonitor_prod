@@ -140,7 +140,7 @@ const BrokenLinkIssueDrawer = ({
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-3">Title and URL</th>
                       <th className="fw-semibold text-body py-3">Priority</th>
-                      <th className="fw-semibold text-body py-3">Views</th>
+                      
                       <th className="py-3 pe-4" style={{ width: 80 }} />
                     </tr>
                   </thead>

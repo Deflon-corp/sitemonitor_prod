@@ -265,15 +265,15 @@ export default function SpellcheckSummaryView() {
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="border-0 py-2 ps-0" style={{ width: 32 }} aria-hidden="true" />
                       <th className="border-0 py-2 fw-semibold text-body">Word</th>
-                      <th className="border-0 py-2 fw-semibold text-body">Language</th>
+
                       <th className="border-0 py-2 fw-semibold text-body text-end">Pages</th>
-                      <th className="border-0 py-2 pe-0" style={{ width: 90 }}>Action</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
                     {!loading && MOST_COMMON_MISSPELLINGS.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="text-center py-4 text-muted fs-13">
+                        <td colSpan={4} className="text-center py-4 text-muted fs-13">
                           No misspellings found.
                         </td>
                       </tr>
@@ -284,7 +284,7 @@ export default function SpellcheckSummaryView() {
                           <span className="rounded-circle d-inline-block" style={{ width: 8, height: 8, backgroundColor: "#f59e0b" }} aria-hidden="true" />
                         </td>
                         <td className="py-2 fw-medium text-body">{row.word}</td>
-                        <td className="py-2 text-muted fs-13">{row.language}</td>
+
                         <td className="py-2 text-muted fs-13 text-end">
                           {row.pages} {row.pages === 1 ? "PAGE" : "PAGES"}
                         </td>
@@ -327,15 +327,15 @@ export default function SpellcheckSummaryView() {
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="border-0 py-2 ps-0" style={{ width: 32 }} aria-hidden="true" />
                       <th className="border-0 py-2 fw-semibold text-body">Word</th>
-                      <th className="border-0 py-2 fw-semibold text-body">Language</th>
+
                       <th className="border-0 py-2 fw-semibold text-body text-end">Pages</th>
-                      <th className="border-0 py-2 pe-0" style={{ width: 90 }}>Action</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
                     {!loading && MOST_COMMON_POTENTIAL.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="text-center py-4 text-muted fs-13">
+                        <td colSpan={4} className="text-center py-4 text-muted fs-13">
                           No possible misspellings found. Run a QA scan to refresh.
                         </td>
                       </tr>
@@ -346,7 +346,7 @@ export default function SpellcheckSummaryView() {
                           <span className="rounded-circle d-inline-block" style={{ width: 8, height: 8, backgroundColor: "#3b82f6" }} aria-hidden="true" />
                         </td>
                         <td className="py-2 fw-medium text-body">{row.word}</td>
-                        <td className="py-2 text-muted fs-13">{row.language}</td>
+
                         <td className="py-2 text-muted fs-13 text-end">{row.pages} PAGES</td>
                         <td className="py-2 pe-0">
                           <div className="dropdown">

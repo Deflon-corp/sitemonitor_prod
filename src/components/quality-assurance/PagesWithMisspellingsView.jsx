@@ -109,7 +109,7 @@ export default function PagesWithMisspellingsView() {
   const baseName = safeFilename("Pages-With-Misspellings-Report");
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Language,Misspellings,Potential Misspellings,Views\n";
+    const header = "Title,URL,Misspellings,Potential Misspellings\n";
     const body = sortedRows
       .map((r) => `"${(r.title || "").replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}",${r.misspellings},${r.potentialMisspellings},${r.views}`)
       .join("\n");
@@ -119,7 +119,7 @@ export default function PagesWithMisspellingsView() {
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = sortedRows.map((r) => ({ Title: r.title || "", URL: r.url, Language: r.language, Misspellings: r.misspellings, "Potential Misspellings": r.potentialMisspellings, Views: r.views }));
+    const rows = sortedRows.map((r) => ({ Title: r.title || "", URL: r.url, Misspellings: r.misspellings, "Potential Misspellings": r.potentialMisspellings }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -130,8 +130,8 @@ export default function PagesWithMisspellingsView() {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Language", "Misspellings", "Potential", "Views"]];
-    const body = sortedRows.map((r) => [(r.title || "").slice(0, 28), r.url.slice(0, 45), r.language.slice(0, 20), String(r.misspellings), String(r.potentialMisspellings), String(r.views)]);
+    const head = [["Title", "URL", "Misspellings", "Potential"]];
+    const body = sortedRows.map((r) => [(r.title || "").slice(0, 28), r.url.slice(0, 45), String(r.misspellings), String(r.potentialMisspellings)]);
     autoTable(doc, { head, body, startY: 10, styles: { fontSize: 7 }, columnStyles: { 0: { cellWidth: 26 }, 1: { cellWidth: 48 }, 2: { cellWidth: 24 }, 3: { cellWidth: 22 }, 4: { cellWidth: 20 }, 5: { cellWidth: 12 } } });
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedRows]);
@@ -234,9 +234,6 @@ export default function PagesWithMisspellingsView() {
                     <th className="py-3 ps-4 text-body fw-semibold fs-13">
                       <SortBtn column="title">Title</SortBtn>
                     </th>
-                    <th className="py-3 text-body fw-semibold fs-13">
-                      <SortBtn column="language">Language</SortBtn>
-                    </th>
                     <th className="py-3 text-body fw-semibold fs-13 text-center">
                       <SortBtn column="misspellings">
                         <span className="d-inline-flex align-items-center gap-1">
@@ -251,33 +248,18 @@ export default function PagesWithMisspellingsView() {
                         </span>
                       </SortBtn>
                     </th>
-                    <th className="py-3 text-body fw-semibold fs-13">
-                      <SortBtn column="views">
-                        Views
-                        <span
-                          ref={viewsTooltipRef}
-                          className="ms-1 d-inline-flex opacity-75"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-title="Total page views over the last 30 days"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <i className="isax isax-information text-muted fs-12" aria-hidden="true"></i>
-                        </span>
-                      </SortBtn>
-                    </th>
-                    <th className="py-3 pe-4 text-body fw-semibold fs-13 text-end" style={{ width: 100 }}>Actions</th>
+                    
                   </tr>
                 </thead>
                 <tbody>
                   {loading && (
                     <tr>
-                      <td colSpan={6} className="text-center py-5 text-muted">Loading pages…</td>
+                      <td colSpan={4} className="text-center py-5 text-muted">Loading pages…</td>
                     </tr>
                   )}
                   {!loading && paginatedRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-5 text-muted">No pages found.</td>
+                      <td colSpan={4} className="text-center py-5 text-muted">No pages found.</td>
                     </tr>
                   )}
                   {!loading && paginatedRows.map((row) => (
@@ -291,14 +273,14 @@ export default function PagesWithMisspellingsView() {
                           </a>
                         </div>
                       </td>
-                      <td className="py-3 fs-13 text-body">{row.language}</td>
+                      
                       <td className="py-3 text-center">
                         <span className="fs-13 text-body">{row.misspellings}</span>
                       </td>
                       <td className="py-3 text-center">
                         <span className="fs-13 text-body">{row.potentialMisspellings}</span>
                       </td>
-                      <td className="py-3 fs-13 text-body">{row.views}</td>
+                      
                       <td className="py-3 pe-4 text-end">
                         <div className="d-flex align-items-center justify-content-end gap-1">
                           <button type="button" className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2 text-body px-2" title="Open page details" onClick={() => openPageDetails(row)}>

@@ -107,8 +107,7 @@ const BrokenImagesSection = ({
                   <th className="fw-semibold text-body py-3">Broken image</th>
                   <th className="fw-semibold text-body py-3">Response code</th>
                   <th className="fw-semibold text-body py-3">Type</th>
-                  <th className="fw-semibold text-body py-3">Open Issue Page</th>
-                  <th className="fw-semibold text-body py-3">Action</th>
+                  <th className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -124,26 +123,15 @@ const BrokenImagesSection = ({
                     <td className="py-2">
                       <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{row.type}</span>
                     </td>
-                    <td className="py-2">
+                    <td className="py-2 text-center">
                       <button
                         type="button"
-                        className="btn btn-icon btn-sm btn-link text-primary p-0 border-0 bg-transparent text-decoration-none"
-                        title="Open issue page"
+                        className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"
+                        title="View issue details"
                         onClick={() => onOpenIssue?.(row.id)}
                       >
-                        <i className="isax isax-info-circle fs-20" />
+                        <i className="isax isax-document-text fs-14" />
                       </button>
-                    </td>
-                    <td className="py-2">
-                      <div className="dropdown d-inline-block ms-1">
-                        <button type="button" className="btn btn-icon btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Action">
-                          <i className="isax isax-more" />
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li><button type="button" className="dropdown-item">Ignore</button></li>
-                          <li><button type="button" className="dropdown-item">Mark as fixed</button></li>
-                        </ul>
-                      </div>
                     </td>
                   </tr>
                 ))}

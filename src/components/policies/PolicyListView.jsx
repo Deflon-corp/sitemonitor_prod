@@ -390,7 +390,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                     </button>
                   </th>
                   <th className="py-3 text-body fs-13 fw-semibold">Policy Hits</th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold">Actions</th>
+                  
                 </tr>
               </thead>
               <tbody>

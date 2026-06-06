@@ -271,10 +271,7 @@ const PotentialMisspellingsSection = ({
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Open page details</th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold text-end text-nowrap" style={{ width: 100 }}>
-                    Action
-                  </th>
+                  <th className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,38 +303,14 @@ const PotentialMisspellingsSection = ({
                       <button
                         type="button"
                         className="btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary"
-                        title="Open page details"
-                        onClick={() => onOpenPageDetails?.()}
-                        aria-label="Open page details"
+                        title="Open issue details"
+                        onClick={() => onOpenIssue?.(row.id)}
+                        aria-label="Open issue details"
                       >
                         <i className="isax isax-document-text fs-18" aria-hidden="true" />
                       </button>
                     </td>
-                    <td className="py-3 pe-4 text-end">
-                      <div className="dropdown d-inline-block">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 dropdown-toggle py-1 px-2"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                          title="Action"
-                        >
-                          Action <i className="isax isax-arrow-down-1 ms-1 fs-12" aria-hidden="true" />
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li>
-                            <button type="button" className="dropdown-item">
-                              Ignore
-                            </button>
-                          </li>
-                          <li>
-                            <button type="button" className="dropdown-item">
-                              Add to dictionary
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </td>
+                    
                   </tr>
                 ))}
               </tbody>

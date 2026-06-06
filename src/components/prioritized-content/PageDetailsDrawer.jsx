@@ -463,8 +463,8 @@ export default function PageDetailsDrawer({
                                 , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Broken link")
                                 , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Response code")
                                 , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Type")
-                                , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Open Issue Page")
-                                , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Action")
+                                , React.createElement('th', { className: "fw-semibold text-body py-3 text-center", style: { width: 100 } }, "Details")
+                                
                               )
                             )
                             , React.createElement('tbody', {}
@@ -477,7 +477,7 @@ export default function PageDetailsDrawer({
                                   , React.createElement('td', { className: "py-2" }, row.responseCode)
                                   , React.createElement('td', { className: "py-2" }, React.createElement('span', { className: "badge bg-secondary bg-opacity-10 text-secondary rounded-pill" }, row.type))
                                   , React.createElement('td', { className: "py-2" }
-                                    , React.createElement('button', { type: "button", className: "btn btn-icon btn-sm btn-link text-primary p-0 border-0 bg-transparent text-decoration-none", title: "Open issue page", onClick: () => setSelectedBrokenLinkId(row.id) }, React.createElement('i', { className: "isax isax-info-circle fs-20" }))
+                                    , React.createElement('button', { type: "button", className: "btn btn-icon btn-sm btn-link text-primary p-0 border-0 bg-transparent text-decoration-none", title: "View details", onClick: () => onOpenIssue?.(row.id) }, React.createElement('i', { className: "isax isax-document-text fs-20" }))
                                   )
                                   , React.createElement('td', { className: "py-2" }
                                     , React.createElement('div', { className: "dropdown d-inline-block ms-1" }

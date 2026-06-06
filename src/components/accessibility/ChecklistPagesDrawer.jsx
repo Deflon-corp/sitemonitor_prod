@@ -326,7 +326,7 @@ const ChecklistPagesDrawer = ({
                             {p.priority}
                           </span>
                         </td>
-                        <td className="py-3 fs-13 text-body">{p.views}</td>
+                        
                         <td className="py-3 pe-4">
                           <div className="d-flex gap-1">
                             <button

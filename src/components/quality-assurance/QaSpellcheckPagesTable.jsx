@@ -100,16 +100,14 @@ export default function QaSpellcheckPagesTable({
                     {QA_TABLE.pageTitleUrl}
                   </button>
                 </th>
-                <th className="py-3 text-body fs-13 fw-semibold">{QA_TABLE.language}</th>
                 <th className="py-3 text-body fs-13 fw-semibold text-center">{QA_TABLE.misspellingCount}</th>
                 <th className="py-3 text-body fs-13 fw-semibold text-center">{QA_TABLE.potentialCount}</th>
-                <th className="py-3 text-body fs-13 fw-semibold">{QA_TABLE.views}</th>
                 <th className="py-3 pe-4 text-end" style={{ width: 100 }} />
               </tr>
             </thead>
             <tbody>
               <QaTableStatusRow
-                colSpan={6}
+                colSpan={4}
                 loading={loading}
                 error={error}
                 isEmpty={!loading && !error && paginatedRows.length === 0}
@@ -128,10 +126,10 @@ export default function QaSpellcheckPagesTable({
                         </a>
                       </div>
                     </td>
-                    <td className="py-3 fs-13 text-body">{row.language}</td>
+                    
                     <td className="py-3 text-center fs-13">{row.misspellings}</td>
                     <td className="py-3 text-center fs-13">{row.potentialMisspellings}</td>
-                    <td className="py-3 fs-13 text-body">{row.views}</td>
+                    
                     <td className="py-3 pe-4 text-end">
                       <button type="button" className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2" title="View page details" onClick={() => openPageDetails(row)}>
                         <PageIssuesIcon size={16} />

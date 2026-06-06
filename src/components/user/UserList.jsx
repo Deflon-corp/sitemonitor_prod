@@ -312,7 +312,7 @@ export default function UserList() {
                                         <th className="text-muted fw-medium">User</th>
                                         <th className="text-muted fw-medium">Latest login</th>
                                         <th className="text-muted fw-medium">Status</th>
-                                        <th className="text-muted fw-medium text-end">Actions</th>
+                                        
                                     </tr>
                                 </thead>
                                 <tbody>

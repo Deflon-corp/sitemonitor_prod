@@ -263,7 +263,7 @@ const GlobalPolicyListView = ({
                   <SortHeader sortKey="addedBy" label="Added by" className="py-3 text-body fs-13 fw-semibold" />
                   <SortHeader sortKey="creationDate" label="Creation date" className="py-3 text-body fs-13 fw-semibold" />
                   <SortHeader sortKey="hits" label="Hits across all domains and modules" className="py-3 text-body fs-13 fw-semibold" />
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }}>Actions</th>
+                  
                 </tr>
               </thead>
               <tbody>

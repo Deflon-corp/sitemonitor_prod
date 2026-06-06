@@ -75,7 +75,7 @@ const ContentWithPolicyMatchesPdfTabContent = ({ domainUrl, onOpenPageDetails })
                   </span>
                 </th>
                 <th className="py-3 pe-4" style={{ width: 100 }} aria-label="View page" />
-                <th className="py-3 pe-4" style={{ width: 120 }}>Action</th>
+                
               </tr>
             </thead>
             <tbody>

@@ -110,84 +110,7 @@ export default function ContentWithQAErrorsPdfView() {
       <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
         <div className="table-responsive flex-grow-1">
           <table className="table table-hover table-striped table-borderless align-middle mb-0">
-            <thead>
-              <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                <th className="py-3 ps-4 text-body fs-13 fw-semibold">
-                  <button
-                    type="button"
-                    className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
-                    onClick={() => handleSort("title")}
-                  >
-                    Title and URL
-                    {sortBy === "title" ? (
-                      <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true"></i>
-                    ) : (
-                      <i className="isax isax-sort ms-1 text-muted opacity-50" aria-hidden="true"></i>
-                    )}
-                  </button>
-                </th>
-                <th className="py-3 text-body fs-13 fw-semibold">
-                  <button
-                    type="button"
-                    className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
-                    onClick={() => handleSort("notifications")}
-                  >
-                    Notifications
-                    {sortBy === "notifications" ? (
-                      <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true"></i>
-                    ) : (
-                      <i className="isax isax-sort ms-1 text-muted opacity-50" aria-hidden="true"></i>
-                    )}
-                  </button>
-                </th>
-                <th className="py-3 text-body fs-13 fw-semibold">
-                  <button
-                    type="button"
-                    className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
-                    onClick={() => handleSort("priority")}
-                  >
-                    Priority
-                    <span
-                      ref={priorityTooltipRef}
-                      className="ms-1 d-inline-flex"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-bs-title="Priority level"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <i className="isax isax-information text-muted" aria-hidden="true"></i>
-                    </span>
-                    {sortBy === "priority" ? (
-                      <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true"></i>
-                    ) : (
-                      <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true"></i>
-                    )}
-                  </button>
-                </th>
-                <th className="py-3 text-body fs-13 fw-semibold">
-                  <button
-                    type="button"
-                    className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
-                    onClick={() => handleSort("views")}
-                  >
-                    Views
-                    <span
-                      ref={viewsTooltipRef}
-                      className="ms-1 d-inline-flex"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-bs-title="Total page views over the last 30 days"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <i className="isax isax-information text-muted" aria-hidden="true"></i>
-                    </span>
-                    {sortBy === "views" ? (
-                      <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true"></i>
-                    ) : (
-                      <i className="isax isax-sort ms-1 text-muted opacity-50" aria-hidden="true"></i>
-                    )}
-                  </button>
-                </th>
+            
                 <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 90 }}></th>
               </tr>
             </thead>
@@ -213,9 +136,7 @@ export default function ContentWithQAErrorsPdfView() {
                       {row.priority}
                     </span>
                   </td>
-                  <td className="py-3">
-                    <span className="text-body fs-13">{row.views}</span>
-                  </td>
+                  
                   <td className="py-3 pe-4">
                     <div className="d-flex align-items-center gap-1">
                       <button type="button" className="btn btn-sm btn-light text-primary px-2 py-1 fs-12 d-inline-flex align-items-center gap-1" title="Open page issues">

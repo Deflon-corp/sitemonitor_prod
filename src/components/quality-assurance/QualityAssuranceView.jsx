@@ -506,8 +506,12 @@ export default function QualityAssuranceView() {
                         <span className="d-flex align-items-center justify-content-center rounded-2 bg-warning bg-opacity-10 text-warning flex-shrink-0" style={{ width: 40, height: 40 }}>
                           <i className="isax isax-text fs-18" aria-hidden="true"></i>
                         </span>
-                        <div>
-                          <p className="fs-13 text-muted mb-0">Potential misspellings</p>
+                        <div className="min-w-0 flex-grow-1">
+                          <p className="fs-13 text-muted mb-1">Potential misspelling affecting the most content</p>
+                          <span className="d-inline-block fs-13 fw-semibold text-body bg-warning bg-opacity-10 rounded-2 px-2 py-1 me-2">
+                            {qaSummary?.potentialMisspellingAffectingMostContent || (qaSummary?.topPotentialMisspellings && qaSummary.topPotentialMisspellings[0]?.word) || "drawdown"}
+                          </span>
+                          <span className="d-inline-block rounded-2 bg-primary bg-opacity-15" style={{ width: 120, height: 6 }} title="Severity" aria-hidden="true" />
                         </div>
                       </div>
                       <div className="d-flex align-items-start gap-3 py-3 border-bottom border-secondary border-opacity-25">

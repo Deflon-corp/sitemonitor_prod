@@ -253,7 +253,7 @@ const DomainOverview = () => {
                 <tr>
                   <th className="text-muted fw-medium">Last Scan</th>
                   <th className="text-muted fw-medium">Domain</th>
-                  <th className="text-muted fw-medium text-end">Action</th>
+                  
                 </tr>
               </thead>
               <tbody>

@@ -153,54 +153,22 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                 <table className="table table-hover table-striped table-borderless mb-0 align-middle">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="py-3 ps-4 fw-semibold text-body fs-13">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
-                          onClick={() => handleSort("title")}
-                        >
-                          {QA_TABLE.pageTitleUrl}
-                          <SortIcon column="title" />
+                      <th className="fw-semibold text-body py-3 ps-4">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                          Title and URL <SortIcon column="title" />
                         </button>
                       </th>
-                      <th className="py-3 fw-semibold text-body fs-13">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
-                          onClick={() => handleSort("notifications")}
-                        >
-                          {QA_TABLE.issueCount}
-                          <SortIcon column="notifications" />
+                      <th className="fw-semibold text-body py-3">
+                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("notifications")}>
+                          Issues Found <SortIcon column="notifications" />
                         </button>
                       </th>
-                      <th className="py-3 fw-semibold text-body fs-13">
+                      <th className="fw-semibold text-body py-3">
                         <span className="d-inline-flex align-items-center">
                           Priority
                           <span className="ms-1 opacity-75" title="Priority level">
                             <i className="isax isax-info-circle fs-14" aria-hidden="true" />
                           </span>
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center"
-                            onClick={() => handleSort("priority")}
-                          >
-                            <SortIcon column="priority" />
-                          </button>
-                        </span>
-                      </th>
-                      <th className="py-3 fw-semibold text-body fs-13">
-                        <span className="d-inline-flex align-items-center">
-                          Views
-                          <span className="ms-1 opacity-75" title="View count">
-                            <i className="isax isax-info-circle fs-14" aria-hidden="true" />
-                          </span>
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center"
-                            onClick={() => handleSort("views")}
-                          >
-                            <SortIcon column="views" />
-                          </button>
                         </span>
                       </th>
                       <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end" style={{ width: "100px" }} />
@@ -208,7 +176,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                   </thead>
                   <tbody>
                     <QaTableStatusRow
-                      colSpan={5}
+                      colSpan={4}
                       loading={loading}
                       isEmpty={!loading && paginatedRows.length === 0}
                     />
@@ -252,12 +220,7 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                         <td className="py-3">
                           <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill">{row.priority}</span>
                         </td>
-                        <td className="py-3">
-                          <span className="text-body">{row.views}</span>
-                          <div className="progress mt-1" style={{ height: 4, width: 60 }}>
-                            <div className="progress-bar bg-secondary" role="progressbar" style={{ width: "0%" }} aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} />
-                          </div>
-                        </td>
+
                         <td className="py-3 pe-4 text-end">
                           <button
                             type="button"

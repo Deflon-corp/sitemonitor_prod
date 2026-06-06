@@ -177,8 +177,7 @@ export default function MisspellingDetailDrawer({
               , React.createElement('dl', { className: "row mb-0 fs-13" }
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Element")
                 , React.createElement('dd', { className: "col-8 mb-2" }, "Text")
-                , React.createElement('dt', { className: "col-4 text-muted" }, "Language")
-                , React.createElement('dd', { className: "col-8 mb-2" }, issue.language)
+                
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Date found")
                 , React.createElement('dd', { className: "col-8 mb-2" }, formatDateFound(issue.dateFound))
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Snippet")
@@ -226,7 +225,7 @@ export default function MisspellingDetailDrawer({
                   , React.createElement('thead', {}
                     , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50" }
                       , React.createElement('th', { className: "py-3 ps-4 text-body fs-13 fw-semibold text-nowrap" }, "Title")
-                      , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold text-nowrap" }, "Language")
+                      
                       , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold text-nowrap" }
                         , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1", onClick: () => handleSort("misspellings") }, "Misspellings"
 
@@ -260,10 +259,10 @@ export default function MisspellingDetailDrawer({
                             )
                           )
                         )
-                        , React.createElement('td', { className: "py-2 text-body fs-13" }, p.language)
+                        
                         , React.createElement('td', { className: "py-2 fs-13 text-body" }, p.misspellings)
                         , React.createElement('td', { className: "py-2 fs-13 text-body" }, p.potentialMisspellings)
-                        , React.createElement('td', { className: "py-2 fs-13 text-body" }, p.views)
+                        
                         , React.createElement('td', { className: "py-2 pe-4" }
                           , React.createElement('div', { className: "d-inline-flex align-items-center gap-1" }
                             , React.createElement('button', {
