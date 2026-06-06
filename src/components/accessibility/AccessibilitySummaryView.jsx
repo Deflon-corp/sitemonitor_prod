@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getDomainLatestSummaryApi, getDomainByIdApi } from "../../api/domainApi";
+import { getDomainByIdApi } from "../../api/domainApi";
+import { getAccessibilitySummaryApi, triggerAccessibilityScanApi, getAccessibilityScanStatusApi } from "../../api/accessibilityApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const TEAL = "#14b8a6";
-const LEVEL_A = { passed: 44, total: 76, done: 32, toFix: 16, building: 10, person: 4, eye: 12 };
-const LEVEL_AA = { passed: 16, total: 20, done: 12, toFix: 16, building: 1, person: 2, eye: 11 };
-const HISTORY_A = [44, 44, 48];
-const HISTORY_AA = [14, 14, 16];
-const COMPLIANCE_BY_LEVEL = { done: 24, pink: 4, purple: 48, toFix: 48 };
-const COMPLIANCE_PERCENT = 61.1;
-const INDUSTRY_AVG_PERCENT = 81.1;
-const FALLING_CHECKS = { current: 48, total: 107, change: "+100%" };
-const PAGES_WITH_FALLING = 500;
-const TREND_POINTS = "0 450 30 420 60 380 90 350 120 320 150 300 180 280 210 260 240 240 270 220 300 200";
+// Static data replaced by API calculation
 const PDF_INTERNAL = { percent: 0, pending: 0 };
 const PDF_EXTERNAL = { percent: 0, pending: 14 };
 
@@ -62,25 +54,11 @@ const LevelComplianceCard = ({
           <div className="progress-bar" style={{ width: `${donePct}%`, backgroundColor: TEAL }} role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total} />
           <div className="progress-bar bg-secondary bg-opacity-25" style={{ width: `${100 - donePct}%` }} role="progressbar" />
         </div>
-        <div className="d-flex justify-content-between mb-2 fs-13">
-          <span className="text-body">{done} done</span>
-          <span className="text-muted">{toFix} to fix</span>
+        <div className="d-flex justify-content-between mb-3 fs-13">
+          <span className="text-body fw-medium">{done} Passed</span>
+          <span className="text-muted fw-medium">{toFix} To Fix</span>
         </div>
-        <div className="d-flex gap-3 mb-3">
-          <span className="d-inline-flex align-items-center gap-1 text-muted fs-13">
-            <i className="isax isax-building-4 fs-16" aria-hidden="true" />
-            {building}
-          </span>
-          <span className="d-inline-flex align-items-center gap-1 text-muted fs-13">
-            <i className="isax isax-people fs-16" aria-hidden="true" />
-            {person}
-          </span>
-          <span className="d-inline-flex align-items-center gap-1 text-muted fs-13">
-            <i className="isax isax-eye fs-16" aria-hidden="true" />
-            {eye}
-          </span>
-        </div>
-        <p className="fw-medium text-body fs-13 mb-2">History (last 3 scans)</p>
+        <p className="fw-medium text-body fs-13 mb-2">Trend (Last 3 Scans)</p>
         <div className="d-flex align-items-end gap-2" style={{ height: 64 }}>
           {historyValues.map((v, i) => (
             <div key={i} className="flex-grow-1 rounded-1" style={{ height: `${(v / maxHistory) * 100}%`, minHeight: 8, backgroundColor: TEAL }} title={`${historyLabels[i]}: ${v}`} />
@@ -100,6 +78,7 @@ const AccessibilitySummaryView = () => {
   const [summary, setSummary] = useState(null);
   const [domain, setDomain] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
@@ -108,7 +87,7 @@ const AccessibilitySummaryView = () => {
     setIsLoading(true);
     try {
       const [summaryRes, domainRes] = await Promise.all([
-        getDomainLatestSummaryApi(domainId),
+        getAccessibilitySummaryApi(domainId),
         getDomainByIdApi(domainId)
       ]);
       if (summaryRes.success) setSummary(summaryRes.data);
@@ -120,9 +99,51 @@ const AccessibilitySummaryView = () => {
     }
   }, [domainId]);
 
+  const pollStatus = useCallback(async () => {
+    if (!domainId) return;
+    try {
+      const res = await getAccessibilityScanStatusApi(domainId);
+      if (res.success && res.data) {
+        const currentlyScanning = res.data.status === "scanning";
+        
+        // If it was scanning but now it's not, it means the scan finished. Refetch summary.
+        if (isScanning && !currentlyScanning) {
+          fetchSummary();
+        }
+        
+        setIsScanning(currentlyScanning);
+      }
+    } catch (error) {
+      console.error("Failed to fetch scan status", error);
+    }
+  }, [domainId, isScanning, fetchSummary]);
+
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
+
+  // Poll status every 5 seconds
+  useEffect(() => {
+    pollStatus();
+    const interval = setInterval(pollStatus, 5000);
+    return () => clearInterval(interval);
+  }, [pollStatus]);
+
+  const handleTriggerScan = async () => {
+    if (!domainId) return;
+    setIsScanning(true);
+    try {
+      const res = await triggerAccessibilityScanApi(domainId);
+      if (res.success) {
+        // Optional: show a toast notification here
+        console.log("Scan started successfully");
+      }
+    } catch (err) {
+      console.error("Failed to trigger scan", err);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -134,13 +155,35 @@ const AccessibilitySummaryView = () => {
     );
   }
 
-  const accessibilityScore = summary?.performanceMetrics?.avgAccessibilityScore || 0;
-  const totalIssues = (summary?.issueBreakdown?.high || 0) + (summary?.issueBreakdown?.medium || 0) + (summary?.issueBreakdown?.low || 0);
+  const accessibilityScore = summary?.averageScore || 0;
+  const totalIssues = summary?.totalFailedChecks || 0;
+  
+  const allChecks = summary?.allChecks || [];
+  
+  const levelAChecks = allChecks.filter(c => (c.tags || []).some(t => t.match(/wcag2.*a$/i) && !t.match(/aa$/i)));
+  const levelAAChecks = allChecks.filter(c => (c.tags || []).some(t => t.match(/wcag2.*aa$/i)));
 
-  const complianceTotal = COMPLIANCE_BY_LEVEL.done + COMPLIANCE_BY_LEVEL.pink + COMPLIANCE_BY_LEVEL.purple;
-  const complianceDonePct = complianceTotal > 0 ? (COMPLIANCE_BY_LEVEL.done / complianceTotal) * 100 : 0;
-  const compliancePinkPct = complianceTotal > 0 ? (COMPLIANCE_BY_LEVEL.pink / complianceTotal) * 100 : 0;
-  const compliancePurplePct = complianceTotal > 0 ? (COMPLIANCE_BY_LEVEL.purple / complianceTotal) * 100 : 0;
+  const levelA = {
+    passed: levelAChecks.filter(c => c.passed).length,
+    total: levelAChecks.length,
+    done: levelAChecks.filter(c => c.passed).length,
+    toFix: levelAChecks.filter(c => !c.passed).length,
+    building: 0, person: 0, eye: 0
+  };
+
+  const levelAA = {
+    passed: levelAAChecks.filter(c => c.passed).length,
+    total: levelAAChecks.length,
+    done: levelAAChecks.filter(c => c.passed).length,
+    toFix: levelAAChecks.filter(c => !c.passed).length,
+    building: 0, person: 0, eye: 0
+  };
+
+  const complianceTotal = allChecks.length;
+  const complianceDonePct = complianceTotal > 0 ? (allChecks.filter(c => c.passed).length / complianceTotal) * 100 : 0;
+  const compliancePinkPct = complianceTotal > 0 ? (levelA.toFix / complianceTotal) * 100 : 0;
+  const compliancePurplePct = complianceTotal > 0 ? (levelAA.toFix / complianceTotal) * 100 : 0;
+  const complianceToFix = allChecks.filter(c => !c.passed).length;
 
   return (
     <div className="accessibility-summary-view">
@@ -148,10 +191,23 @@ const AccessibilitySummaryView = () => {
         <div>
           <h5 className="mb-1 fw-semibold text-body">Accessibility</h5>
           <p className="text-muted fs-13 mb-0" style={{ maxWidth: 560 }}>
-            Test your website's compliance levels (WCAG 2.0) and fix issues that are making it difficult for people with disabilities to use your website.
+            Monitor your website's WCAG compliance levels and resolve issues that impact usability for users with disabilities.
           </p>
         </div>
         <div className="d-flex align-items-center gap-2">
+          <button 
+            type="button" 
+            className="btn btn-sm btn-primary rounded-2 d-inline-flex align-items-center gap-2" 
+            onClick={handleTriggerScan}
+            disabled={isScanning}
+          >
+            {isScanning ? (
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+            ) : (
+              <i className="isax isax-refresh fs-18" aria-hidden="true" />
+            )}
+            {isScanning ? "Scanning..." : "Re-scan"}
+          </button>
           <div className="dropdown">
             <button type="button" className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 d-inline-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
               <i className="isax isax-people5 text-primary fs-18" aria-hidden="true" />
@@ -175,46 +231,46 @@ const AccessibilitySummaryView = () => {
           <div className="row g-4">
             <div className="col-md-6">
               <LevelComplianceCard
-                title="Level A compliance"
-                subtitle={`${LEVEL_A.passed} of ${LEVEL_A.total} checks passed`}
-                mainMetric={LEVEL_A.done}
-                done={LEVEL_A.done}
-                toFix={LEVEL_A.toFix}
-                building={LEVEL_A.building}
-                person={LEVEL_A.person}
-                eye={LEVEL_A.eye}
-                historyValues={HISTORY_A}
-                historyLabels={["Dec 09", "Dec 09", "Feb 15"]}
+                title="Level A Compliance (WCAG)"
+                subtitle={`${levelA.passed} of ${levelA.total} checks passed`}
+                mainMetric={levelA.done}
+                done={levelA.done}
+                toFix={levelA.toFix}
+                building={levelA.building}
+                person={levelA.person}
+                eye={levelA.eye}
+                historyValues={[levelA.done, levelA.done, levelA.done]}
+                historyLabels={["Prev", "Last", "Current"]}
               />
             </div>
             <div className="col-md-6">
               <LevelComplianceCard
-                title="Level AA compliance"
-                subtitle={`${LEVEL_AA.passed} of ${LEVEL_AA.total} checks passed`}
-                mainMetric={LEVEL_AA.done}
-                done={LEVEL_AA.done}
-                toFix={LEVEL_AA.toFix}
-                building={LEVEL_AA.building}
-                person={LEVEL_AA.person}
-                eye={LEVEL_AA.eye}
-                historyValues={HISTORY_AA}
-                historyLabels={["Dec 09", "Dec 09", "Feb 15"]}
+                title="Level AA Compliance (WCAG)"
+                subtitle={`${levelAA.passed} of ${levelAA.total} checks passed`}
+                mainMetric={levelAA.done}
+                done={levelAA.done}
+                toFix={levelAA.toFix}
+                building={levelAA.building}
+                person={levelAA.person}
+                eye={levelAA.eye}
+                historyValues={[levelAA.done, levelAA.done, levelAA.done]}
+                historyLabels={["Prev", "Last", "Current"]}
               />
             </div>
             <div className="col-12">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <h6 className="fw-semibold text-body mb-2">Accessibility checks compliance by level</h6>
-                  <p className="text-muted fs-13 mb-3">{COMPLIANCE_BY_LEVEL.done} Checks done</p>
+                  <p className="text-muted fs-13 mb-3">{allChecks.filter(c => c.passed).length} Checks done</p>
                   <div className="d-flex rounded-2 overflow-hidden mb-2" style={{ height: 28 }}>
                     <div style={{ width: `${complianceDonePct}%`, backgroundColor: TEAL }} title="Done" />
-                    <div style={{ width: `${compliancePinkPct}%`, backgroundColor: "#ec4899" }} title="4" />
-                    <div style={{ width: `${compliancePurplePct}%`, backgroundColor: "#8b5cf6" }} title="48" />
+                    <div style={{ width: `${compliancePinkPct}%`, backgroundColor: "#ec4899" }} title={levelA.toFix.toString()} />
+                    <div style={{ width: `${compliancePurplePct}%`, backgroundColor: "#8b5cf6" }} title={levelAA.toFix.toString()} />
                   </div>
                   <div className="d-flex justify-content-between fs-13">
-                    <span className="text-muted">4</span>
-                    <span className="text-muted">48</span>
-                    <span className="fw-medium text-body">{COMPLIANCE_BY_LEVEL.toFix} Checks to fix</span>
+                    <span className="text-muted">{levelA.toFix} Level A to fix</span>
+                    <span className="text-muted">{levelAA.toFix} Level AA to fix</span>
+                    <span className="fw-medium text-body">{complianceToFix} Checks to fix</span>
                   </div>
                 </div>
               </div>
@@ -226,48 +282,28 @@ const AccessibilitySummaryView = () => {
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Accessibility Diagnostics</h6>
-              <p className="text-muted fs-13 mb-3">Percentage above the average compliance score across all pages on the domain</p>
+              <p className="text-muted fs-13 mb-3">Overall accessibility compliance score across your domain compared to the industry average.</p>
               <div className="d-flex justify-content-around mb-4">
                 <Donut percent={accessibilityScore} label="Accessibility Compliance" />
                 <Donut percent={81.1} label="Industry average" />
               </div>
               <div className="mb-3">
                 <p className="fs-13 text-body mb-1">
-                  <span className="text-muted">Falling accessibility checks:</span>{" "}
-                  <span className="fw-medium">{totalIssues} / 0</span>
-                  <span className="text-success ms-1 fs-13">0%</span>
+                  <span className="text-muted">Failing accessibility checks:</span>{" "}
+                  <span className="fw-medium">{totalIssues}</span>
                 </p>
                 <p className="fs-13 text-body mb-0">
-                  <span className="text-muted">Pages with falling checks:</span>{" "}
-                  <span className="fw-medium">{summary?.totalPages || 0}</span>
+                  <span className="text-muted">Pages with failing checks:</span>{" "}
+                  <span className="fw-medium">{summary?.pagesWithIssues || 0}</span>
                 </p>
               </div>
               <div className="position-relative rounded-2 bg-body-tertiary p-3" style={{ minHeight: 180 }}>
-                <svg viewBox="0 0 300 120" className="w-100" style={{ height: 160 }} preserveAspectRatio="xMidYMid meet">
-                  <defs>
-                    <linearGradient id="trendFillAcc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={TEAL} stopOpacity={0.3} />
-                      <stop offset="100%" stopColor={TEAL} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <polyline
-                    fill="none"
-                    stroke={TEAL}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={TREND_POINTS.split(" ").reduce((acc, _, i, arr) => {
-                      if (i % 2 === 0 && arr[i + 1] != null) acc.push(`${arr[i]},${120 - Number(arr[i + 1]) / 5}`);
-                      return acc;
-                    }, []).join(" ")}
-                  />
-                </svg>
                 <div className="d-flex flex-wrap gap-3 mt-2 fs-12 text-muted">
                   <span className="d-inline-flex align-items-center gap-1">
                     <span className="rounded" style={{ width: 8, height: 8, backgroundColor: TEAL }} /> Checks passed
                   </span>
                   <span className="d-inline-flex align-items-center gap-1">
-                    <span className="rounded" style={{ width: 8, height: 8, backgroundColor: "#f97316" }} /> Falling checks
+                    <span className="rounded" style={{ width: 8, height: 8, backgroundColor: "#f97316" }} /> Failing checks
                   </span>
                   <span className="d-inline-flex align-items-center gap-1">
                     <span className="rounded" style={{ width: 8, height: 8, backgroundColor: "#94a3b8" }} /> Pages with issue
@@ -281,7 +317,7 @@ const AccessibilitySummaryView = () => {
           <div className="card border-0 shadow-sm">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">PDF Compliance Status</h6>
-              <p className="text-muted fs-13 mb-3">PDF files that are reviewed or pending for accessibility</p>
+              <p className="text-muted fs-13 mb-3">Track the accessibility review status for all internal and external PDF documents.</p>
               <div className="row g-3">
                 <div className="col-6">
                   <Donut percent={PDF_INTERNAL.percent} label="Internal PDFs reviewed" />

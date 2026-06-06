@@ -3,23 +3,14 @@ import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
+import { getAccessibilityPagesApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 const TOTAL_PAGES_WITH_FAILING = 500;
 
-const SAMPLE_PAGES = [
-  { title: "Search", url: "https://example.com/search", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/lenovo-intel-core-i3-6th-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 43, compliancePercent: 59.81, priority: "High", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/dell-15r-intel-core-i5-3rd-gen-8-gb-ram-1-tb-hdd-windows-10-home-15-6-inc", failingChecks: 42, compliancePercent: 60.75, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", failingChecks: 41, compliancePercent: 61.2, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 40, compliancePercent: 62.1, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", failingChecks: 39, compliancePercent: 63.5, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 38, compliancePercent: 64.49, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 37, compliancePercent: 65.2, priority: "Low", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 36, compliancePercent: 66, priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", failingChecks: 35, compliancePercent: 67.1, priority: "Low", views: 0 },
-];
+// Sample pages removed, using API instead.
 
 const TEAL = "#14b8a6";
 
@@ -46,54 +37,78 @@ const PagesWithFailingChecksView = () => {
   const [sortDir, setSortDir] = useState("asc");
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
+  const [apiPages, setApiPages] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emptyMessage, setEmptyMessage] = useState("");
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchPages = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    setEmptyMessage("");
+    try {
+      const res = await getAccessibilityPagesApi(domainId, {
+        page: currentPage,
+        limit: rowsPerPage,
+        search: searchQuery,
+        sortBy,
+        sortOrder: sortDir,
+        filter: "failed"
+      });
+      if (res.success) {
+        const data = res.data.pages.map(p => ({
+          id: p.id,
+          title: p.title || "(No title found)",
+          url: p.url,
+          failingChecks: p.failedCount || 0,
+          compliancePercent: p.score || 0,
+          priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+        }));
+        setApiPages(data);
+        setTotalItems(res.data.pagination.total);
+        setEmptyMessage(res.message || "No pages found.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch accessibility pages", err);
+      setEmptyMessage("Error loading data.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId, currentPage, rowsPerPage, searchQuery, sortBy, sortDir]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPages();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchPages]);
 
   const openIssuePage = (p, index) => {
     setSelectedPageForDetails({ id: index, title: p.title, url: p.url });
     setPageDetailsDrawerOpen(true);
   };
 
-  const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return SAMPLE_PAGES;
-    const q = searchQuery.toLowerCase();
-    return SAMPLE_PAGES.filter(
-      (p) => (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
-
-  const sortedPages = useMemo(() => {
-    if (!sortBy) return filteredPages;
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
-      if (sortBy === "failingChecks") return dir * (a.failingChecks - b.failingChecks);
-      if (sortBy === "compliancePercent") return dir * (a.compliancePercent - b.compliancePercent);
-      if (sortBy === "priority") {
-        const order = { High: 3, Medium: 2, Low: 1 };
-        return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
-      }
-      return dir * (a.views - b.views);
-    });
-  }, [filteredPages, sortBy, sortDir]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedPages.length / rowsPerPage));
-  const paginatedPages = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedPages.slice(start, start + rowsPerPage);
-  }, [sortedPages, currentPage, rowsPerPage]);
+  // Using API directly, no need for local filtering/sorting
+  const sortedPages = apiPages;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const paginatedPages = sortedPages;
 
   const handleSort = (key) => {
     setCurrentPage(1);
     if (sortBy === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else {
       setSortBy(key);
-      setSortDir(key === "title" ? "asc" : "desc");
+      setSortDir("desc"); // Default to desc for issues/score, asc for url
+      if (key === "url") setSortDir("asc");
     }
   };
 
   const reportBaseName = safeFilename("Pages-With-Failing-Checks-Report");
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Failing checks,Page compliance %,Priority,Views\n";
+    const header = "Title,URL,Failing checks,Page compliance %,Priority\n";
     const body = sortedPages
       .map((p) =>
         [
@@ -102,7 +117,6 @@ const PagesWithFailingChecksView = () => {
           p.failingChecks,
           p.compliancePercent.toFixed(2),
           `"${p.priority}"`,
-          p.views,
         ].join(",")
       )
       .join("\n");
@@ -118,7 +132,6 @@ const PagesWithFailingChecksView = () => {
       "Failing checks": p.failingChecks,
       "Page compliance %": p.compliancePercent,
       Priority: p.priority,
-      Views: p.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -130,21 +143,20 @@ const PagesWithFailingChecksView = () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Failing checks", "Compliance %", "Priority", "Views"]];
+    const head = [["Title", "URL", "Failing checks", "Compliance %", "Priority"]];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 30),
       p.url.slice(0, 50),
       String(p.failingChecks),
       p.compliancePercent.toFixed(2),
       p.priority,
-      String(p.views),
     ]);
     autoTable(doc, {
       head,
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 35 }, 1: { cellWidth: 55 }, 2: { cellWidth: 22 }, 3: { cellWidth: 22 }, 4: { cellWidth: 18 }, 5: { cellWidth: 14 } },
+      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 70 }, 2: { cellWidth: 25 }, 3: { cellWidth: 25 }, 4: { cellWidth: 20 } },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
@@ -158,7 +170,7 @@ const PagesWithFailingChecksView = () => {
             <i className="isax isax-document text-primary fs-22" aria-hidden="true" /> Pages with Failing Checks
           </h5>
           <p className="text-muted fs-13 mb-0">
-            {TOTAL_PAGES_WITH_FAILING} pages with failing checks WCAG 2.2
+            {totalItems} pages with failing checks WCAG 2.2
           </p>
         </div>
         {/* Toolbar */}
@@ -204,10 +216,10 @@ const PagesWithFailingChecksView = () => {
                     <button
                       type="button"
                       className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("title")}
+                      onClick={() => handleSort("url")}
                     >
-                      Title and URL
-                      {sortBy === "title" ? (
+                      Page URL
+                      {sortBy === "url" ? (
                         <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                       ) : (
                         <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
@@ -218,28 +230,13 @@ const PagesWithFailingChecksView = () => {
                     <button
                       type="button"
                       className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("failingChecks")}
+                      onClick={() => handleSort("issues")}
                     >
                       Failing checks
-                      {sortBy === "failingChecks" ? (
+                      {sortBy === "issues" ? (
                         <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                       ) : (
                         <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">Page compliance</th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    <button
-                      type="button"
-                      className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("priority")}
-                    >
-                      Priority
-                      {sortBy === "priority" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                      ) : (
-                        <i className="isax isax-arrow-down-1 fs-12 opacity-50" aria-hidden="true" />
                       )}
                     </button>
                   </th>
@@ -247,87 +244,96 @@ const PagesWithFailingChecksView = () => {
                     <button
                       type="button"
                       className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                      onClick={() => handleSort("views")}
+                      onClick={() => handleSort("score")}
                     >
-                      Views
-                      <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                        <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                      </span>
-                      {sortBy === "views" ? (
+                      Compliance Score
+                      {sortBy === "score" ? (
                         <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                       ) : (
                         <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
                       )}
                     </button>
+                  </th>
+                  <th className="py-3 text-body fs-13 fw-semibold">
+                    Priority
                   </th>
                   <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
-                {paginatedPages.map((p, idx) => (
-                  <tr key={`${p.url}-${idx}`}>
-                    <td className="py-3 ps-4">
-                      <div className="d-flex flex-column">
-                        <span className="text-body fs-13">{p.title}</span>
-                        <a
-                          href={p.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
-                        >
-                          <span className="flex-shrink-0 d-inline-flex text-primary">
-                            <ExternalLinkIcon size={12} />
-                          </span>
-                          {p.url}
-                        </a>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-5 text-muted">
+                      <div className="spinner-border spinner-border-sm text-primary mb-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
                       </div>
-                    </td>
-                    <td className="py-3">
-                      <span className="fs-13 text-body">{p.failingChecks}</span>
-                    </td>
-                    <td className="py-3">
-                      <div className="d-flex align-items-center gap-2">
-                        <span className="fs-13 text-body fw-medium">
-                          {p.compliancePercent.toFixed(2)}% COMPLIANCE
-                        </span>
-                        <ComplianceRing percent={p.compliancePercent} />
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <span
-                        className={`badge rounded-pill ${p.priority === "High"
-                            ? "bg-danger bg-opacity-10 text-danger"
-                            : p.priority === "Medium"
-                              ? "bg-warning bg-opacity-10 text-warning"
-                              : "bg-secondary bg-opacity-10 text-secondary"
-                          }`}
-                      >
-                        {p.priority}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <div className="d-flex flex-column gap-1">
-                        <span className="fs-13 text-body">{p.views}</span>
-                        <div className="progress rounded-pill" style={{ height: 4, maxWidth: 80 }}>
-                          <div className="progress-bar bg-secondary bg-opacity-25" style={{ width: "100%" }} role="progressbar" />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 pe-4">
-                      <div className="d-inline-flex align-items-center gap-1">
-                        <button
-                          type="button"
-                          className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"
-                          title="Open page details"
-                          aria-label="Open page details"
-                          onClick={() => openIssuePage(p, idx)}
-                        >
-                          <i className="isax isax-document-text fs-14" aria-hidden="true" />
-                        </button>
-                      </div>
+                      <p className="mb-0 fs-13">Loading pages...</p>
                     </td>
                   </tr>
-                ))}
+                ) : paginatedPages.length > 0 ? (
+                  paginatedPages.map((p, idx) => (
+                    <tr key={`${p.url}-${idx}`}>
+                      <td className="py-3 ps-4">
+                        <div className="d-flex flex-column">
+                          <span className="text-body fs-13">{p.title}</span>
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
+                          >
+                            <span className="flex-shrink-0 d-inline-flex text-primary">
+                              <ExternalLinkIcon size={12} />
+                            </span>
+                            {p.url}
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <span className="fs-13 text-body">{p.failingChecks}</span>
+                      </td>
+                      <td className="py-3">
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fs-13 text-body fw-medium">
+                            {p.compliancePercent.toFixed(2)}%
+                          </span>
+                          <ComplianceRing percent={p.compliancePercent} />
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <span
+                          className={`badge rounded-pill ${p.priority === "High"
+                              ? "bg-danger bg-opacity-10 text-danger"
+                              : p.priority === "Medium"
+                                ? "bg-warning bg-opacity-10 text-warning"
+                                : "bg-secondary bg-opacity-10 text-secondary"
+                            }`}
+                        >
+                          {p.priority}
+                        </span>
+                      </td>
+                      <td className="py-3 pe-4">
+                        <div className="d-inline-flex align-items-center gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"
+                            title="Open page details"
+                            aria-label="Open page details"
+                            onClick={() => openIssuePage(p, idx)}
+                          >
+                            <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-5 text-muted">
+                      <p className="mb-0 fs-14">{emptyMessage || "No pages found."}</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -351,7 +357,7 @@ const PagesWithFailingChecksView = () => {
                 ))}
               </select>
               <span className="text-muted small">
-                {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                {totalItems === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems}
               </span>
             </div>
             <nav aria-label="Pagination">

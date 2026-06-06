@@ -3,36 +3,13 @@ import { createPortal } from "react-dom";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
+import { getAccessibilityPagesApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_PAGE_TEMPLATES = [
-  { url: "https://example.com/search", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
-  { url: "https://example.com/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Low", views: 0 },
-  { url: "https://example.com/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "High", views: 0 },
-  { url: "https://example.com/bmall/lenovo-thinkpad-e14-intel-core-i5-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { url: "https://example.com/bmall/acer-swift-3-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-14-inc", priority: "Low", views: 0 },
-];
 
-const generateSamplePages = (count) => {
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    const t = SAMPLE_PAGE_TEMPLATES[i % SAMPLE_PAGE_TEMPLATES.length];
-    out.push({
-      title: "(No title found)",
-      url: t.url + (i > SAMPLE_PAGE_TEMPLATES.length - 1 ? `?p=${i}` : ""),
-      priority: t.priority,
-      views: t.views,
-    });
-  }
-  return out;
-};
 
 const QUICK_HELP_TEXT =
   "When elements are marked as presentational but contain focusable items like links or buttons, users of assistive technology may encounter interactive elements that aren't announced or expected.";
@@ -41,15 +18,47 @@ const ChecklistPagesDrawer = ({
   open,
   onClose,
   checkName,
+  checkId,
+  isPassed,
   compliancePercent,
-  totalPages,
-  pages: pagesProp,
+  affectedPages,
+  totalPagesScanned,
   onOpenPageDetails,
 }) => {
-  const pages = useMemo(
-    () => pagesProp ?? generateSamplePages(totalPages),
-    [pagesProp, totalPages]
-  );
+  const [pages, setPages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchPages = useCallback(async () => {
+    if (!open || !domainId || !checkId) return;
+    setIsLoading(true);
+    try {
+      const res = await getAccessibilityPagesApi(domainId, {
+        limit: 500, // fetch all for the drawer up to 500
+        issueId: checkId,
+        filter: isPassed ? "passed_issue" : "all",
+      });
+      if (res.success && res.data) {
+        setPages(
+          res.data.pages.map((p) => ({
+            id: p.id,
+            title: p.title || "(No title found)",
+            url: p.url,
+            priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch pages for check", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId, checkId, isPassed, open]);
+
+  useEffect(() => {
+    if (open) fetchPages();
+  }, [open, fetchPages]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,7 +82,7 @@ const ChecklistPagesDrawer = ({
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
       }
-      return dir * (a.views - b.views);
+      return 0;
     });
   }, [filteredPages, sortBy, sortDir]);
 
@@ -95,14 +104,13 @@ const ChecklistPagesDrawer = ({
   const reportBaseName = safeFilename(`Checklist-Pages-${checkName.slice(0, 40).replace(/\s+/g, "-")}`);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Priority,Views\n";
+    const header = "Title,URL,Priority\n";
     const body = sortedPages
       .map((p) =>
         [
           `"${(p.title || "").replace(/"/g, '""')}"`,
           `"${p.url.replace(/"/g, '""')}"`,
           `"${p.priority}"`,
-          p.views,
         ].join(",")
       )
       .join("\n");
@@ -116,7 +124,6 @@ const ChecklistPagesDrawer = ({
       Title: p.title || "",
       URL: p.url,
       Priority: p.priority,
-      Views: p.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -128,26 +135,25 @@ const ChecklistPagesDrawer = ({
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Priority", "Views"]];
+    const head = [["Title", "URL", "Priority"]];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 35),
       p.url.slice(0, 55),
       p.priority,
-      String(p.views),
     ]);
     autoTable(doc, {
       head,
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 38 }, 1: { cellWidth: 75 }, 2: { cellWidth: 22 }, 3: { cellWidth: 18 } },
+      columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 80 }, 2: { cellWidth: 30 } },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
 
-  const pagesInCompliance = Math.round((compliancePercent / 100) * totalPages);
-  const pagesToFix = totalPages - pagesInCompliance;
-  const toFixPercent = totalPages > 0 ? ((pagesToFix / totalPages) * 100).toFixed(1) : "0";
+  const pagesInCompliance = isPassed ? totalPagesScanned : Math.max(0, totalPagesScanned - affectedPages);
+  const pagesToFix = isPassed ? 0 : affectedPages;
+  const toFixPercent = totalPagesScanned > 0 ? ((pagesToFix / totalPagesScanned) * 100).toFixed(1) : "0";
 
   useEffect(() => {
     if (!open) return;
@@ -202,7 +208,7 @@ const ChecklistPagesDrawer = ({
                   {checkName}
                   <i className="isax isax-tick-circle text-primary fs-14 flex-shrink-0" aria-hidden="true" />
                 </h6>
-                <p className="text-muted fs-13 mb-0 mt-1">{totalPages} pages found.</p>
+                <p className="text-muted fs-13 mb-0 mt-1">{affectedPages} pages found.</p>
               </div>
             </div>
             <div className="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
@@ -266,12 +272,21 @@ const ChecklistPagesDrawer = ({
             </div>
           </div>
           <div className="d-flex flex-wrap gap-4 fs-13">
-            <span className="text-body">
-              <strong>{pagesInCompliance} Pages ({compliancePercent}%)</strong> in compliance.
+            <span className="text-success">
+              <i className="isax isax-tick-circle me-1" />
+              <strong>{pagesInCompliance} Pages ({isPassed ? 100 : compliancePercent.toFixed(1)}%)</strong> in compliance.
             </span>
-            <span className="text-body">
-              <strong>{pagesToFix} Pages ({toFixPercent}%)</strong> to fix.
-            </span>
+            {isPassed ? (
+              <span className="text-success">
+                <i className="isax isax-tick-circle me-1" />
+                <strong>No pages to fix!</strong>
+              </span>
+            ) : (
+              <span className="text-danger">
+                <i className="isax isax-warning-2 me-1" />
+                <strong>{pagesToFix} Pages ({toFixPercent}%)</strong> to fix.
+              </span>
+            )}
           </div>
         </div>
 
@@ -293,15 +308,6 @@ const ChecklistPagesDrawer = ({
                         <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("priority")}>
                           Priority
                           {sortBy === "priority" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-arrow-down-1 fs-12 opacity-50" aria-hidden="true" />}
-                        </button>
-                      </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("views")}>
-                          Views
-                          <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                            <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                          </span>
-                          {sortBy === "views" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
                         </button>
                       </th>
                       <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions" />

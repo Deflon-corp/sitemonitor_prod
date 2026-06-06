@@ -2,53 +2,11 @@ import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 
+import { getAccessibilityPagesApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-const SAMPLE_URLS = [
-  "https://www.example.com/products/laptop-a",
-  "https://www.example.com/products/laptop-b",
-  "https://www.example.com/products/laptop-c",
-  "https://www.example.com/search",
-  "https://www.example.com/products/tablet-a",
-  "https://www.example.com/products/tablet-b",
-  "https://www.example.com/products/phone-a",
-  "https://www.example.com/products/phone-b",
-  "https://www.example.com/products/phone-c",
-  "https://www.example.com/products/tablet-c",
-];
-
-const generateSamplePages = (count) => {
-  const out = [];
-  const priorities = ["High", "Medium", "Low"];
-  for (let i = 0; i < count; i++) {
-    const url = SAMPLE_URLS[i % SAMPLE_URLS.length];
-    out.push({
-      title: i === 3 ? "Search" : "(No title found)",
-      url: count > SAMPLE_URLS.length ? `${url}?p=${i}` : url,
-      priority: priorities[i % 3],
-      views: 0,
-    });
-  }
-  return out;
-};
-
-const buildDefaultSections = (totalCount) => {
-  const first = Math.floor(totalCount / 2);
-  const second = totalCount - first;
-  return [
-    {
-      issueTypeName: "SVG element with defined role is missing an accessible name",
-      count: first,
-      pages: generateSamplePages(first),
-    },
-    {
-      issueTypeName: "Image is missing alternative text",
-      count: second,
-      pages: generateSamplePages(second),
-    },
-  ];
-};
 
 const SectionBlock = ({
   section,
@@ -109,9 +67,6 @@ const SectionBlock = ({
               <li><span className="dropdown-item-text fs-13">{section.count.toLocaleString()} issues</span></li>
             </ul>
           </div>
-          <button type="button" className="btn btn-sm btn-outline-secondary rounded-2">
-            Ignore this check
-          </button>
         </div>
       </div>
 
@@ -141,23 +96,6 @@ const SectionBlock = ({
                 >
                   Priority
                   {sortBy === "priority" ? (
-                    <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
-                  ) : (
-                    <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
-                  )}
-                </button>
-              </th>
-              <th className="py-3 text-body fs-13 fw-semibold">
-                <button
-                  type="button"
-                  className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                  onClick={() => handleSort("views")}
-                >
-                  Views
-                  <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                    <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                  </span>
-                  {sortBy === "views" ? (
                     <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
                   ) : (
                     <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
@@ -305,16 +243,48 @@ const SectionBlock = ({
 const AccessibilityIssuesDrawer = ({
   open,
   onClose,
+  guidelineId,
+  issueType,
   guidelineLabel,
-  sections: sectionsProp,
   totalCount = 0,
   onOpenPageDetails,
 }) => {
-  const sections = useMemo(() => {
-    if (sectionsProp && sectionsProp.length > 0) return sectionsProp;
-    if (totalCount > 0) return buildDefaultSections(totalCount);
-    return [];
-  }, [sectionsProp, totalCount]);
+  const [pages, setPages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  useEffect(() => {
+    if (!open || !domainId || !guidelineId) return;
+    setIsLoading(true);
+    getAccessibilityPagesApi(domainId, {
+      limit: 500,
+      guidelineId,
+      issueType,
+    })
+      .then((res) => {
+        if (res.success && res.data) {
+          setPages(
+            res.data.pages.map((p) => ({
+              title: p.title || "(No title found)",
+              url: p.url,
+              priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+              views: 0,
+            }))
+          );
+        }
+      })
+      .catch((err) => console.error("Failed to fetch pages for guideline", err))
+      .finally(() => setIsLoading(false));
+  }, [domainId, guidelineId, issueType, open]);
+
+  const section = useMemo(() => {
+    return {
+      issueTypeName: "Pages with issues matching this guideline",
+      count: pages.length,
+      pages: pages,
+    };
+  }, [pages]);
 
   useEffect(() => {
     if (!open) return;
@@ -372,16 +342,18 @@ const AccessibilityIssuesDrawer = ({
         </div>
 
         <div className="flex-grow-1 overflow-auto px-4 py-4">
-          {sections.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center text-muted py-5">
+              <div className="spinner-border spinner-border-sm text-primary me-2" role="status" aria-hidden="true" />
+              Loading pages...
+            </div>
+          ) : pages.length === 0 ? (
             <p className="text-muted mb-0">No issues to display.</p>
           ) : (
-            sections.map((section, idx) => (
-              <SectionBlock
-                key={`${section.issueTypeName}-${idx}`}
-                section={section}
-                onOpenPageDetails={onOpenPageDetails}
-              />
-            ))
+            <SectionBlock
+              section={section}
+              onOpenPageDetails={onOpenPageDetails}
+            />
           )}
         </div>
       </div>

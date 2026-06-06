@@ -3,22 +3,10 @@ import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 import ChecklistPagesDrawer from "./ChecklistPagesDrawer";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
+import { getAccessibilitySummaryApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
-const LEVEL_A_CHECKS = [
-  { id: "1", check: "Elements intended as presentation-only contain focusable content", responsibility: "Front-end Development", successCriteria: "4.1.2", compliancePercent: 4.2, affectedPages: 479 },
-  { id: "2", check: "Form field is missing an accessible name", responsibility: "Front-end Development", successCriteria: "4.1.2", compliancePercent: 4.4, affectedPages: 478 },
-  { id: "3", check: "Scrollable content is not accessible using the keyboard", responsibility: "Front-end Development, UX Design", successCriteria: "2.1.1", compliancePercent: 5.1, affectedPages: 475 },
-  { id: "4", check: "Image is missing alternative text", responsibility: "Content Authoring, Front-end Development", successCriteria: "1.1.1", compliancePercent: 12.3, affectedPages: 438 },
-  { id: "5", check: "Link is missing an accessible name", responsibility: "Content Authoring, Front-end Development", successCriteria: "2.4.4", compliancePercent: 8.7, affectedPages: 456 },
-  { id: "6", check: "Button is missing an accessible name", responsibility: "Front-end Development", successCriteria: "4.1.2", compliancePercent: 6.2, affectedPages: 469 },
-  { id: "7", check: "Heading order is not logical", responsibility: "Content Authoring, Front-end Development", successCriteria: "1.3.1", compliancePercent: 15.4, affectedPages: 422 },
-  { id: "8", check: "Color is not used as the only visual means of conveying information", responsibility: "Visual Design, UX Design", successCriteria: "1.4.1", compliancePercent: 22.1, affectedPages: 390 },
-];
-
-const LEVEL_AA_CHECKS = [
-  { id: "aa1", check: "The visual presentation of UI and graphics components have a contrast ratio of at least 3:1", responsibility: "Visual Design", successCriteria: "1.4.11", compliancePercent: 18.5, affectedPages: 408 },
-  { id: "aa2", check: "The luminosity contrast ratio between text and background is at least 4.5:1", responsibility: "UX Design, Visual Design", successCriteria: "1.4.3", compliancePercent: 31.2, affectedPages: 344 },
-];
+// Using API data instead of static checks
 
 const ComplianceRing = ({ percent, size = 36 }) => {
   const r = (size - 6) / 2;
@@ -41,6 +29,30 @@ const AccessibilityChecklistView = () => {
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
 
+  const [summary, setSummary] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchSummary = useCallback(async () => {
+    if (!domainId) return;
+    setIsLoading(true);
+    try {
+      const res = await getAccessibilitySummaryApi(domainId);
+      if (res.success && res.data) {
+        setSummary(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch accessibility checklist data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId]);
+
+  React.useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
   const openPageDetails = useCallback((page) => {
     setDrawerRow(null);
     setSelectedPageForDetails({ id: 0, title: page.title, url: page.url });
@@ -50,15 +62,50 @@ const AccessibilityChecklistView = () => {
   const tabs = [
     { key: "level-a", label: "Level A" },
     { key: "level-aa", label: "Level AA" },
-    { key: "ignored", label: "Ignored" },
+    { key: "other", label: "Other Issues" },
     { key: "passed", label: "Passed Checks" },
   ];
 
+  const totalPagesScanned = summary?.totalPagesScanned || 1;
+
   const rowsByTab = useMemo(() => {
-    if (activeTab === "level-a") return LEVEL_A_CHECKS;
-    if (activeTab === "level-aa") return LEVEL_AA_CHECKS;
-    return [];
-  }, [activeTab]);
+    if (!summary || !summary.allChecks) return [];
+    
+    const mapAxeCheck = (c) => {
+      const failCount = c.passed ? 0 : c.count;
+      const compliancePercent = ((totalPagesScanned - failCount) / totalPagesScanned) * 100;
+      return {
+        id: c.id,
+        check: c.help || c.description || c.id,
+        responsibility: "Development", // axe doesn't natively map responsibility
+        successCriteria: (c.tags || []).find(t => t.startsWith('wcag')) || 'best-practice',
+        compliancePercent: Math.max(0, Math.min(100, compliancePercent)),
+        affectedPages: Math.min(totalPagesScanned, c.count),
+        passed: c.passed,
+        helpUrl: c.helpUrl
+      };
+    };
+
+    if (activeTab === "passed") {
+      return summary.allChecks.filter(c => c.passed).map(mapAxeCheck);
+    }
+    
+    // For failed checks
+    const failedChecks = summary.allChecks.filter(c => !c.passed).map(mapAxeCheck);
+    
+    if (activeTab === "level-a") {
+      return failedChecks.filter(c => c.successCriteria === 'wcag2a' || c.successCriteria === 'wcag21a' || c.successCriteria === 'wcag22a');
+    }
+    if (activeTab === "level-aa") {
+      return failedChecks.filter(c => c.successCriteria === 'wcag2aa' || c.successCriteria === 'wcag21aa' || c.successCriteria === 'wcag22aa');
+    }
+    if (activeTab === "other") {
+      return failedChecks.filter(c => !['wcag2a', 'wcag21a', 'wcag22a', 'wcag2aa', 'wcag21aa', 'wcag22aa'].includes(c.successCriteria));
+    }
+
+    // Fallback if none matches exactly
+    return failedChecks;
+  }, [activeTab, summary]);
 
   const filteredRows = useMemo(() => {
     if (!searchQuery.trim()) return rowsByTab;
@@ -76,7 +123,9 @@ const AccessibilityChecklistView = () => {
       ? "Accessibility-Checklist-WCAG-2.2-Level-A"
       : activeTab === "level-aa"
         ? "Accessibility-Checklist-WCAG-2.2-Level-AA"
-        : "Accessibility-Checklist-WCAG-2.2"
+        : activeTab === "other"
+          ? "Accessibility-Checklist-Other"
+          : "Accessibility-Checklist-WCAG-2.2"
   );
 
   const exportCSV = useCallback(() => {
@@ -133,13 +182,15 @@ const AccessibilityChecklistView = () => {
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, filteredRows]);
 
-  const levelLabel = activeTab === "level-a" ? "A" : activeTab === "level-aa" ? "AA" : "";
+  const levelLabel = activeTab === "level-a" ? "A" : activeTab === "level-aa" ? "AA" : activeTab === "other" ? "O" : "";
   const levelTitle =
     activeTab === "level-a"
       ? "All level A accessibility checks"
       : activeTab === "level-aa"
         ? "All level AA accessibility checks"
-        : "Accessibility checks";
+        : activeTab === "other"
+          ? "Other accessibility checks (Best Practices)"
+          : "Accessibility checks";
 
   return (
     <div className="accessibility-checklist-view">
@@ -197,7 +248,7 @@ const AccessibilityChecklistView = () => {
         </div>
       </div>
 
-      {(activeTab === "level-a" || activeTab === "level-aa") && (
+      {(activeTab === "level-a" || activeTab === "level-aa" || activeTab === "other") && (
         <>
           <div className="d-flex align-items-center gap-2 mb-2">
             <span
@@ -210,7 +261,7 @@ const AccessibilityChecklistView = () => {
             <span className="fw-semibold fs-15">{levelTitle}</span>
           </div>
           <p className="text-muted fs-13 mb-3">
-            <strong className="text-body">Issues to Fix</strong> — Errors must be fixed for compliance.
+            <strong className="text-body">Issues to Fix</strong> — Errors should be reviewed and fixed.
           </p>
         </>
       )}
@@ -224,9 +275,7 @@ const AccessibilityChecklistView = () => {
                   <th className="py-3 ps-4 px-3 text-body fs-13 fw-semibold text-nowrap">Check</th>
                   <th className="py-3 px-3 text-body fs-13 fw-semibold text-nowrap">Responsibility</th>
                   <th className="py-3 px-3 text-body fs-13 fw-semibold text-nowrap">Success criteria</th>
-                  <th className="py-3 px-3 text-body fs-13 fw-semibold text-nowrap">Help center</th>
-                  <th className="py-3 px-3 text-body fs-13 fw-semibold text-nowrap">Domain compliance</th>
-                  <th className="py-3 px-3 pe-4 text-body fs-13 fw-semibold text-nowrap" style={{ width: 100 }} aria-label="Action" />
+                  <th className="py-3 px-3 pe-4 text-body fs-13 fw-semibold text-nowrap">Domain compliance</th>
                 </tr>
               </thead>
               <tbody>
@@ -251,12 +300,7 @@ const AccessibilityChecklistView = () => {
                         {row.successCriteria}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <button type="button" className="btn btn-icon btn-sm btn-link text-primary p-0" title="Help center" aria-label="Help center">
-                        <i className="isax isax-teacher fs-18" aria-hidden="true" />
-                      </button>
-                    </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 pe-4">
                       <div className="d-flex align-items-center gap-3">
                         <div className="d-flex flex-column align-items-center">
                           <span className="fw-semibold fs-14 text-primary">{row.compliancePercent.toFixed(1)}%</span>
@@ -274,27 +318,6 @@ const AccessibilityChecklistView = () => {
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-3 pe-4">
-                      <div className="dropdown">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 dropdown-toggle"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                          aria-label="Action"
-                        >
-                          Action
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li>
-                            <button type="button" className="dropdown-item">View pages</button>
-                          </li>
-                          <li>
-                            <button type="button" className="dropdown-item">Ignore check</button>
-                          </li>
-                        </ul>
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -310,8 +333,11 @@ const AccessibilityChecklistView = () => {
         open={drawerRow != null}
         onClose={() => setDrawerRow(null)}
         checkName={drawerRow?.check ?? ""}
+        checkId={drawerRow?.id ?? null}
+        isPassed={drawerRow?.passed ?? false}
         compliancePercent={drawerRow?.compliancePercent ?? 0}
-        totalPages={drawerRow?.affectedPages ?? 0}
+        affectedPages={drawerRow?.affectedPages ?? 0}
+        totalPagesScanned={totalPagesScanned}
         onOpenPageDetails={openPageDetails}
       />
 

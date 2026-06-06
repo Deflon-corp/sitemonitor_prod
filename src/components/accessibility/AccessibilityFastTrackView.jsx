@@ -1,35 +1,13 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { getAccessibilitySummaryApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import PagesFailingCheckDrawer from "./PagesFailingCheckDrawer";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 
-const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
-const DEFAULT_ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE_OPTIONS = [5, 10, 25, 50, 100, 500];
+const DEFAULT_ROWS_PER_PAGE = 5;
 
-const SNIPPETS_SAMPLE = [
-  { id: "1", html: '<body class="global-wrapper-url pdppage basepage page basicpage ExamplemallHeader r-header-secondary-nav" id="pdppage-bd907fa6f2" data-cmp-link-accessibility-enabled=""...', effectPercent: 3.44 },
-  { id: "2", html: "<div class=\"backdrop\"></div>", effectPercent: 2.3 },
-  { id: "3", html: '<img src="/content/dam/bfs-logo.png" alt="" />', effectPercent: 2.24 },
-  { id: "4", html: "<h3 class=\"product-title\">Laptop</h3>", effectPercent: 1.38 },
-  { id: "5", html: '<span class="price">₹45,990</span>', effectPercent: 0.92 },
-  { id: "6", html: '<button type="button" class="btn-add-cart">Add to cart</button>', effectPercent: 0.7 },
-  { id: "7", html: '<div class="nav-menu" role="navigation">...</div>', effectPercent: 0.69 },
-  { id: "8", html: '<img src="/banner.jpg" alt="" width="1200" />', effectPercent: 0.58 },
-  { id: "9", html: "<a href=\"/search\">Search</a>", effectPercent: 0.5 },
-  { id: "10", html: '<form id="newsletter-form" class="inline">...</form>', effectPercent: 0.45 },
-];
-
-const SELECTED_SNIPPET = SNIPPETS_SAMPLE[0];
-
-const CHECKS_SAMPLE = [
-  { id: "1", question: "Is table markup used for all table information consistently?", area: "Front-end Development, UX Design", criteria: "Part of success criteria 1.3.1", pages: 496 },
-  { id: "2", question: "Are enough instructions provided for everyone to understand and operate the content?", area: "Content Authoring, UX Design", criteria: "Part of success criteria 3.3.2", pages: 497 },
-  { id: "3", question: "Are form inputs associated with their labels?", area: "Front-end Development", criteria: "Part of success criteria 1.3.1", pages: 498 },
-  { id: "4", question: "Is the purpose of each link or button clear from the text?", area: "Content Authoring", criteria: "Part of success criteria 2.4.4", pages: 495 },
-];
-
-const COMPLIANCE_EFFECT = 3.44;
-const AFFECTED_PAGES = "More than 0.4k";
-const FAILING_CHECKS = 15;
+// Static SNIPPETS_SAMPLE replaced by API data
 
 const DonutSmall = ({ percent, label, value }) => {
   const r = 36;
@@ -55,9 +33,35 @@ const AccessibilityFastTrackView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [selectedSnippetId, setSelectedSnippetId] = useState(SELECTED_SNIPPET.id);
+  const [selectedSnippetId, setSelectedSnippetId] = useState(null);
+  const [showFullSnippet, setShowFullSnippet] = useState(false);
   const [checkForDrawer, setCheckForDrawer] = useState(null);
   const [pageDetailsForAccessibility, setPageDetailsForAccessibility] = useState(null);
+
+  const snippetRef = React.useRef(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  const [summary, setSummary] = useState(null);
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchSummary = useCallback(async () => {
+    if (!domainId) return;
+    try {
+      const res = await getAccessibilitySummaryApi(domainId);
+      if (res.success && res.data) {
+        setSummary(res.data);
+        if (res.data.topSnippets && res.data.topSnippets.length > 0) {
+          setSelectedSnippetId(res.data.topSnippets[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch fast track summary", err);
+    }
+  }, [domainId]);
+
+  React.useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   const handleOpenDocuments = useCallback((page) => {
     setCheckForDrawer(null);
@@ -65,10 +69,11 @@ const AccessibilityFastTrackView = () => {
   }, []);
 
   const filteredSnippets = useMemo(() => {
-    if (!searchQuery.trim()) return SNIPPETS_SAMPLE;
+    const snippets = summary?.topSnippets || [];
+    if (!searchQuery.trim()) return snippets;
     const q = searchQuery.toLowerCase();
-    return SNIPPETS_SAMPLE.filter((s) => s.html.toLowerCase().includes(q));
-  }, [searchQuery]);
+    return snippets.filter((s) => s.html.toLowerCase().includes(q));
+  }, [summary, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredSnippets.length / rowsPerPage));
   const paginatedSnippets = useMemo(() => {
@@ -76,7 +81,66 @@ const AccessibilityFastTrackView = () => {
     return filteredSnippets.slice(start, start + rowsPerPage);
   }, [filteredSnippets, currentPage, rowsPerPage]);
 
-  const selectedSnippet = useMemo(() => SNIPPETS_SAMPLE.find((s) => s.id === selectedSnippetId) ?? SELECTED_SNIPPET, [selectedSnippetId]);
+  const selectedSnippet = useMemo(() => {
+    const snippets = summary?.topSnippets || [];
+    return snippets.find((s) => s.id === selectedSnippetId) || snippets[0] || { html: "No snippets found", effectPercent: 0, pagesCount: 0, checks: [] };
+  }, [summary, selectedSnippetId]);
+
+  React.useEffect(() => {
+    if (snippetRef.current) {
+      const prev = snippetRef.current.style.maxHeight;
+      snippetRef.current.style.maxHeight = "80px";
+      snippetRef.current.style.overflow = "hidden";
+      const overflow = snippetRef.current.scrollHeight > 80;
+      snippetRef.current.style.maxHeight = prev;
+      snippetRef.current.style.overflow = showFullSnippet ? "visible" : "hidden";
+      setIsOverflowing(overflow);
+    }
+  }, [selectedSnippet, showFullSnippet]);
+
+  const apiChecks = useMemo(() => {
+    if (!summary || !summary.allChecks) return [];
+    
+    // Only show checks that this specific snippet is failing on
+    const relevantCheckIds = new Set(selectedSnippet?.checks || []);
+    
+    const getArea = (tags = []) => {
+      const tStr = tags.join(" ").toLowerCase();
+      if (tStr.includes('color') || tStr.includes('contrast')) return 'Design';
+      if (tStr.includes('language') || tStr.includes('alt') || tStr.includes('text') || tStr.includes('name') || tStr.includes('label')) return 'Content';
+      return 'Development';
+    };
+
+    const getCriteria = (tags = []) => {
+      const wcag = tags.find(t => t.startsWith('wcag'));
+      if (!wcag) return 'Best Practice';
+      return wcag.toUpperCase().replace(/WCAG(\d)(\d)?(A+)?/, (match, p1, p2, p3) => {
+         return `WCAG ${p1}${p2 ? '.' + p2 : '.0'} ${p3 ? 'Level ' + p3 : ''}`.trim();
+      });
+    };
+
+    return summary.allChecks
+      .filter(c => !c.passed && relevantCheckIds.has(c.id))
+      .map((c) => ({
+        id: c.id,
+        question: c.help || c.description || c.id,
+        area: getArea(c.tags),
+        criteria: getCriteria(c.tags),
+        pages: c.count
+      }));
+  }, [summary, selectedSnippet]);
+
+  const getSnippetIssueDescriptions = useCallback((snippet) => {
+    if (!summary || !summary.allChecks || !snippet.checks) return "Unknown issue";
+    const relevantCheckIds = new Set(snippet.checks || []);
+    const failingChecks = summary.allChecks.filter(c => !c.passed && relevantCheckIds.has(c.id));
+    if (failingChecks.length === 0) return "No failing checks";
+    return failingChecks.map(c => c.help || c.description || c.id).join(" • ");
+  }, [summary]);
+
+  const failingChecksCount = apiChecks.length;
+  const affectedPagesCount = selectedSnippet?.pagesCount || 0;
+  const complianceEffect = selectedSnippet?.effectPercent || 0;
 
   return (
     <div className="accessibility-fast-track-view">
@@ -114,12 +178,19 @@ const AccessibilityFastTrackView = () => {
                     <button
                       key={snippet.id}
                       type="button"
-                      onClick={() => setSelectedSnippetId(snippet.id)}
+                      onClick={() => {
+                        setSelectedSnippetId(snippet.id);
+                        setShowFullSnippet(false);
+                      }}
                       className={`btn btn-sm text-start border rounded-2 p-3 d-flex align-items-start gap-2 ${selectedSnippetId === snippet.id ? "border-primary bg-primary bg-opacity-10" : "border-secondary border-opacity-25 bg-transparent"}`}
                     >
                       <i className="isax isax-code-1 text-primary fs-18 flex-shrink-0 mt-1" aria-hidden="true" />
                       <div className="min-w-0 flex-grow-1">
                         <code className="fs-13 text-body text-break d-block" style={{ maxHeight: 48, overflow: "hidden", textOverflow: "ellipsis" }}>{snippet.html}</code>
+                        <div className="text-muted fs-12 mt-2 mb-1 fw-medium" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }} title={getSnippetIssueDescriptions(snippet)}>
+                          <i className="isax isax-info-circle me-1" aria-hidden="true" />
+                          {getSnippetIssueDescriptions(snippet)}
+                        </div>
                         <span className="text-danger fs-13 fw-medium mt-1 d-inline-block">{snippet.effectPercent}%</span>
                         <span className="text-muted fs-12 ms-1">Effect on compliance</span>
                       </div>
@@ -166,21 +237,21 @@ const AccessibilityFastTrackView = () => {
             <div className="col-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body py-3 d-flex flex-column align-items-center">
-                  <DonutSmall percent={COMPLIANCE_EFFECT} label="Effect on overall compliance level" value={`${COMPLIANCE_EFFECT}%`} />
+                  <DonutSmall percent={Number(complianceEffect)} label="Effect on overall compliance level" value={`${complianceEffect}%`} />
                 </div>
               </div>
             </div>
             <div className="col-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body py-3 d-flex flex-column align-items-center">
-                  <DonutSmall percent={12} label="Affected pages" value={AFFECTED_PAGES} />
+                  <DonutSmall percent={12} label="Affected pages" value={affectedPagesCount} />
                 </div>
               </div>
             </div>
             <div className="col-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body py-3 d-flex flex-column align-items-center justify-content-center">
-                  <span className="fs-4 fw-bold text-body">{FAILING_CHECKS}</span>
+                  <span className="fs-4 fw-bold text-body">{failingChecksCount}</span>
                   <span className="text-muted fs-12 mt-1">Failing checks</span>
                 </div>
               </div>
@@ -191,50 +262,57 @@ const AccessibilityFastTrackView = () => {
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-2">Snippet</h6>
               <div className="rounded-2 p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
-                <code className="fs-13 text-danger text-break d-block" style={{ maxHeight: 80, overflow: "hidden" }}>{selectedSnippet.html}</code>
+                <code 
+                  ref={snippetRef}
+                  className="fs-13 text-danger text-break d-block" 
+                  style={{ 
+                    maxHeight: showFullSnippet ? "none" : 80, 
+                    overflow: showFullSnippet ? "visible" : "hidden",
+                    whiteSpace: "pre-wrap"
+                  }}
+                >
+                  {selectedSnippet.html}
+                </code>
               </div>
-              <button type="button" className="btn btn-link btn-sm p-0 text-primary mt-2">Show more</button>
+              {isOverflowing && (
+                <button 
+                  type="button" 
+                  className="btn btn-link btn-sm p-0 text-primary mt-2"
+                  onClick={() => setShowFullSnippet(!showFullSnippet)}
+                >
+                  {showFullSnippet ? "Show less" : "Show more"}
+                </button>
+              )}
             </div>
           </div>
 
           <div className="card border-0 shadow-sm">
             <div className="card-body p-0">
-              <h6 className="fw-semibold text-body px-4 pt-3 pb-2">Check</h6>
+              <h6 className="fw-semibold text-body px-4 pt-3 pb-2">Failing Checks for this Snippet</h6>
               <div className="table-responsive">
                 <table className="table table-hover table-borderless align-middle mb-0">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="py-3 ps-4 text-body fs-13 fw-semibold">Check</th>
-                      
                     </tr>
                   </thead>
                   <tbody>
-                    {CHECKS_SAMPLE.map((check) => (
+                    {apiChecks.map((check) => (
                       <tr key={check.id} className="border-bottom border-secondary border-opacity-25">
                         <td className="py-3 ps-4">
-                          <div className="d-flex align-items-start gap-2">
-                            <span className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-danger" style={{ width: 28, height: 28, backgroundColor: "rgba(220, 53, 69, 0.15)" }}>
-                              <i className="isax isax-danger fs-14" aria-hidden="true" />
-                            </span>
-                            <div>
-                              <p className="mb-0 fs-13 fw-medium text-body">{check.question}</p>
-                              <p className="mb-0 fs-12 text-muted mt-1">{check.area} {check.criteria}</p>
+                          <div className="d-flex align-items-start justify-content-between gap-2">
+                            <div className="d-flex align-items-start gap-2">
+                              <span className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-danger" style={{ width: 28, height: 28, backgroundColor: "rgba(220, 53, 69, 0.15)" }}>
+                                <i className="isax isax-danger fs-14" aria-hidden="true" />
+                              </span>
+                              <div>
+                                <p className="mb-0 fs-13 fw-medium text-body">{check.question}</p>
+                                <p className="mb-0 fs-12 text-muted mt-1">{check.area} • {check.criteria}</p>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-3 pe-4">
-                          <div className="d-flex align-items-center gap-2">
-                            <div className="dropdown">
-                              <button type="button" className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2" data-bs-toggle="dropdown" aria-expanded="false">
-                                Action <i className="isax isax-arrow-down-1 ms-1 fs-12" aria-hidden="true" />
-                              </button>
-                              <ul className="dropdown-menu dropdown-menu-end">
-                                <li><button type="button" className="dropdown-item">Fix</button></li>
-                                <li><button type="button" className="dropdown-item">Review</button></li>
-                                <li><button type="button" className="dropdown-item">Ignore</button></li>
-                              </ul>
-                            </div>
-                            <button type="button" className="btn btn-link p-0 border-0 text-primary fs-13 fw-medium text-decoration-none" onClick={() => setCheckForDrawer(check)}>{check.pages} PAGES</button>
+                            <button type="button" className="btn btn-link p-0 border-0 text-primary fs-13 fw-medium text-decoration-none pe-4" onClick={() => setCheckForDrawer(check)}>
+                              {check.pages} PAGES
+                            </button>
                           </div>
                         </td>
                       </tr>

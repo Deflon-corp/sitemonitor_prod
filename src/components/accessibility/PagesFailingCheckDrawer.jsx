@@ -1,32 +1,54 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
+import { getAccessibilityPagesApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-const SAMPLE_PAGES = [
-  { title: "(No title found)", url: "https://example.com/bmall/hp-spectre-x360-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-10-home-13-3-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/dell-inspiron-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/lenovo-ideapad-slim-3-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/asus-vivobook-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/acer-aspire-5-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/hp-pavilion-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/dell-vostro-15-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-15-6-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/lenovo-thinkpad-e14-intel-core-i5-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/asus-vivobook-14-intel-core-i3-11th-gen-8-gb-ram-256-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-  { title: "(No title found)", url: "https://example.com/bmall/acer-swift-3-intel-core-i5-11th-gen-8-gb-ram-512-gb-ssd-windows-11-home-14-inc", priority: "Medium", views: 0 },
-];
 
 const PagesFailingCheckDrawer = ({
   open,
   onClose,
   check,
-  pages: pagesProp,
   onOpenPageDetails,
   onOpenDocuments,
 }) => {
-  const pages = pagesProp ?? SAMPLE_PAGES;
+  const [pages, setPages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const fetchPages = useCallback(async () => {
+    if (!open || !domainId || !check) return;
+    setIsLoading(true);
+    try {
+      const res = await getAccessibilityPagesApi(domainId, {
+        limit: 500, // fetch all for the drawer up to 500
+        issueId: check.id,
+      });
+      if (res.success && res.data) {
+        setPages(
+          (res.data.pages || []).map((p) => ({
+            id: p.id,
+            title: p.title || "(No title found)",
+            url: p.url || "",
+            priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+            views: 0,
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch pages for check", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [domainId, check, open]);
+
+  useEffect(() => {
+    if (open) fetchPages();
+  }, [open, fetchPages]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -36,14 +58,14 @@ const PagesFailingCheckDrawer = ({
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return pages;
     const q = searchQuery.toLowerCase();
-    return pages.filter((p) => (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+    return pages.filter((p) => (p.title || "").toLowerCase().includes(q) || (p.url || "").toLowerCase().includes(q));
   }, [pages, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
+      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || (a.url || "").localeCompare(b.url || ""));
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
@@ -108,7 +130,7 @@ const PagesFailingCheckDrawer = ({
             <div className="d-flex align-items-center gap-3">
               <button
                 type="button"
-                className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
+                className="btn btn-icon btn-sm btn-outline-primary border border-secondary border-opacity-25 rounded-2"
                 onClick={onClose}
                 title="Close"
                 aria-label="Close"
@@ -153,7 +175,7 @@ const PagesFailingCheckDrawer = ({
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="py-3 ps-4 text-body fs-13 fw-semibold">
                         <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("title")}>
-                          Title and URL
+                          Page URL
                           {sortBy === "title" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
                         </button>
                       </th>
@@ -163,76 +185,78 @@ const PagesFailingCheckDrawer = ({
                           {sortBy === "priority" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
                         </button>
                       </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("views")}>
-                          Views
-                          <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                            <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
-                          </span>
-                          {sortBy === "views" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
-                        </button>
+                      <th className="py-3 pe-4 text-body fs-13 fw-semibold text-end" style={{ width: 120 }} aria-label="Actions">
+                        Action
                       </th>
-                      <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions" />
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedPages.map((p, idx) => (
-                      <tr key={`${p.url}-${idx}`}>
-                        <td className="py-3 ps-4">
-                          <div className="d-flex flex-column">
-                            <span className="text-body fs-13">{p.title}</span>
-                            <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break">
-                              <span className="flex-shrink-0 d-inline-flex text-primary">
-                                <ExternalLinkIcon size={12} />
-                              </span>
-                              {p.url}
-                            </a>
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={4} className="text-center py-5 text-muted">
+                          <div className="spinner-border spinner-border-sm text-primary mb-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
                           </div>
-                        </td>
-                        <td className="py-3">
-                          <span className={`badge rounded-pill ${p.priority === "High" ? "bg-danger bg-opacity-10 text-danger" : p.priority === "Medium" ? "bg-warning bg-opacity-10 text-warning" : "bg-secondary bg-opacity-10 text-secondary"}`}>
-                            {p.priority}
-                          </span>
-                        </td>
-                        <td className="py-3">
-                          <div className="d-flex flex-column gap-1">
-                            <span className="fs-13 text-body">{p.views}</span>
-                            <input type="text" className="form-control form-control-sm" placeholder="" disabled aria-label="Views input" style={{ maxWidth: 80 }} />
-                          </div>
-                        </td>
-                        <td className="py-3 pe-4">
-                          <button
-                            type="button"
-                            className="btn btn-icon btn-sm btn-primary rounded-2"
-                            title="Documents"
-                            aria-label="Open page accessibility (WCAG) details"
-                            onClick={() => onOpenDocuments?.(p)}
-                          >
-                            <i className="isax isax-document-text fs-14 text-white" aria-hidden="true" />
-                          </button>
+                          <p className="mb-0 fs-13">Loading pages...</p>
                         </td>
                       </tr>
-                    ))}
+                    ) : paginatedPages.length > 0 ? (
+                      paginatedPages.map((p, idx) => (
+                        <tr key={`${p.url}-${idx}`}>
+                          <td className="py-3 ps-4">
+                            <div className="d-flex flex-column">
+                              <span className="text-body fs-13">{p.title}</span>
+                              <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break">
+                                <span className="flex-shrink-0 d-inline-flex text-primary">
+                                  <ExternalLinkIcon size={12} />
+                                </span>
+                                {p.url}
+                              </a>
+                            </div>
+                          </td>
+                          <td className="py-3">
+                            <span className={`badge rounded-pill ${p.priority === "High" ? "bg-danger bg-opacity-10 text-danger" : p.priority === "Medium" ? "bg-warning bg-opacity-10 text-warning" : "bg-secondary bg-opacity-10 text-secondary"}`}>
+                              {p.priority}
+                            </span>
+                          </td>
+                          <td className="py-3 pe-4 text-end">
+                            <button
+                              type="button"
+                              className="btn btn-icon btn-sm btn-primary rounded-2"
+                              title="Documents"
+                              aria-label="Open page accessibility (WCAG) details"
+                              onClick={() => onOpenDocuments?.(p)}
+                            >
+                              <i className="isax isax-document-text fs-14 text-white" aria-hidden="true" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="text-center py-5 text-muted">
+                          <p className="mb-0 fs-14">No pages found matching this check.</p>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
-              <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25">
+              <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 px-4 py-3 border-top border-secondary border-opacity-25">
                 <div className="d-flex align-items-center gap-2">
-                  <div className="btn-group btn-group-sm" role="group" aria-label="Rows per page">
+                  <select
+                    className="form-select form-select-sm rounded-2"
+                    style={{ width: "auto", minWidth: 70 }}
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
                     {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        className={`btn ${rowsPerPage === n ? "btn-primary" : "btn-outline-primary"}`}
-                        onClick={() => {
-                          setRowsPerPage(n);
-                          setCurrentPage(1);
-                        }}
-                      >
-                        {n}
-                      </button>
+                      <option key={n} value={n}>{n}</option>
                     ))}
-                  </div>
+                  </select>
                   <span className="text-muted small">
                     {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
                   </span>

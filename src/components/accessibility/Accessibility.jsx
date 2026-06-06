@@ -15,7 +15,6 @@ const ACCESSIBILITY_NAV = [
     { key: "failing-checks", label: "Pages with Failing Checks", icon: "isax-document", href: "/domain/accessibility?view=failing-checks" },
     { key: "checklist", label: "Checklist", icon: "isax-tick-circle", href: "/domain/accessibility?view=checklist" },
     { key: "guidelines", label: "Guidelines", icon: "isax-menu", href: "/domain/accessibility?view=guidelines" },
-    { key: "ignored-checks", label: "Pages with Ignored Checks", icon: "isax-eye-slash", href: "/domain/accessibility?view=ignored-checks" },
     { key: "pdfs", label: "PDFs", icon: "isax-document-text", href: "/domain/accessibility?view=internal-pdfs", isParent: true },
 ];
 

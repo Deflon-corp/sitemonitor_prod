@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import AccessibilityIssuesDrawer from "./AccessibilityIssuesDrawer";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
+import { getAccessibilitySummaryApi } from "@/api/accessibilityApi";
+import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 
 const PRINCIPLES = [
   {
@@ -75,12 +77,67 @@ const groupGuidelines = (guidelines) => {
 
 const GuidelinesView = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedPrincipleIds, setExpandedPrincipleIds] = useState(new Set([1]));
-  const [expandedGuidelineIds, setExpandedGuidelineIds] = useState(new Set(["1.1", "1.2", "1.3"]));
+  const [expandedPrincipleIds, setExpandedPrincipleIds] = useState(new Set());
+  const [expandedGuidelineIds, setExpandedGuidelineIds] = useState(new Set());
   const [issuesDrawerOpen, setIssuesDrawerOpen] = useState(false);
   const [issuesDrawerContext, setIssuesDrawerContext] = useState(null);
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
+  const [summary, setSummary] = useState(null);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  React.useEffect(() => {
+    if (!domainId) return;
+    getAccessibilitySummaryApi(domainId).then(res => {
+      if (res.success) setSummary(res.data);
+    });
+  }, [domainId]);
+
+  const dynamicPrinciples = useMemo(() => {
+    const principles = JSON.parse(JSON.stringify(PRINCIPLES));
+    principles.forEach(p => p.guidelines.forEach(g => {
+      g.error = 0; g.warning = 0; g.review = 0;
+    }));
+
+    if (!summary || !summary.allChecks) return principles;
+
+    const counts = {};
+    const addCount = (id, type, amount) => {
+      if (!counts[id]) counts[id] = { error: 0, warning: 0, review: 0 };
+      counts[id][type] += amount;
+    };
+
+    summary.allChecks.forEach(check => {
+      if (check.passed) return;
+      
+      const type = check.impact === 'critical' || check.impact === 'serious' ? 'error' 
+                 : check.impact === 'moderate' ? 'warning' 
+                 : 'review';
+      
+      (check.tags || []).forEach(tag => {
+        const match = tag.match(/^wcag(\d)(\d)(\d+)$/);
+        if (match) {
+          const guidelineId = `${match[1]}.${match[2]}.${match[3]}`;
+          const parentId = `${match[1]}.${match[2]}`;
+          addCount(guidelineId, type, check.count);
+          addCount(parentId, type, check.count);
+        }
+      });
+    });
+
+    principles.forEach(p => {
+      p.guidelines.forEach(g => {
+        if (counts[g.id]) {
+          g.error = counts[g.id].error;
+          g.warning = counts[g.id].warning;
+          g.review = counts[g.id].review;
+        }
+      });
+    });
+
+    return principles;
+  }, [summary]);
 
   const openPageDetails = useCallback((page) => {
     setIssuesDrawerOpen(false);
@@ -118,9 +175,9 @@ const GuidelinesView = () => {
   };
 
   const filteredPrinciples = useMemo(() => {
-    if (!searchQuery.trim()) return PRINCIPLES;
+    if (!searchQuery.trim()) return dynamicPrinciples;
     const q = searchQuery.toLowerCase();
-    return PRINCIPLES.map((principle) => ({
+    return dynamicPrinciples.map((principle) => ({
       ...principle,
       guidelines: principle.guidelines.filter(
         (g) =>
@@ -130,7 +187,7 @@ const GuidelinesView = () => {
           g.title.toLowerCase().includes(q)
       ),
     })).filter((p) => p.guidelines.length > 0);
-  }, [searchQuery]);
+  }, [searchQuery, dynamicPrinciples]);
 
   const principlesWithGroups = useMemo(
     () => filteredPrinciples.map((p) => ({ ...p, groups: groupGuidelines(p.guidelines) })),
@@ -316,6 +373,8 @@ const GuidelinesView = () => {
           setIssuesDrawerContext(null);
         }}
         guidelineLabel={issuesDrawerContext ? `${issuesDrawerContext.guidelineId} ${issuesDrawerContext.guidelineTitle}` : undefined}
+        guidelineId={issuesDrawerContext?.guidelineId}
+        issueType={issuesDrawerContext?.issueType}
         totalCount={issuesDrawerContext?.count ?? 0}
         onOpenPageDetails={openPageDetails}
       />
