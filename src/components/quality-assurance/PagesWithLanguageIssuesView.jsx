@@ -168,7 +168,20 @@ export default function PagesWithLanguageIssuesView() {
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover table-striped table-borderless align-middle mb-0">
-              
+              <thead>
+                <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
+                  <th className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap">
+                    <SortBtn column="title">Title</SortBtn>
+                  </th>
+                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
+                    <SortBtn column="declaredLanguage">Declared language</SortBtn>
+                  </th>
+                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
+                    <SortBtn column="detectedLanguage">Detected language</SortBtn>
+                  </th>
+                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
+                    <SortBtn column="multiLanguage">Multi-language</SortBtn>
+                  </th>
                   <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }} aria-label="Actions"></th>
                 </tr>
               </thead>

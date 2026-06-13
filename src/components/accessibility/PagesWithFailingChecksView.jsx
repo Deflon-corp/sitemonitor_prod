@@ -86,7 +86,7 @@ const PagesWithFailingChecksView = () => {
   }, [fetchPages]);
 
   const openIssuePage = (p, index) => {
-    setSelectedPageForDetails({ id: index, title: p.title, url: p.url });
+    setSelectedPageForDetails({ id: index, title: p.title, url: p.url, failingChecks: p.failingChecks });
     setPageDetailsDrawerOpen(true);
   };
 

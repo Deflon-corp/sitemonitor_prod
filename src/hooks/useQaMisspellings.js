@@ -38,6 +38,7 @@ export function useQaMisspellings({ page = 1, limit = 50, search = '', potential
               pages: pagesCount,
               pagesCount,
               pagesList,
+              suggestions: item.suggestions || [],
             };
           })
         );

@@ -70,17 +70,31 @@ const ImpactDots = ({ impact }) => {
 const SeoSection = ({ issues = [], score = 0 }) => {
   const [impactFilter, setImpactFilter] = useState("all");
   const [manualSelectedId, setManualSelectedId] = useState(null);
-  const [detailTab, setDetailTab] = useState("information");
 
   const formattedIssues = useMemo(() => {
     if (!Array.isArray(issues)) return [];
     return issues.map((issue, idx) => {
       if (!issue) return null;
+      const getDesc = (iss) => {
+        if (typeof iss.description === "string" && iss.description) return iss.description;
+        if (typeof iss.message === "string" && iss.message) return iss.message;
+        if (typeof iss.title === "string" && iss.title) return iss.title;
+        if (typeof iss.details === "string" && iss.details) return iss.details;
+        return "";
+      };
+      
+      const getLabel = (iss) => {
+        if (typeof iss.message === "string" && iss.message) return iss.message;
+        if (typeof iss.title === "string" && iss.title) return iss.title;
+        if (typeof iss.type === "string" && iss.type) return iss.type;
+        return "Unnamed issue";
+      };
+
       return {
         id: `seo-issue-${idx}`,
-        label: String(issue.message || issue.type || "Unnamed issue"),
+        label: getLabel(issue),
         impact: String(issue.priority || "low").toLowerCase(),
-        recommendation: String(issue.recommendation || ""),
+        description: getDesc(issue),
       };
     }).filter(Boolean);
   }, [issues]);
@@ -194,31 +208,29 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                   <h6 className="mb-3 d-flex align-items-center gap-2">
                     <i className="isax isax-info-circle text-primary" /> Issue Details
                   </h6>
-                  <nav className="nav nav-pills gap-2 mb-3 bg-light p-1 rounded">
-                    <button
-                      className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'information' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
-                      onClick={() => setDetailTab('information')}
-                    >
-                      Info
-                    </button>
-                    <button
-                      className={`nav-link btn-sm py-1 px-3 border-0 ${detailTab === 'quick-help' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
-                      onClick={() => setDetailTab('quick-help')}
-                    >
-                      Quick Help
-                    </button>
-                  </nav>
-                  <div className="p-3 bg-light rounded border border-opacity-10">
-                    {detailTab === 'information' ? (
-                      <div className="small">
-                        <p className="mb-2"><strong>Issue:</strong> {selectedIssue.label}</p>
-                        <p className="mb-0"><strong>Priority:</strong> <span className="text-capitalize">{selectedIssue.impact}</span></p>
+                  <div className="d-flex flex-column gap-3">
+                    <div className="d-flex align-items-center gap-2 px-3 py-2 bg-light rounded-3 border border-secondary border-opacity-10">
+                      <span className="fw-semibold text-body" style={{ fontSize: "0.85rem" }}>Priority:</span>
+                      <span 
+                        className={`badge text-capitalize border ${
+                          selectedIssue.impact === 'high' ? 'bg-danger bg-opacity-10 text-danger border-danger border-opacity-25' :
+                          selectedIssue.impact === 'medium' ? 'bg-warning bg-opacity-10 text-warning border-warning border-opacity-25' :
+                          'bg-primary bg-opacity-10 text-primary border-primary border-opacity-25'
+                        }`} 
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        {selectedIssue.impact}
+                      </span>
+                    </div>
+
+                    <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm">
+                      <div className="card-body py-3">
+                        <h6 className="fw-semibold text-body mb-2" style={{ fontSize: "0.9rem" }}>Issue Description</h6>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
+                          {selectedIssue.description || selectedIssue.label || "No description provided."}
+                        </p>
                       </div>
-                    ) : (
-                      <div className="small">
-                        <p className="mb-0"><strong>Recommendation:</strong> {selectedIssue.recommendation || "No specific recommendation available."}</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </>
               ) : (

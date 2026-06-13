@@ -107,9 +107,7 @@ export default function PageDetailsDrawer({
     { key: "broken-images", label: "Broken Images", icon: "isax-document-text", badge: brokenImagesCount, badgeVariant: "danger" },
     { key: "misspellings", label: "Misspellings", icon: "isax-edit-2", badge: misspellingsCount, badgeVariant: "danger" },
     { key: "potential-misspellings", label: "Potential Misspellings", icon: "isax-edit-2", badge: potentialCount, badgeVariant: "primary" },
-    { key: "ignored-misspellings", label: "Ignored Misspellings", icon: "isax-edit-2" },
     { key: "readability", label: "Readability", icon: "isax-book5" },
-    { key: "language", label: "Language Validation", icon: "isax-tick-circle", status: "ok" },
   ], [brokenLinksCount, brokenImagesCount, misspellingsCount, potentialCount]);
 
   const BROKEN_LINKS_PAGE_OPTIONS = [10, 50, 100, 500];
@@ -250,6 +248,14 @@ export default function PageDetailsDrawer({
 
                   , React.createElement('i', { className: `isax ${tab.icon} me-1 fs-14 flex-shrink-0` })
                   , React.createElement('span', { className: "text-truncate" }, tab.label)
+                  , (() => {
+                    let badge = undefined;
+                    if (tab.key === "policies") badge = effectivePage.policies?.length;
+                    if (tab.key === "qa") badge = effectivePage.qaIssueCount;
+                    if (tab.key === "seo") badge = (effectivePage.seoOpportunitiesCount ?? effectivePage.seoImprovements?.length);
+                    if (tab.key === "accessibility") badge = page?.failingChecks;
+                    return badge != null && badge > 0 ? React.createElement('span', { className: "badge bg-danger bg-opacity-10 text-danger ms-1" }, badge) : null;
+                  })()
                 )
               )
             ))
@@ -464,7 +470,7 @@ export default function PageDetailsDrawer({
                                 , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Response code")
                                 , React.createElement('th', { className: "fw-semibold text-body py-3" }, "Type")
                                 , React.createElement('th', { className: "fw-semibold text-body py-3 text-center", style: { width: 100 } }, "Details")
-                                
+
                               )
                             )
                             , React.createElement('tbody', {}
@@ -598,7 +604,9 @@ export default function PageDetailsDrawer({
 
           , activeTab === "accessibility" && React.createElement(AccessibilitySection, {
             data: effectivePage.accessibility,
-            score: effectivePage.lighthouseAccessibilityScore || 0
+            score: effectivePage.lighthouseAccessibilityScore || 0,
+            domainId: domainId,
+            pageUrl: pageUrl
           })
 
           , activeTab === "seo" && React.createElement(SeoSection, {

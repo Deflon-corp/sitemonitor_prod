@@ -6,6 +6,7 @@ import PerformanceSection from "./PerformanceSection";
 import AccessibilitySection from "./AccessibilitySection";
 import SeoSection from "./SeoSection";
 import InventorySection from "./InventorySection";
+import { useQaDomainId } from "@/hooks/useQaDomainId";
 
  
 
@@ -221,6 +222,7 @@ export default function PerformancePageDetailsDrawer({
   onClose,
   page,
 }) {
+  const domainId = useQaDomainId();
   const [activeTab, setActiveTab] = useState("performance");
 
   useEffect(() => {
@@ -323,7 +325,7 @@ export default function PerformancePageDetailsDrawer({
           , activeTab === "qa" && React.createElement(QualityAssuranceTabContent, {} )
           , activeTab === "accessibility" && React.createElement(AccessibilitySection, { page: page, embeddedInDrawer: true } )
           , activeTab === "seo" && React.createElement(SeoSection, { page: page, embeddedInDrawer: true } )
-          , activeTab === "inventory" && React.createElement(InventorySection, { page: page, embeddedInDrawer: true } )
+          , activeTab === "inventory" && React.createElement(InventorySection, { page: page, embeddedInDrawer: true, domainId: domainId } )
           , activeTab === "performance" && (
             React.createElement(PerformanceSection, { page: page, embeddedInDrawer: true} )
           )

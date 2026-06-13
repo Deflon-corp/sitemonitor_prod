@@ -2,52 +2,15 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 import AccessibilityIssueDrawer from "./AccessibilityIssueDrawer";
+import { getAccessibilityPageDetailApi } from "@/api/accessibilityApi";
 
 const COMPLIANCE_LEVELS = [
-  { key: "all", label: "All levels" },
-  { key: "a", label: "Level A" },
-  { key: "aa", label: "Level AA" },
+  { key: "all", label: "All issues" },
+  { key: "a", label: "High Priority (Level A)" },
+  { key: "aa", label: "Medium Priority (Level AA)" },
 ];
 
-const LEVEL_A_CHECKS = [
-  { id: "1", level: "A", name: "Image has non-empty accessible name", roles: "Content Authoring, Front-end Development", successCriteria: "Part of success criteria 1.1.1", individualIssues: 2 },
-  { id: "2", level: "A", name: "Image not in the accessibility tree is decorative", roles: "Content Authoring, Front-end Development", successCriteria: "Part of success criteria 1.1.1", individualIssues: 10 },
-  { id: "3", level: "A", name: "Image accessible name is descriptive", roles: "Content Authoring, Front-end Development", successCriteria: "Part of success criteria 1.1.1", individualIssues: 11 },
-  { id: "4", level: "A", name: "All p elements are not used as headers.", roles: "Content Authoring, Front-end Development", successCriteria: "Part of success criteria 1.3.1", individualIssues: 1 },
-  { id: "5", level: "A", name: "Use a quote element to mark up quotations.", roles: "Content Authoring, Front-end Development", successCriteria: "Part of success criteria 1.3.1", individualIssues: 2 },
-];
 
-const LEVEL_AA_CHECKS = [
-  { id: "aa1", level: "AA", name: "Scrolling in more than one direction is not necessary for small displays and zoomed content.", roles: "Front-end Development, UX Design", successCriteria: "Part of success criteria 1.4.10", individualIssues: 1 },
-  { id: "aa2", level: "AA", name: "The visual presentation of UI and graphics components have a contrast ratio of at least 3:1 against adjacent color(s).", roles: "Visual Design", successCriteria: "Part of success criteria 1.4.11", individualIssues: 1 },
-  { id: "aa3", level: "AA", name: "No loss of content or functionality occurs when changing certain text style properties.", roles: "Front-end Development, Visual Design", successCriteria: "Part of success criteria 1.4.12", individualIssues: 1 },
-  { id: "aa4", level: "AA", name: "Additional content that appears and disappears in coordination with keyboard focus or pointer hover does not obstruct operation.", roles: "Front-end Development", successCriteria: "Part of success criteria 1.4.13", individualIssues: 1 },
-  { id: "aa5", level: "AA", name: "The luminosity contrast ratio between text and background color in all images is at least 4.5:1.", roles: "UX Design, Visual Design", successCriteria: "Part of success criteria 1.4.3", individualIssues: 36 },
-];
-
-const SAMPLE_INSTANCES = [
-  { id: "i1", snippet: '<section class="listing-icons carousel-style " role="img"><div class="listing-icons__header-wrapper "><div class="listing-icons__inner-wrapper"><h2 c...' },
-  { id: "i2", snippet: '<img src="/icons/car.svg" alt="">' },
-  { id: "i3", snippet: '<img src="/icons/scooter.svg">' },
-];
-
-const ISSUE_DRAWER_SNIPPET_HTML = `<section class="listing-icons carousel-style " role="img">
-  <div class="listing-icons__header-wrapper ">
-    <div class="listing-icons__inner-wrapper">
-      <h2 class="listing-icons__title">...</h2>
-    </div>
-  </div>
-  <div class="swiper-wrap-container">
-    <div class="swiper-wrapper">
-      <div class="swiper-slide" style="margin-right: 16px;">
-        <a title="Health">
-          <img src="https://cms-assets.example.com/is/image/.../health-insurance-2?scl=1&amp;fmt=png-alpha" alt="Health" width="50" height="50" loading="lazy">
-          <h3>Health</h3>
-        </a>
-      </div>
-    </div>
-  </div>
-</section>`;
 
 const ComplianceRing = ({ percent, size = 48 }) => {
   const r = (size - 8) / 2;
@@ -71,35 +34,38 @@ const ComplianceRing = ({ percent, size = 48 }) => {
   );
 };
 
-const LevelHeaderBlock = ({ badgeLabel, title, percent }) => (
-  <div className="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-    <div className="d-flex align-items-center gap-2">
-      <span
-        className="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-        style={{ width: 36, height: 36, backgroundColor: "#7c3aed" }}
-        aria-hidden="true"
-      >
-        {badgeLabel}
-      </span>
-      <span className="fw-semibold">{title}</span>
-    </div>
-    <div className="d-flex align-items-center gap-2 flex-shrink-0">
-      <ComplianceRing percent={percent} size={40} />
-      <div>
-        <span className="fw-semibold">{percent}%</span>
-        <p className="text-muted fs-12 mb-0" style={{ lineHeight: 1.2 }}>Overall accessibility compliance for this level.</p>
+const LevelHeaderBlock = ({ badgeLabel, title, percent }) => {
+  const displayPercent = typeof percent === "number" && !isNaN(percent) ? Math.round(percent) : 0;
+  return (
+    <div className="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div className="d-flex align-items-center gap-2">
+        <span
+          className="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+          style={{ width: 36, height: 36, backgroundColor: "#7c3aed" }}
+          aria-hidden="true"
+        >
+          {badgeLabel}
+        </span>
+        <span className="fw-semibold">{title}</span>
+      </div>
+      <div className="d-flex align-items-center gap-2 flex-shrink-0">
+        <ComplianceRing percent={displayPercent} size={40} />
+        <div>
+          <span className="fw-semibold">{displayPercent}%</span>
+          <p className="text-muted fs-12 mb-0" style={{ lineHeight: 1.2 }}>Score for this priority level.</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ChecksTable = ({ checks, selectedCheckId, onSelectCheck, iconType }) => (
   <div className="table-responsive">
     <table className="table table-hover table-striped table-borderless align-middle mb-0">
       <thead>
         <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-          <th className="fw-semibold text-body py-2">Checks</th>
-          <th className="fw-semibold text-body py-2 text-end" style={{ width: 100 }}>Individual issues</th>
+          <th className="fw-semibold text-body py-2">Types of Issues</th>
+          <th className="fw-semibold text-body py-2 text-end" style={{ width: 100 }}>Occurrences</th>
         </tr>
       </thead>
       <tbody>
@@ -148,40 +114,68 @@ const ChecksTable = ({ checks, selectedCheckId, onSelectCheck, iconType }) => (
   </div>
 );
 
-const AccessibilitySection = ({ data, score }) => {
+const AccessibilitySection = ({ data, score, domainId, pageUrl }) => {
   const [levelFilter, setLevelFilter] = useState("all");
   const [showIgnored, setShowIgnored] = useState(false);
   const [showPassed, setShowPassed] = useState(true);
-  
-  // Use dynamic data if available, otherwise fallback to static samples
-  const dynamicIssues = useMemo(() => {
-    if (!data?.issues || !Array.isArray(data.issues)) return null;
-    return data.issues.map(issue => ({
-      id: issue.id,
-      level: "A", // Default to A if not specified
-      name: issue.title,
-      roles: "Front-end Development",
-      successCriteria: issue.description || "WCAG Check",
-      individualIssues: issue.nodes?.length || 0,
-      nodes: issue.nodes || []
-    }));
-  }, [data]);
+  const [apiData, setApiData] = useState(null);
 
-  const levelA = dynamicIssues ? dynamicIssues.filter(i => i.level === "A") : LEVEL_A_CHECKS;
-  const levelAA = dynamicIssues ? dynamicIssues.filter(i => i.level === "AA") : LEVEL_AA_CHECKS;
+  useEffect(() => {
+    if (domainId && pageUrl) {
+      getAccessibilityPageDetailApi(domainId, pageUrl)
+        .then(res => {
+          if (res.success && res.data) {
+            setApiData(res.data);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [domainId, pageUrl]);
+
+  const effectiveData = apiData || data;
+
+  const dynamicIssues = useMemo(() => {
+    if (!effectiveData?.issues || !Array.isArray(effectiveData.issues)) return [];
+    
+    const passed = effectiveData.passedCount || 0;
+    const failed = effectiveData.failedCount || effectiveData.issues.length || 0;
+    const totalChecks = passed + failed;
+    const computedEffect = totalChecks > 0 ? (100 / totalChecks).toFixed(2) + " %" : "0.00 %";
+
+    return effectiveData.issues.map(issue => ({
+      id: issue.id,
+      level: issue.tags?.includes("wcag2aa") ? "AA" : "A",
+      name: issue.help || issue.title || issue.name || issue.id || "Accessibility Issue",
+      roles: "Front-end Development", // Roles usually static or mapped
+      successCriteria: issue.description || issue.successCriteria || "WCAG Check",
+      description: issue.description || issue.help || "No description available.",
+      individualIssues: issue.nodes?.length || issue.individualIssues || 0,
+      effectOnCompliance: computedEffect,
+      impact: issue.impact || "moderate",
+      nodes: (issue.nodes || []).map(node => ({
+        id: node.id || Math.random().toString(),
+        snippet: node.html || node.snippet || "No snippet available",
+        failureSummary: node.failureSummary || "",
+        target: node.target || []
+      }))
+    }));
+  }, [effectiveData]);
+
+  const levelA = useMemo(() => dynamicIssues.filter(i => i.level === "A"), [dynamicIssues]);
+  const levelAA = useMemo(() => dynamicIssues.filter(i => i.level === "AA"), [dynamicIssues]);
 
   const [selectedCheckId, setSelectedCheckId] = useState(null);
 
   useEffect(() => {
     if (!selectedCheckId) {
-      if (levelFilter === "all" || levelFilter === "a") setSelectedCheckId(levelA[0]?.id);
-      else if (levelFilter === "aa") setSelectedCheckId(levelAA[0]?.id);
+      if (levelFilter === "all" || levelFilter === "a") setSelectedCheckId(levelA[0]?.id || null);
+      else if (levelFilter === "aa") setSelectedCheckId(levelAA[0]?.id || null);
     }
   }, [levelFilter, levelA, levelAA, selectedCheckId]);
 
-  const overallPercent = score !== undefined ? score : 64.49;
-  const levelAPercent = dynamicIssues ? score : 69.23; // Approximation
-  const levelAAPercent = dynamicIssues ? score : 51.72;
+  const overallPercent = score !== undefined ? score : (effectiveData?.score || 100);
+  const levelAPercent = effectiveData?.levelAScore !== undefined ? effectiveData.levelAScore : overallPercent;
+  const levelAAPercent = effectiveData?.levelAAScore !== undefined ? effectiveData.levelAAScore : overallPercent;
 
   const [issueTab, setIssueTab] = useState("pending");
   const [expandedSnippets, setExpandedSnippets] = useState(new Set());
@@ -271,8 +265,8 @@ const AccessibilitySection = ({ data, score }) => {
                 <i className="isax isax-people fs-22" aria-hidden="true" />
               </span>
               <div>
-                <h6 className="mb-0 fw-semibold">WCAG 2.2 Accessibility Compliance</h6>
-                <p className="text-muted fs-13 mb-0">Accessibility compliance for this page.</p>
+                <h6 className="mb-0 fw-semibold">Accessibility Score</h6>
+                <p className="text-muted fs-13 mb-0">How accessible this page is for everyone.</p>
               </div>
             </div>
             <div className="d-flex align-items-center gap-3">
@@ -283,10 +277,10 @@ const AccessibilitySection = ({ data, score }) => {
                 onExportPDF={exportAccessibilityPDF}
               />
               <div className="d-flex align-items-center gap-2">
-                <ComplianceRing percent={overallPercent} size={44} />
+                <ComplianceRing percent={typeof overallPercent === 'number' && !isNaN(overallPercent) ? Math.round(overallPercent) : 0} size={44} />
                 <div>
-                  <span className="fw-semibold fs-15">{overallPercent}%</span>
-                  <p className="text-muted fs-12 mb-0" style={{ lineHeight: 1.2 }}>Overall accessibility compliance level for this page.</p>
+                  <span className="fw-semibold fs-15">{typeof overallPercent === 'number' && !isNaN(overallPercent) ? Math.round(overallPercent) : 0}%</span>
+                  <p className="text-muted fs-12 mb-0" style={{ lineHeight: 1.2 }}>Overall score for how usable this page is.</p>
                 </div>
               </div>
             </div>
@@ -298,7 +292,7 @@ const AccessibilitySection = ({ data, score }) => {
       <div className="card border-0 shadow-sm mb-3">
         <div className="card-body py-2">
           <div className="d-flex flex-wrap align-items-center gap-3">
-            <nav className="nav nav-tabs border-0 gap-2" aria-label="Compliance level filter">
+            <nav className="nav nav-tabs border-0 gap-2" aria-label="Priority level filter">
               {COMPLIANCE_LEVELS.map((l) => (
                 <button
                   key={l.key}
@@ -310,23 +304,6 @@ const AccessibilitySection = ({ data, score }) => {
                 </button>
               ))}
             </nav>
-            <div className="d-flex align-items-center gap-2 ms-auto">
-              <i className="isax isax-filter text-primary" style={{ fontSize: "1.1rem" }} aria-hidden="true" />
-              <button
-                type="button"
-                className={`btn btn-sm btn-link p-0 text-decoration-none ${showIgnored ? "text-primary fw-medium" : "text-muted"}`}
-                onClick={() => setShowIgnored(!showIgnored)}
-              >
-                Ignored checks
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm btn-link p-0 text-decoration-none d-inline-flex align-items-center gap-1 ${showPassed ? "text-primary fw-medium" : "text-muted"}`}
-                onClick={() => setShowPassed(!showPassed)}
-              >
-                <i className="isax isax-tick-circle fs-16" /> Passed checks
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -335,7 +312,7 @@ const AccessibilitySection = ({ data, score }) => {
       {levelFilter === "a" && (
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
-            <LevelHeaderBlock badgeLabel="A" title="Level A accessibility checks." percent={levelAPercent} />
+            <LevelHeaderBlock badgeLabel="A" title="High Priority (Level A) issues." percent={levelAPercent} />
           </div>
         </div>
       )}
@@ -344,7 +321,7 @@ const AccessibilitySection = ({ data, score }) => {
       {levelFilter === "aa" && (
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
-            <LevelHeaderBlock badgeLabel="AA" title="Level AA accessibility checks." percent={levelAAPercent} />
+            <LevelHeaderBlock badgeLabel="AA" title="Medium Priority (Level AA) issues." percent={levelAAPercent} />
           </div>
         </div>
       )}
@@ -371,13 +348,13 @@ const AccessibilitySection = ({ data, score }) => {
             <>
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  <LevelHeaderBlock badgeLabel="A" title="Level A accessibility checks." percent={levelAPercent} />
+                  <LevelHeaderBlock badgeLabel="A" title="High Priority (Level A) issues." percent={levelAPercent} />
                   <ChecksTable checks={levelA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="danger" />
                 </div>
               </div>
               <div className="card border-0 shadow-sm mt-3">
                 <div className="card-body">
-                  <LevelHeaderBlock badgeLabel="AA" title="Level AA accessibility checks." percent={levelAAPercent} />
+                  <LevelHeaderBlock badgeLabel="AA" title="Medium Priority (Level AA) issues." percent={levelAAPercent} />
                   <ChecksTable checks={levelAA} selectedCheckId={selectedCheckId} onSelectCheck={setSelectedCheckId} iconType="eye" />
                 </div>
               </div>
@@ -392,7 +369,7 @@ const AccessibilitySection = ({ data, score }) => {
               {selectedCheck ? (
                 <>
                   <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h6 className="fw-semibold mb-0 text-body">Individual issues</h6>
+                    <h6 className="fw-semibold mb-0 text-body">Occurrences on page</h6>
                     <span className="fw-semibold text-primary">{selectedCheck.individualIssues}</span>
                   </div>
                   <div className="d-flex align-items-center gap-2 mb-2">
@@ -415,33 +392,11 @@ const AccessibilitySection = ({ data, score }) => {
                   </div>
                   <div className="mb-3">
                     <i className="isax isax-teacher text-primary me-1" aria-hidden="true" />
-                    <span className="fs-13 text-muted">Learn more about this check</span>
+                    <span className="fs-13 text-muted">Learn why this matters and how to fix it</span>
                   </div>
-                  <nav className="nav nav-tabs border-0 gap-2 mb-3">
-                    <button
-                      type="button"
-                      className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${issueTab === "pending" ? "border-primary text-primary" : "border-transparent text-body"}`}
-                      onClick={() => setIssueTab("pending")}
-                    >
-                      Pending
-                    </button>
-                    <button
-                      type="button"
-                      className={`nav-link border-0 px-3 py-2 border-bottom border-2 fw-medium ${issueTab === "ignored" ? "border-primary text-primary" : "border-transparent text-body"}`}
-                      onClick={() => setIssueTab("ignored")}
-                    >
-                      Ignored
-                    </button>
-                  </nav>
-                  <div className="d-flex flex-wrap gap-2 mb-3">
-                    <button type="button" className="btn btn-sm btn-light text-primary border">
-                      {issueTab === "ignored" ? "Unignore all issues" : "Ignore all issues"}
-                    </button>
-                    <button type="button" className="btn btn-sm btn-light text-primary border">Ignore check</button>
-                    <button type="button" className="btn btn-sm btn-light text-primary border">Mark check as fixed</button>
-                  </div>
+
                   <div className="border-top pt-3">
-                    {(selectedCheck?.nodes?.length > 0 ? selectedCheck.nodes : SAMPLE_INSTANCES).map((inst, idx) => (
+                    {(selectedCheck?.nodes || []).map((inst, idx) => (
                       <div key={inst.id || idx} className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-2">
                           <span className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-light" style={{ width: 40, height: 40 }}>
@@ -451,8 +406,6 @@ const AccessibilitySection = ({ data, score }) => {
                             <button type="button" className="btn btn-icon btn-sm btn-link text-primary p-0" title="View in page">
                               <i className="isax isax-route-square fs-18" />
                             </button>
-                            <button type="button" className="btn btn-sm btn-light">Ignore</button>
-                            <button type="button" className="btn btn-sm btn-light">Mark as fixed</button>
                             <button
                               type="button"
                               className="btn btn-icon btn-sm btn-link text-primary p-0 text-decoration-none border-0"
@@ -462,15 +415,18 @@ const AccessibilitySection = ({ data, score }) => {
                                   setIssueDrawerData({
                                     id: inst.id || `node-${idx}`,
                                     checkName: selectedCheck.name,
-                                    element: inst.selector || "Element",
-                                    dateFound: new Date().toLocaleDateString(),
-                                    effectOnCompliance: "0.00 %",
-                                    snippetHtml: inst.snippet || ISSUE_DRAWER_SNIPPET_HTML,
-                                    pageTitle: "Search",
-                                    pageUrl: "https://example.com/search",
+                                    element: (inst.target && inst.target.join(", ")) || "Element",
+                                    dateFound: effectiveData?.scanDate ? new Date(effectiveData.scanDate).toLocaleDateString() : new Date().toLocaleDateString(),
+                                    effectOnCompliance: selectedCheck.effectOnCompliance || "0.00 %",
+                                    impact: selectedCheck.impact || "moderate",
+                                    snippetHtml: inst.snippet || "No snippet available",
+                                    pageTitle: effectiveData?.title || "Page",
+                                    pageUrl: effectiveData?.url || pageUrl || "",
                                     responsibility: selectedCheck.roles,
                                     successCriteria: selectedCheck.successCriteria?.replace(/^Part of success criteria\s*/i, "").trim() || "1.1.1",
-                                    difficulty: "Easy",
+                                    difficulty: "Medium",
+                                    description: selectedCheck.description,
+                                    failureSummary: inst.failureSummary,
                                   });
                                   setIssueDrawerOpen(true);
                                 }
@@ -481,30 +437,42 @@ const AccessibilitySection = ({ data, score }) => {
                           </div>
                         </div>
                         <div className="rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 overflow-hidden">
+                          {inst.target && inst.target.length > 0 && (
+                            <div className="px-3 pt-3 pb-1 fs-13 text-danger fw-semibold" style={{ wordBreak: "break-all" }}>
+                              Element on page: {inst.target.join(", ")}
+                            </div>
+                          )}
                           <pre
-                            className="p-3 text-danger small mb-0 overflow-auto"
+                            className="px-3 pb-3 pt-1 text-danger small mb-0 overflow-auto"
                             style={{ fontSize: "0.75rem", maxHeight: expandedSnippets.has(inst.id || idx) ? "none" : 80 }}
                           >
                             <code>{inst.snippet}</code>
                           </pre>
-                          <div className="px-3 pb-2">
-                            {!expandedSnippets.has(inst.id || idx) ? (
-                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id || idx)}>
-                                Show more
-                              </button>
-                            ) : (
-                              <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none" onClick={() => toggleSnippet(inst.id || idx)}>
-                                Show less
-                              </button>
-                            )}
-                          </div>
+                          {inst.failureSummary && (
+                            <div className="px-3 py-2 border-top border-danger border-opacity-25 fs-13 text-danger bg-danger bg-opacity-10">
+                              <strong>How to fix:</strong> {inst.failureSummary}
+                            </div>
+                          )}
+                          {(inst.snippet?.length > 150 || (inst.snippet?.match(/\n/g) || []).length > 2) && (
+                            <div className="px-3 py-2 border-top border-danger border-opacity-25 bg-danger bg-opacity-10">
+                              {!expandedSnippets.has(inst.id || idx) ? (
+                                <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none fw-medium fs-13" onClick={() => toggleSnippet(inst.id || idx)}>
+                                  Show more
+                                </button>
+                              ) : (
+                                <button type="button" className="btn btn-link p-0 text-primary small text-decoration-none fw-medium fs-13" onClick={() => toggleSnippet(inst.id || idx)}>
+                                  Show less
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <p className="text-muted mb-0">Select a check from the list to view details.</p>
+                <p className="text-muted mb-0">Select an issue from the list to view details.</p>
               )}
             </div>
           </div>

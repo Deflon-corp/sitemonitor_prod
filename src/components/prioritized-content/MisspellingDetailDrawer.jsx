@@ -154,15 +154,6 @@ export default function MisspellingDetailDrawer({
               , React.createElement('a', { href: googleSearchUrl, target: "_blank", rel: "noopener noreferrer", className: "btn btn-icon btn-sm btn-light text-primary", title: "Lookup in Google", 'aria-label': `Lookup ${issue.word} in Google` }
                 , React.createElement('span', { className: "fw-bold" }, "G")
               )
-              , React.createElement('div', { className: "dropdown" }
-                , React.createElement('button', { type: "button", className: "btn btn-sm btn-light dropdown-toggle", 'data-bs-toggle': "dropdown", 'aria-expanded': "false" }, "Action "
-                  , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 fs-12", 'aria-hidden': true })
-                )
-                , React.createElement('ul', { className: "dropdown-menu dropdown-menu-end" }
-                  , React.createElement('li', {}, React.createElement('button', { type: "button", className: "dropdown-item" }, "Ignore"))
-                  , React.createElement('li', {}, React.createElement('button', { type: "button", className: "dropdown-item" }, "Add to dictionary"))
-                )
-              )
               , React.createElement('button', { type: "button", className: "btn btn-sm btn-light", onClick: handleCopyUrl }, "Copy URL"
 
               )
@@ -183,6 +174,19 @@ export default function MisspellingDetailDrawer({
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Snippet")
                 , React.createElement('dd', { className: "col-8 mb-2" }
                   , React.createElement('span', { className: "border border-danger rounded px-2 py-1 text-danger small" }, issue.word)
+                )
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Suggestions")
+                , React.createElement('dd', { className: "col-8 mb-2" }
+                  , issue.suggestions && issue.suggestions.length > 0
+                    ? React.createElement('div', { className: "d-inline-flex flex-wrap gap-1" }
+                        , issue.suggestions.map((s, idx) =>
+                            React.createElement('span', {
+                              key: idx,
+                              className: "badge bg-success bg-opacity-10 text-success fw-semibold fs-12 px-2.5 py-1 rounded-pill"
+                            }, s)
+                          )
+                      )
+                    : "—"
                 )
                 , React.createElement('dt', { className: "col-4 text-muted" }, "Found on page")
                 , React.createElement('dd', { className: "col-8 mb-0" }
@@ -238,13 +242,6 @@ export default function MisspellingDetailDrawer({
                           , sortBy === "potentialMisspellings" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true }) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50", 'aria-hidden': true })
                         )
                       )
-                      , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold text-nowrap" }
-                        , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1", onClick: () => handleSort("views") }, "Views"
-
-                          , sortBy === "views" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true }) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50", 'aria-hidden': true })
-                        )
-                      )
-                      , React.createElement('th', { className: "py-3 pe-4 text-nowrap", style: { width: 100 }, 'aria-label': "Actions" })
                     )
                   )
                   , React.createElement('tbody', {}
@@ -262,27 +259,6 @@ export default function MisspellingDetailDrawer({
                         
                         , React.createElement('td', { className: "py-2 fs-13 text-body" }, p.misspellings)
                         , React.createElement('td', { className: "py-2 fs-13 text-body" }, p.potentialMisspellings)
-                        
-                        , React.createElement('td', { className: "py-2 pe-4" }
-                          , React.createElement('div', { className: "d-inline-flex align-items-center gap-1" }
-                            , React.createElement('button', {
-                              type: "button",
-                              className: "btn btn-icon btn-sm btn-light text-primary",
-                              title: "Open page details",
-                              onClick: () => {
-                                if (onOpenPageDetails) {
-                                  onOpenPageDetails(p);
-                                } else {
-                                  setSelectedPageForDetails({ page: p, qaSubView: "misspellings" });
-                                }
-                              },
-                              'aria-label': `Open page details for ${p.title}`
-                            }
-
-                              , React.createElement('i', { className: "isax isax-document-text fs-14", 'aria-hidden': true })
-                            )
-                          )
-                        )
                       )
                     ))
                   )

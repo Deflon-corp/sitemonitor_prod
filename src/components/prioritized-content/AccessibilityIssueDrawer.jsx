@@ -1,25 +1,6 @@
 import React, { useEffect } from "react";
 
-const SNIPPET_ICONS = [
-  { key: "health", icon: "isax-add-circle" },
-  { key: "car", icon: "isax-car" },
-  { key: "scooter", icon: "isax-motorbike" },
-  { key: "wallet", icon: "isax-wallet" },
-  { key: "shield", icon: "isax-shield-tick" },
-];
 
-const OTHER_CHECKS_SAMPLE = [
-  { check: "Elements intended as presentation-only contain focusable content", iconType: "info", responsibility: "Front-end Development", successCriteria: "4.1.2", difficulty: "Easy" },
-  { check: "Do the images contain text?", iconType: "eye", responsibility: "UX Design, Visual Design", successCriteria: "1.4.5", difficulty: "Easy" },
-];
-
-const PAGES_WITH_ISSUE_SAMPLE = [
-  { title: null, url: "https://www.example.com/products/laptop-a" },
-  { title: null, url: "https://www.example.com/products/laptop-b" },
-  { title: null, url: "https://www.example.com/products/laptop-c" },
-  { title: null, url: "https://www.example.com/products/tablet-a" },
-  { title: null, url: "https://www.example.com/products/tablet-b" },
-];
 
 const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
   useEffect(() => {
@@ -38,8 +19,7 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
     navigator.clipboard?.writeText(url);
   };
 
-  const iconsToShow = issue.snippetIconKeys?.length ? issue.snippetIconKeys : SNIPPET_ICONS.map((i) => i.key);
-  const iconList = SNIPPET_ICONS.filter((s) => iconsToShow.includes(s.key));
+
 
   return (
     <>
@@ -95,6 +75,24 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
         </div>
 
         <div className="flex-grow-1 overflow-auto px-4 py-3">
+          {/* Issue description */}
+          <div className="card border-0 shadow-sm mb-3">
+            <div className="card-body">
+              <h6 className="fw-semibold mb-2">Issue description</h6>
+              <p className="text-muted fs-14 mb-0">{issue.description || "Description not available."}</p>
+            </div>
+          </div>
+
+          {/* How to fix */}
+          <div className="card border-0 shadow-sm mb-3">
+            <div className="card-body">
+              <h6 className="fw-semibold mb-2">How to fix</h6>
+              <div className="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger rounded fs-14">
+                {issue.failureSummary || "No fix suggestion available."}
+              </div>
+            </div>
+          </div>
+
           {/* Issue details */}
           <div className="card border-0 shadow-sm">
             <div className="card-body">
@@ -115,18 +113,6 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
             <div className="card-body">
               <h6 className="fw-semibold mb-3">Snippet</h6>
               <div className="d-flex gap-3">
-                <div className="d-flex flex-column gap-2 flex-shrink-0">
-                  {iconList.map(({ key, icon }) => (
-                    <span
-                      key={key}
-                      className="rounded d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary"
-                      style={{ width: 40, height: 40 }}
-                      aria-hidden="true"
-                    >
-                      <i className={`isax ${icon} fs-18`} />
-                    </span>
-                  ))}
-                </div>
                 <pre
                   className="flex-grow-1 p-3 rounded bg-light border small mb-0 overflow-auto text-body"
                   style={{ fontSize: "0.75rem", minHeight: 200 }}
@@ -211,136 +197,7 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
             </div>
           </div>
 
-          {/* Other checks for this snippet */}
-          <div className="card border-0 shadow-sm mt-3">
-            <div className="card-body p-0">
-              <h6 className="fw-semibold mb-0 px-4 pt-3 pb-2 text-body">Other checks for this snippet</h6>
-              <div className="table-responsive">
-                <table className="table table-striped table-borderless align-middle mb-0">
-                  <thead>
-                    <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="fw-semibold text-body py-2">Check</th>
-                      <th className="fw-semibold text-body py-2">Help center</th>
-                      <th className="fw-semibold text-body py-2">Responsibility</th>
-                      <th className="fw-semibold text-body py-2">Success criteria</th>
-                      <th className="fw-semibold text-body py-2">
-                        Difficulty
-                        <i className="isax isax-information ms-1 fs-12 text-muted" aria-hidden="true" title="Difficulty" />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {OTHER_CHECKS_SAMPLE.map((row, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2">
-                          <div className="d-flex align-items-center gap-2">
-                            <span
-                              className={`rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ${row.iconType === "eye" ? "text-primary" : "text-danger"}`}
-                              style={{
-                                width: 24,
-                                height: 24,
-                                backgroundColor: row.iconType === "eye" ? "rgba(13, 110, 253, 0.15)" : "rgba(220, 53, 69, 0.15)",
-                              }}
-                              aria-hidden="true"
-                            >
-                              {row.iconType === "eye" ? (
-                                <i className="isax isax-eye fs-14" aria-hidden="true" />
-                              ) : (
-                                <i className="isax isax-info-circle fs-14" aria-hidden="true" />
-                              )}
-                            </span>
-                            <span className="fw-medium fs-13">{row.check}</span>
-                          </div>
-                        </td>
-                        <td className="py-2">
-                          <button type="button" className="btn btn-icon btn-sm btn-link text-primary p-0" title="Help center">
-                            <i className="isax isax-teacher fs-18" />
-                          </button>
-                        </td>
-                        <td className="py-2 fs-13">{row.responsibility}</td>
-                        <td className="py-2 fs-13 d-flex align-items-center gap-1">
-                          <i className="isax isax-document-text fs-14 text-muted" aria-hidden="true" />
-                          {row.successCriteria}
-                        </td>
-                        <td className="py-2">
-                          <span className="badge bg-primary bg-opacity-10 text-primary">{row.difficulty}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
 
-          {/* All pages with this accessibility issue */}
-          <div className="card border-0 shadow-sm mt-3">
-            <div className="card-body p-0">
-              <h6 className="fw-semibold mb-0 px-4 pt-3 pb-2 text-body">All pages with this accessibility issue</h6>
-              <div className="table-responsive">
-                <table className="table table-hover table-striped table-borderless align-middle mb-0">
-                  <thead>
-                    <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="fw-semibold text-body py-3">
-                        Title and URL
-                        <i className="isax isax-arrow-down-1 ms-1 fs-12" aria-hidden="true" />
-                      </th>
-                      <th className="fw-semibold text-body py-3">
-                        Priority
-                        <i className="isax isax-arrow-up-down ms-1 fs-12 opacity-50" aria-hidden="true" />
-                      </th>
-                      <th className="fw-semibold text-body py-3">
-                        Views
-                        <i className="isax isax-arrow-up-down ms-1 fs-12 opacity-50" aria-hidden="true" />
-                      </th>
-                      <th className="py-3 pe-4" style={{ width: 100 }} />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {PAGES_WITH_ISSUE_SAMPLE.map((p, idx) => (
-                      <tr key={`${p.url}-${idx}`}>
-                        <td className="py-2">
-                          <div className="d-flex flex-column">
-                            <span className="text-muted fs-13">{p.title ?? "(No title found)"}</span>
-                            <a
-                              href={p.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted text-decoration-none small d-inline-flex align-items-center gap-1 mt-1"
-                              style={{ fontSize: "0.75rem" }}
-                            >
-                              <span className="text-primary">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                  <path d="M15 3h6v6" />
-                                  <path d="M10 14L21 3" />
-                                </svg>
-                              </span>
-                              {p.url}
-                            </a>
-                          </div>
-                        </td>
-                        <td className="py-2">
-                          <span className="badge bg-warning bg-opacity-10 text-warning">Medium</span>
-                        </td>
-                        <td className="py-2 fs-13">0</td>
-                        <td className="py-2 pe-4">
-                          <div className="d-flex align-items-center gap-1">
-                            <button type="button" className="btn btn-icon btn-sm btn-primary p-0" style={{ width: 28, height: 28 }} title="Open page details">
-                              <i className="isax isax-document-text fs-14" />
-                            </button>
-                            <button type="button" className="btn btn-icon btn-sm btn-primary p-0" style={{ width: 28, height: 28 }} title="Search">
-                              <i className="isax isax-search-normal fs-14" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </>

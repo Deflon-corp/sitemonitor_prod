@@ -177,7 +177,7 @@ const MisspellingsSection = ({
                   </button>
                 </th>
                 <th className="py-3 text-body fs-13 fw-semibold">Lookup in Google</th>
-                
+
                 {variant === "default" && (
                   <>
                     <th className="py-3 text-body fs-13 fw-semibold">
@@ -185,15 +185,13 @@ const MisspellingsSection = ({
                         Pages {sortBy === "pages" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
                       </button>
                     </th>
-                    <th className="py-3 text-body fs-13 fw-semibold" className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Pages</th>
-                    
+                    <th className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Details</th>
+
                   </>
                 )}
                 {variant === "page" && (
                   <>
-                    <th className="py-3 pe-4 text-body fs-13 fw-semibold text-nowrap text-center" style={{ width: "auto", minWidth: 120 }} className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Pages</th>
-                    
-                    
+                    <th className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Details</th>
                   </>
                 )}
               </tr>
@@ -209,7 +207,7 @@ const MisspellingsSection = ({
                       <span className="fw-bold">G</span>
                     </a>
                   </td>
-                  
+
                   {variant === "default" && (
                     <>
                       <td className="py-3">
@@ -232,7 +230,7 @@ const MisspellingsSection = ({
                       </button>
                     </td>
                   )}
-                  
+
                   {variant === "page" && !hideDetailsColumn && (
                     <td className="py-3 pe-4">
                       <button type="button" className="btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary" title="Details" onClick={() => onOpenIssue?.(row.id)} aria-label={`Details for ${row.word}`}>

@@ -283,8 +283,6 @@ export default function Sidebar() {
                                                     <li><Link to="/domain/quality-assurance?view=spellcheck-pages" className="d-flex align-items-center"><i className="isax isax-document-text me-2" aria-hidden />Pages with Misspellings</Link></li>
                                                     <li><Link to="/domain/quality-assurance?view=spellcheck-misspellings" className="d-flex align-items-center"><i className="isax isax-edit-2 me-2" aria-hidden />Misspellings</Link></li>
                                                     <li><Link to="/domain/quality-assurance?view=spellcheck-potential" className="d-flex align-items-center"><i className="isax isax-edit-2 me-2" aria-hidden />Potential Misspellings</Link></li>
-                                                    <li><Link to="/domain/quality-assurance?view=spellcheck-dictionary" className="d-flex align-items-center"><i className="isax isax-book-1 me-2" aria-hidden />Dictionary</Link></li>
-                                                    <li><Link to="/domain/quality-assurance?view=spellcheck-ignored" className="d-flex align-items-center"><i className="isax isax-eye-slash me-2" aria-hidden />Ignored Misspellings</Link></li>
                                                 </ul>
                                             </li>
                                             <li className="submenu">

@@ -15,8 +15,6 @@ const CHART_HEIGHT = 372;
 const PADDING = { top: 24, right: 72, bottom: 104, left: 60 };
 const PLOT_WIDTH = CHART_WIDTH - PADDING.left - PADDING.right;
 const PLOT_HEIGHT = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-const Y_LEFT_MAX = 1400;
-const Y_RIGHT_MAX = 200;
 
 // Helper to format ISO strings
 const formatDateTime = (isoString) => {
@@ -46,16 +44,30 @@ const RIGHT_AXIS_LABEL_X = PADDING.left + PLOT_WIDTH + (CHART_WIDTH - PADDING.le
 const INCIDENT_RIGHT_INSET = 14;
 
 function HeartbeatChart({ responseTimeSample, incidentSample, avgResponseMs, dates }) {
+  const maxResponse = Math.max(...(responseTimeSample || []), 0);
+  const dynYLeftMax = Math.max(1400, Math.ceil(maxResponse / 200) * 200);
+
+  const maxIncident = Math.max(...(incidentSample || []), 0);
+  const dynYRightMax = Math.max(200, Math.ceil(maxIncident / 50) * 50);
+
   const n = responseTimeSample.length || 1;
   const xScale = (i) => PADDING.left + (i / Math.max(1, n - 1)) * PLOT_WIDTH;
   const incidentPlotWidth = PLOT_WIDTH - INCIDENT_RIGHT_INSET;
   const xScaleIncidents = (i) => PADDING.left + (i / Math.max(1, n - 1)) * incidentPlotWidth;
-  const yLeftScale = (v) => PADDING.top + PLOT_HEIGHT - (v / Y_LEFT_MAX) * PLOT_HEIGHT;
-  const yRightScale = (v) => PADDING.top + PLOT_HEIGHT - (v / Y_RIGHT_MAX) * PLOT_HEIGHT;
+  const yLeftScale = (v) => PADDING.top + PLOT_HEIGHT - (v / dynYLeftMax) * PLOT_HEIGHT;
+  const yRightScale = (v) => PADDING.top + PLOT_HEIGHT - (v / dynYRightMax) * PLOT_HEIGHT;
 
   const linePath = responseTimeSample.map((v, i) => `${i === 0 ? "M" : "L"} ${xScale(i)} ${yLeftScale(v)}`).join(" ");
-  const avgLineY = yLeftScale(avgResponseMs);
+  const avgLineY = yLeftScale(avgResponseMs || 0);
   const avgLinePath = `M ${PADDING.left} ${avgLineY} L ${PADDING.left + PLOT_WIDTH} ${avgLineY}`;
+
+  const leftTicks = [];
+  const leftStep = dynYLeftMax / 7;
+  for (let i = 0; i <= 7; i++) leftTicks.push(Math.round(i * leftStep));
+
+  const rightTicks = [];
+  const rightStep = dynYRightMax / 4;
+  for (let i = 0; i <= 4; i++) rightTicks.push(Math.round(i * rightStep));
 
   // Helper to format dates for x-axis labels
   const formatLabel = (dateStr) => {
@@ -92,10 +104,10 @@ function HeartbeatChart({ responseTimeSample, incidentSample, avgResponseMs, dat
                 , React.createElement('stop', { offset: "100%", stopColor: "#fca5a5"} )
               )
             )
-            , React.createElement('rect', { x: PADDING.left, y: yLeftScale(600), width: PLOT_WIDTH, height: PLOT_HEIGHT - (PADDING.top + PLOT_HEIGHT - yLeftScale(600)), fill: "url(#hb-zone-green)"} )
+            , React.createElement('rect', { x: PADDING.left, y: yLeftScale(600), width: PLOT_WIDTH, height: (PADDING.top + PLOT_HEIGHT) - yLeftScale(600), fill: "url(#hb-zone-green)"} )
             , React.createElement('rect', { x: PADDING.left, y: yLeftScale(800), width: PLOT_WIDTH, height: yLeftScale(600) - yLeftScale(800), fill: "url(#hb-zone-yellow)"} )
             , React.createElement('rect', { x: PADDING.left, y: PADDING.top, width: PLOT_WIDTH, height: yLeftScale(800) - PADDING.top, fill: "url(#hb-zone-red)"} )
-            , [0, 200, 400, 600, 800, 1000, 1200, 1400].map((v) => (
+            , leftTicks.map((v) => (
               React.createElement('line', { key: v, x1: PADDING.left, y1: yLeftScale(v), x2: PADDING.left + PLOT_WIDTH, y2: yLeftScale(v), stroke: "#e5e7eb", strokeWidth: "0.5", strokeDasharray: "4 2" } )
             ))
             , React.createElement('path', { d: linePath, fill: "none", stroke: "#3b82f6", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"} )
@@ -127,12 +139,12 @@ function HeartbeatChart({ responseTimeSample, incidentSample, avgResponseMs, dat
                 )
               ) : null
             )
-            , [0, 200, 400, 600, 800, 1000, 1200, 1400].map((v) => (
+            , leftTicks.map((v) => (
               React.createElement('text', { key: v, x: LEFT_NUMBERS_X, y: yLeftScale(v) + 4, textAnchor: "middle", fontSize: "10", fill: "#6b7280"}
                 , v
               )
             ))
-            , [0, 50, 100, 150, 200].map((v) => (
+            , rightTicks.map((v) => (
               React.createElement('text', { key: v, x: RIGHT_NUMBERS_X, y: yRightScale(v) + 4, textAnchor: "middle", fontSize: "10", fill: "#6b7280"}
                 , v
               )

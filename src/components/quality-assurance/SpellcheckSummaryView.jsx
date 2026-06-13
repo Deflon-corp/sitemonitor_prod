@@ -288,27 +288,6 @@ export default function SpellcheckSummaryView() {
                         <td className="py-2 text-muted fs-13 text-end">
                           {row.pages} {row.pages === 1 ? "PAGE" : "PAGES"}
                         </td>
-                        <td className="py-2 pe-0">
-                          <div className="dropdown">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light border-0 rounded-2 d-inline-flex align-items-center gap-1"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                            >
-                              Action
-                              <i className="isax isax-arrow-down-1 fs-12" aria-hidden="true" />
-                            </button>
-                            <ul className="dropdown-menu dropdown-menu-end">
-                              <li>
-                                <button type="button" className="dropdown-item">Add to dictionary</button>
-                              </li>
-                              <li>
-                                <button type="button" className="dropdown-item">Ignore</button>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -348,27 +327,6 @@ export default function SpellcheckSummaryView() {
                         <td className="py-2 fw-medium text-body">{row.word}</td>
 
                         <td className="py-2 text-muted fs-13 text-end">{row.pages} PAGES</td>
-                        <td className="py-2 pe-0">
-                          <div className="dropdown">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light border-0 rounded-2 d-inline-flex align-items-center gap-1"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                            >
-                              Action
-                              <i className="isax isax-arrow-down-1 fs-12" aria-hidden="true" />
-                            </button>
-                            <ul className="dropdown-menu dropdown-menu-end">
-                              <li>
-                                <button type="button" className="dropdown-item">Add to dictionary</button>
-                              </li>
-                              <li>
-                                <button type="button" className="dropdown-item">Ignore</button>
-                              </li>
-                            </ul>
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>

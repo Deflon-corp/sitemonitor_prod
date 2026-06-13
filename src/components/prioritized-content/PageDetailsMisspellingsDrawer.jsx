@@ -75,12 +75,12 @@ export default function PageDetailsMisspellingsDrawer({
         icon: "isax-tick-circle",
         badge: effectivePage.qaIssueCount || undefined,
       },
-      { key: "accessibility", label: "Accessibility", icon: "isax-people5" },
+      { key: "accessibility", label: "Accessibility", icon: "isax-people5", badge: pageProp?.failingChecks || undefined },
       { key: "seo", label: "SEO", icon: "isax-chart-215", badge: seoIssuesCount || undefined },
       { key: "inventory", label: "Inventory", icon: "isax-book5" },
       { key: "performance", label: "Performance", icon: "isax-chart-215" },
     ],
-    [effectivePage.policies, effectivePage.qaIssueCount, seoIssuesCount]
+    [effectivePage.policies, effectivePage.qaIssueCount, seoIssuesCount, pageProp?.failingChecks]
   );
 
   const qaSidebarItems = useMemo(
@@ -89,10 +89,7 @@ export default function PageDetailsMisspellingsDrawer({
       { key: "broken-images", label: "Broken Images", icon: "isax-document-text", badge: brokenImagesCount, badgeVariant: "danger" },
       { key: "misspellings", label: "Misspellings", icon: "isax-edit-2", badge: misspellingsCount, badgeVariant: "danger" },
       { key: "potential-misspellings", label: "Potential Misspellings", icon: "isax-edit-2", badge: potentialCount, badgeVariant: "primary" },
-      { key: "ignored-misspellings", label: "Ignored Misspellings", icon: "isax-edit-2" },
-      { key: "dictionary", label: "Dictionary", icon: "isax-book-1" },
       { key: "readability", label: "Readability", icon: "isax-book5" },
-      { key: "language", label: "Language Validation", icon: "isax-tick-circle", status: "ok" },
     ],
     [brokenLinksCount, brokenImagesCount, misspellingsCount, potentialCount]
   );
@@ -361,7 +358,7 @@ export default function PageDetailsMisspellingsDrawer({
                               <th className="ps-4">Broken link</th>
                               <th>Code</th>
                               <th>Type</th>
-                              
+
                             </tr>
                           </thead>
                           <tbody>
@@ -472,17 +469,6 @@ export default function PageDetailsMisspellingsDrawer({
                     </div>
                   </div>
                 )}
-                {(qaSubView === "ignored-misspellings" || qaSubView === "dictionary" || qaSubView === "language") && (
-                  <div className="card border shadow-sm">
-                    <div className="card-body text-center text-muted py-5">
-                      <p className="mb-0 fs-13">
-                        {qaSubView === "language"
-                          ? "Language validation is not available for this page yet."
-                          : "No items for this section on this page."}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -492,11 +478,11 @@ export default function PageDetailsMisspellingsDrawer({
           )}
 
           {activeTab === "accessibility" && !pageLoading && (
-            <AccessibilitySection data={effectivePage.accessibility} score={accessibilityScore} />
+            <AccessibilitySection data={effectivePage.accessibility} score={accessibilityScore} domainId={domainId} pageUrl={pageUrl} />
           )}
 
           {activeTab === "inventory" && !pageLoading && (
-            <InventorySection page={effectivePage} embeddedInDrawer />
+            <InventorySection page={effectivePage} embeddedInDrawer domainId={domainId} />
           )}
 
           {activeTab === "performance" && !pageLoading && (
@@ -519,13 +505,13 @@ export default function PageDetailsMisspellingsDrawer({
       <MisspellingDetailDrawer
         open={selectedMisspellingId != null}
         onClose={() => setSelectedMisspellingId(null)}
-        misspelling={(effectivePage.misspellings || []).find((m) => m.id === selectedMisspellingId)}
+        issue={(effectivePage.misspellings || []).find((m) => m.id === selectedMisspellingId)}
         pagesWithMisspelling={pagesWithMisspellingForDrawer}
       />
       <PotentialMisspellingIssueDrawer
         open={selectedPotentialMisspellingId != null}
         onClose={() => setSelectedPotentialMisspellingId(null)}
-        item={(effectivePage.potentialMisspellings || []).find((m) => m.id === selectedPotentialMisspellingId)}
+        issue={(effectivePage.potentialMisspellings || []).find((m) => m.id === selectedPotentialMisspellingId)}
         pagesWithMisspelling={pagesWithMisspellingForDrawer}
       />
     </>

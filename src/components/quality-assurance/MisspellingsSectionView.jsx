@@ -66,6 +66,7 @@ export default function MisspellingsSectionView() {
                 word: selectedIssue.word,
                 language: selectedIssue.language,
                 dateFound: selectedIssue.dateFound,
+                suggestions: selectedIssue.suggestions,
               }
             : null
         }

@@ -10,31 +10,13 @@ const LANGUAGES = [
   { key: "en-AU", label: "English (Australian)" },
 ];
 
-export const POTENTIAL_MISSPELLINGS_SAMPLE = [
-  { id: 1, word: "drawdown", language: "English (Australian)", dateFound: "2025-01-15", pages: 2 },
-  { id: 2, word: "Finserv", language: "English (Australian)", dateFound: "2025-01-14", pages: 499 },
-  { id: 3, word: "Flexi", language: "English (Australian)", dateFound: "2025-01-13", pages: 498 },
-  { id: 4, word: "Sonalika", language: "English (Australian)", dateFound: "2025-01-12", pages: 497 },
-  { id: 5, word: "Swaraj", language: "English (Australian)", dateFound: "2025-01-11", pages: 496 },
-  { id: 6, word: "Eicher", language: "English (Australian)", dateFound: "2025-01-10", pages: 495 },
-  { id: 7, word: "Kubota", language: "English (Australian)", dateFound: "2025-01-09", pages: 494 },
-  { id: 8, word: "Powertrac", language: "English (Australian)", dateFound: "2025-01-08", pages: 493 },
-  { id: 9, word: "Farmtrac", language: "English (Australian)", dateFound: "2025-01-07", pages: 492 },
-  { id: 10, word: "Robotouch", language: "English (Australian)", dateFound: "2025-01-06", pages: 491 },
-  { id: 11, word: "Sparnod", language: "English (Australian)", dateFound: "2025-01-05", pages: 490 },
-  { id: 12, word: "Insta", language: "English (Australian)", dateFound: "2025-01-04", pages: 489 },
-  { id: 13, word: "Goibibo", language: "English (Australian)", dateFound: "2025-01-03", pages: 488 },
-  { id: 14, word: "IRCTC", language: "English (Australian)", dateFound: "2025-01-02", pages: 487 },
-  { id: 15, word: "recieve", language: "English (Australian)", dateFound: "2025-01-01", pages: 386 },
-];
-
 const PotentialMisspellingsSection = ({
   items,
   onOpenIssue,
   onOpenPageDetails,
   onConfirmMisspelling,
 }) => {
-  const listSource = items === undefined ? POTENTIAL_MISSPELLINGS_SAMPLE : items;
+  const listSource = items;
   const [languageFilter, setLanguageFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -138,29 +120,7 @@ const PotentialMisspellingsSection = ({
 
         {/* Tabs + Download Report + Search in one line only */}
         <div className="d-flex flex-nowrap align-items-center justify-content-between gap-3 mb-4">
-          <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0 flex-shrink-0" aria-label="Language filter">
-            {LANGUAGES.map((lang) => {
-              const isActive = languageFilter === lang.key;
-              const count = languageCount(lang.key);
-              return (
-                <button
-                  key={lang.key}
-                  type="button"
-                  className={`nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${
-                    isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"
-                  }`}
-                  onClick={() => {
-                    setLanguageFilter(lang.key);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <i className="isax isax-edit-2" aria-hidden="true" />
-                  {lang.label}
-                  {lang.key !== "all" && <span className="text-muted">({count})</span>}
-                </button>
-              );
-            })}
-          </nav>
+          <div></div>
           <div className="d-flex align-items-center gap-2 flex-shrink-0">
             <div className="dropdown">
               <button
@@ -303,14 +263,14 @@ const PotentialMisspellingsSection = ({
                       <button
                         type="button"
                         className="btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary"
-                        title="Open issue details"
+                        title="Open potential misspelling details"
                         onClick={() => onOpenIssue?.(row.id)}
-                        aria-label="Open issue details"
+                        aria-label="Open potential misspelling details"
                       >
-                        <i className="isax isax-document-text fs-18" aria-hidden="true" />
+                        <i className="isax isax-info-circle fs-18" aria-hidden="true" />
                       </button>
                     </td>
-                    
+
                   </tr>
                 ))}
               </tbody>

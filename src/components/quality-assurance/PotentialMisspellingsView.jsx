@@ -64,6 +64,7 @@ export default function PotentialMisspellingsView() {
                 word: selectedIssue.word,
                 language: selectedIssue.language,
                 dateFound: selectedIssue.dateFound,
+                suggestions: selectedIssue.suggestions,
               }
             : null
         }

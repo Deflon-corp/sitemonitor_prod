@@ -4,6 +4,20 @@ import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import PageDetailsDrawerFromMisspelling from "@/components/prioritized-content/PageDetailsDrawerFromMisspelling";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
+
+function formatDateFound(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    const day = d.getDate();
+    const month = d.toLocaleString("en", { month: "short" });
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
@@ -13,6 +27,7 @@ export default function MisspellingIssueDrawer({
   issue,
   pagesWithMisspelling = [],
 }) {
+  const firstPage = pagesWithMisspelling && pagesWithMisspelling.length > 0 ? pagesWithMisspelling[0] : null;
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [searchQuery, setSearchQuery] = useState("");
@@ -171,143 +186,178 @@ export default function MisspellingIssueDrawer({
           )
         )
 
-        /* Table */
-        , React.createElement('div', { className: "flex-grow-1 overflow-auto" }
-          , React.createElement('div', { className: "table-responsive"}
-            , React.createElement('table', { className: "table table-hover table-striped table-borderless align-middle mb-0"     }
-              , React.createElement('thead', {}
-                , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50"    }
-                  , React.createElement('th', { className: "py-3 ps-4 text-body fs-13 fw-semibold"    }
-                    , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("title")}, "Title"
-
-                      , sortBy === "title" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
-                    )
-                  )
-                  
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
-                    , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("misspellings")}, "Misspellings"
-
-                      , sortBy === "misspellings" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
-                    )
-                  )
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
-                    , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("potentialMisspellings")}, "Potential misspellings"
-
-                      , sortBy === "potentialMisspellings" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
-                    )
-                  )
-                  , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
-                    , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("views")}, "Views"
-
-                      , React.createElement('span', { className: "ms-1 d-inline-flex" , 'data-bs-toggle': "tooltip", title: "Total page views"  , 'aria-label': "Info"}, React.createElement('i', { className: "isax isax-information text-muted fs-12"   , 'aria-hidden': true} ))
-                      , sortBy === "views" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
-                    )
-                  )
-                  , React.createElement('th', { className: "py-3 pe-4 text-body fs-13 fw-semibold"    , style: { width: 56 }, 'aria-label': "Open page details"  } )
+        /* Issue details and Table */
+        , React.createElement('div', { className: "flex-grow-1 overflow-auto px-4 py-3" }
+          , React.createElement('div', { className: "card border-0 shadow-sm mb-3" }
+            , React.createElement('div', { className: "card-body" }
+              , React.createElement('h6', { className: "fw-semibold mb-3" }, "Issue details")
+              , React.createElement('dl', { className: "row mb-0 fs-13" }
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Element")
+                , React.createElement('dd', { className: "col-8 mb-2" }, "Text")
+                
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Date found")
+                , React.createElement('dd', { className: "col-8 mb-2" }, formatDateFound(issue.dateFound))
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Snippet")
+                , React.createElement('dd', { className: "col-8 mb-2" }
+                  , React.createElement('span', { className: "border border-danger rounded px-2 py-1 text-danger small" }, issue.word)
                 )
-              )
-              , React.createElement('tbody', {}
-                , pagesWithMisspelling.length === 0 && React.createElement('tr', null
-                  , React.createElement('td', { colSpan: 6, className: "text-center py-5 text-muted fs-13" }, "No pages found for this word.")
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Suggestions")
+                , React.createElement('dd', { className: "col-8 mb-2" }
+                  , issue.suggestions && issue.suggestions.length > 0
+                    ? React.createElement('div', { className: "d-inline-flex flex-wrap gap-1" }
+                        , issue.suggestions.map((s, idx) =>
+                            React.createElement('span', {
+                              key: idx,
+                              className: "badge bg-success bg-opacity-10 text-success fw-semibold fs-12 px-2.5 py-1 rounded-pill"
+                            }, s)
+                          )
+                      )
+                    : "—"
                 )
-                , paginatedPages.map((p, idx) => (
-                  React.createElement('tr', { key: `${p.url}-${idx}`}
-                    , React.createElement('td', { className: "py-3 ps-4" }
-                      , React.createElement('div', { className: "d-flex flex-column" }
-                        , React.createElement('span', { className: "text-body fs-13" }, p.title)
-                        , React.createElement('a', { href: p.url, target: "_blank", rel: "noopener noreferrer" , className: "text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"      }
-                          , React.createElement('span', { className: "flex-shrink-0 d-inline-flex text-primary"  }, React.createElement(ExternalLinkIcon, { size: 12} ))
-                          , p.url
-                        )
+                , React.createElement('dt', { className: "col-4 text-muted" }, "Found on page")
+                , React.createElement('dd', { className: "col-8 mb-0" }
+                  , firstPage ? (
+                      React.createElement('div', { className: "d-flex flex-column" }
+                        , React.createElement('span', { className: "fw-medium" }, _nullishCoalesce(firstPage.title, () => ("(No title found)")))
+                        , firstPage.url ? (
+                          React.createElement('a', { href: firstPage.url, target: "_blank", rel: "noopener noreferrer", className: "text-muted text-decoration-none fs-13 d-inline-flex align-items-center gap-1 mt-1" }
+                            , React.createElement('span', { className: "text-primary" }
+                              , React.createElement(ExternalLinkIcon, { size: 12 })
+                            )
+                            , firstPage.url
+                          )
+                        ) : null
                       )
-                    )
-                    
-                    , React.createElement('td', { className: "py-3"}
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-link p-0 border-0 d-inline-flex align-items-center gap-2 text-body text-decoration-none"        ,
-                        onClick: () => setSelectedPageForDetails({ page: p, qaSubView: "misspellings" }),
-                        title: "Open page details (Misspellings)"   ,
-                        'aria-label': `Open page details for ${p.title}`}
-
-                        , React.createElement('span', { className: "rounded-circle bg-warning opacity-75"  , style: { width: 8, height: 8 }, 'aria-hidden': true} )
-                        , React.createElement('span', { className: "fs-13 fw-medium" }, p.misspellings)
-                      )
-                    )
-                    , React.createElement('td', { className: "py-3"}
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-link p-0 border-0 d-inline-flex align-items-center gap-2 text-body text-decoration-none"        ,
-                        onClick: () => setSelectedPageForDetails({ page: p, qaSubView: "potential-misspellings" }),
-                        title: "Open page details (Potential misspellings)"    ,
-                        'aria-label': `Open page details - Potential misspellings for ${p.title}`}
-
-                        , React.createElement('span', { className: "rounded-circle bg-primary opacity-75"  , style: { width: 8, height: 8 }, 'aria-hidden': true} )
-                        , React.createElement('span', { className: "fs-13 fw-medium" }, p.potentialMisspellings)
-                      )
-                    )
-                    
-                    , React.createElement('td', { className: "py-3 pe-4" }
-                      , React.createElement('button', {
-                        type: "button",
-                        className: "btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 text-primary"        ,
-                        title: "Open page details"  ,
-                        onClick: () => setSelectedPageForDetails({ page: p, qaSubView: "misspellings" }),
-                        'aria-label': `Open page details for ${p.title}`}
-
-                        , React.createElement('i', { className: "isax isax-document-text fs-14"  , 'aria-hidden': true} )
-                      )
-                    )
-                  )
-                ))
+                    ) : "—"
+                )
               )
             )
           )
+          , React.createElement('div', { className: "card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden" }
+            , React.createElement('div', { className: "table-responsive" }
+              , React.createElement('table', { className: "table table-hover table-striped table-borderless align-middle mb-0"     }
+                , React.createElement('thead', {}
+                  , React.createElement('tr', { className: "border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50"    }
+                    , React.createElement('th', { className: "py-3 ps-4 text-body fs-13 fw-semibold"    }
+                      , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("title")}, "Title"
 
-          /* Pagination */
-          , React.createElement('div', { className: "d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25"         }
-            , React.createElement('div', { className: "d-flex align-items-center gap-2"  }
-              , React.createElement('span', { className: "text-muted small" }, "Rows per page"  )
-              , React.createElement('select', {
-                className: "form-select form-select-sm rounded-2"  ,
-                style: { width: "auto", minWidth: 60 },
-                value: rowsPerPage,
-                onChange: (e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                        , sortBy === "title" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
+                      )
+                    )
+                    
+                    , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
+                      , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("misspellings")}, "Misspellings"
 
-                , ROWS_PER_PAGE_OPTIONS.map((n) => React.createElement('option', { key: n, value: n}, n))
-              )
-              , React.createElement('span', { className: "text-muted small" }
-                , (currentPage - 1) * rowsPerPage + 1, "–", Math.min(currentPage * rowsPerPage, sortedPages.length), " of "  , sortedPages.length
+                        , sortBy === "misspellings" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
+                      )
+                    )
+                    , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
+                      , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("potentialMisspellings")}, "Potential misspellings"
+
+                        , sortBy === "potentialMisspellings" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
+                      )
+                    )
+                    , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold"   }
+                      , React.createElement('button', { type: "button", className: "btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"          , onClick: () => handleSort("views")}, "Views"
+
+                        , React.createElement('span', { className: "ms-1 d-inline-flex" , 'data-bs-toggle': "tooltip", title: "Total page views"  , 'aria-label': "Info"}, React.createElement('i', { className: "isax isax-information text-muted fs-12"   , 'aria-hidden': true} ))
+                        , sortBy === "views" ? React.createElement('i', { className: `isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`, 'aria-hidden': true} ) : React.createElement('i', { className: "isax isax-sort fs-12 opacity-50"   , 'aria-hidden': true} )
+                      )
+                    )
+                  )
+                )
+                , React.createElement('tbody', {}
+                  , pagesWithMisspelling.length === 0 && React.createElement('tr', null
+                    , React.createElement('td', { colSpan: 4, className: "text-center py-5 text-muted fs-13" }, "No pages found for this word.")
+                  )
+                  , paginatedPages.map((p, idx) => (
+                    React.createElement('tr', { key: `${p.url}-${idx}`}
+                      , React.createElement('td', { className: "py-3 ps-4" }
+                        , React.createElement('div', { className: "d-flex flex-column" }
+                          , React.createElement('span', { className: "text-body fs-13" }, p.title)
+                          , React.createElement('a', { href: p.url, target: "_blank", rel: "noopener noreferrer" , className: "text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"      }
+                            , React.createElement('span', { className: "flex-shrink-0 d-inline-flex text-primary"  }, React.createElement(ExternalLinkIcon, { size: 12} ))
+                            , p.url
+                          )
+                        )
+                      )
+                      
+                      , React.createElement('td', { className: "py-3"}
+                        , React.createElement('button', {
+                          type: "button",
+                          className: "btn btn-link p-0 border-0 d-inline-flex align-items-center gap-2 text-body text-decoration-none"        ,
+                          onClick: () => setSelectedPageForDetails({ page: p, qaSubView: "misspellings" }),
+                          title: "Open page details (Misspellings)"   ,
+                          'aria-label': `Open page details for ${p.title}`}
+
+                          , React.createElement('span', { className: "rounded-circle bg-warning opacity-75"  , style: { width: 8, height: 8 }, 'aria-hidden': true} )
+                          , React.createElement('span', { className: "fs-13 fw-medium" }, p.misspellings)
+                        )
+                      )
+                      , React.createElement('td', { className: "py-3"}
+                        , React.createElement('button', {
+                          type: "button",
+                          className: "btn btn-link p-0 border-0 d-inline-flex align-items-center gap-2 text-body text-decoration-none"        ,
+                          onClick: () => setSelectedPageForDetails({ page: p, qaSubView: "potential-misspellings" }),
+                          title: "Open page details (Potential misspellings)"    ,
+                          'aria-label': `Open page details - Potential misspellings for ${p.title}`}
+
+                          , React.createElement('span', { className: "rounded-circle bg-primary opacity-75"  , style: { width: 8, height: 8 }, 'aria-hidden': true} )
+                          , React.createElement('span', { className: "fs-13 fw-medium" }, p.potentialMisspellings)
+                        )
+                      )
+                      , React.createElement('td', { className: "py-3 fs-13 text-body" }, p.views)
+                    )
+                  ))
+                )
               )
             )
-            , React.createElement('nav', { 'aria-label': "Pages with misspelling pagination"   }
-              , React.createElement('ul', { className: "pagination pagination-sm mb-0 gap-1"   }
-                , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}`}
-                  , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(1), disabled: currentPage <= 1, 'aria-label': "First"}, "«")
+
+            /* Pagination */
+            , React.createElement('div', { className: "d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25"         }
+              , React.createElement('div', { className: "d-flex align-items-center gap-2"  }
+                , React.createElement('span', { className: "text-muted small" }, "Rows per page"  )
+                , React.createElement('select', {
+                  className: "form-select form-select-sm rounded-2"  ,
+                  style: { width: "auto", minWidth: 60 },
+                  value: rowsPerPage,
+                  onChange: (e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+
+                  , ROWS_PER_PAGE_OPTIONS.map((n) => React.createElement('option', { key: n, value: n}, n))
                 )
-                , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}`}
-                  , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.max(1, p - 1)), disabled: currentPage <= 1, 'aria-label': "Previous"}, "‹")
+                , React.createElement('span', { className: "text-muted small" }
+                  , (currentPage - 1) * rowsPerPage + 1, "–", Math.min(currentPage * rowsPerPage, sortedPages.length), " of "  , sortedPages.length
                 )
-                , Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                  let p;
-                  if (totalPages <= 7) p = i + 1;
-                  else if (currentPage <= 4) p = i + 1;
-                  else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
-                  else p = currentPage - 3 + i;
-                  if (p < 1 || p > totalPages) return null;
-                  return (
-                    React.createElement('li', { key: p, className: "page-item"}
-                      , React.createElement('button', { type: "button", className: `page-link rounded-2 ${currentPage === p ? "active" : ""}`, onClick: () => setCurrentPage(p)}, p)
-                    )
-                  );
-                })
-                , totalPages > 7 && currentPage < totalPages - 3 && React.createElement('li', { className: "page-item disabled" }, React.createElement('span', { className: "page-link rounded-2" }, "…"))
-                , totalPages > 7 && React.createElement('li', { className: "page-item"}, React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(totalPages)}, totalPages))
-                , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}`}
-                  , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)), disabled: currentPage >= totalPages, 'aria-label': "Next"}, "›")
-                )
-                , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}`}
-                  , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(totalPages), disabled: currentPage >= totalPages, 'aria-label': "Last"}, "»")
+              )
+              , React.createElement('nav', { 'aria-label': "Pages with misspelling pagination"   }
+                , React.createElement('ul', { className: "pagination pagination-sm mb-0 gap-1"   }
+                  , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(1), disabled: currentPage <= 1, 'aria-label': "First"}, "«")
+                  )
+                  , React.createElement('li', { className: `page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.max(1, p - 1)), disabled: currentPage <= 1, 'aria-label': "Previous"}, "‹")
+                  )
+                  , Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+                    let p;
+                    if (totalPages <= 7) p = i + 1;
+                    else if (currentPage <= 4) p = i + 1;
+                    else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                    else p = currentPage - 3 + i;
+                    if (p < 1 || p > totalPages) return null;
+                    return (
+                      React.createElement('li', { key: p, className: "page-item"}
+                        , React.createElement('button', { type: "button", className: `page-link rounded-2 ${currentPage === p ? "active" : ""}`, onClick: () => setCurrentPage(p)}, p)
+                      )
+                    );
+                  })
+                  , totalPages > 7 && currentPage < totalPages - 3 && React.createElement('li', { className: "page-item disabled" }, React.createElement('span', { className: "page-link rounded-2" }, "…"))
+                  , totalPages > 7 && React.createElement('li', { className: "page-item"}, React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(totalPages)}, totalPages))
+                  , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)), disabled: currentPage >= totalPages, 'aria-label': "Next"}, "›")
+                  )
+                  , React.createElement('li', { className: `page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    , React.createElement('button', { type: "button", className: "page-link rounded-2" , onClick: () => setCurrentPage(totalPages), disabled: currentPage >= totalPages, 'aria-label': "Last"}, "»")
+                  )
                 )
               )
             )

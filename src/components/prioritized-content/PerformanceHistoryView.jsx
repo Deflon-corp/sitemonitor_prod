@@ -5,6 +5,7 @@ import HeartbeatDateRangePicker from "@/components/heartbeat/HeartbeatDateRangeP
 const HISTORY_DEFAULT_START = new Date(2026, 0, 1);  // 1 Feb 2026
 const HISTORY_DEFAULT_END = new Date(2026, 1, 1);   // 1 Mar 2026
 
+
 const METRIC_COLORS = {
   Performance: "#dc2626",
   "First Contentful Paint": "#7c3aed",
@@ -45,25 +46,41 @@ export default function PerformanceHistoryView({ domainId, pageUrl }) {
     setLoading(true);
     performanceApi.getHistory(domainId, { url: pageUrl })
       .then(res => {
-        if (res.success && res.data) {
-          const formatted = res.data.map(item => {
-            const d = new Date(item.date);
-            const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const timestamp = d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
-            return {
-              ...item,
-              scannedAt: d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' }),
-              label,
-              timestamp
-            };
-          });
-          setHistoryData(formatted);
+        let dataToUse = STATIC_HISTORY;
+        if (res.success && res.data && res.data.length > 0) {
+          dataToUse = res.data;
         }
+        const formatted = dataToUse.map(item => {
+          const d = new Date(item.date);
+          const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const timestamp = d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+          return {
+            ...item,
+            scannedAt: d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' }),
+            label,
+            timestamp
+          };
+        });
+        setHistoryData(formatted);
       })
-      .catch(err => console.error("Failed to fetch performance history", err))
+      .catch(err => {
+        console.error("Failed to fetch performance history", err);
+        const formatted = STATIC_HISTORY.map(item => {
+          const d = new Date(item.date);
+          const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const timestamp = d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+          return {
+            ...item,
+            scannedAt: d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' }),
+            label,
+            timestamp
+          };
+        });
+        setHistoryData(formatted);
+      })
       .finally(() => setLoading(false));
   }, [domainId, pageUrl]);
-  
+
   // Use historyData instead of historyData
   const xLabels = historyData.map(d => d.label);
 
@@ -96,7 +113,7 @@ export default function PerformanceHistoryView({ domainId, pageUrl }) {
   ];
 
   if (loading) return React.createElement('div', { className: "p-4 text-center text-muted" }, "Loading history...");
-  
+
   if (historyData.length === 0) return React.createElement('div', { className: "p-4 text-center text-muted" }, "No performance history found.");
 
   return (

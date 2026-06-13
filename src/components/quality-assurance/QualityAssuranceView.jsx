@@ -41,8 +41,6 @@ const SPELLCHECK_SUB_NAV = [
   { key: "spellcheck-pages", label: "Pages with misspellings", icon: "isax-document-text", href: "/domain/quality-assurance?view=spellcheck-pages" },
   { key: "spellcheck-misspellings", label: "Misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-misspellings" },
   { key: "spellcheck-potential", label: "Possible misspellings", icon: "isax-edit-2", href: "/domain/quality-assurance?view=spellcheck-potential" },
-  { key: "spellcheck-dictionary", label: "Custom dictionary", icon: "isax-book-1", href: "/domain/quality-assurance?view=spellcheck-dictionary" },
-  { key: "spellcheck-ignored", label: "Ignored words", icon: "isax-eye-slash", href: "/domain/quality-assurance?view=spellcheck-ignored" },
 ];
 
 const READABILITY_SUB_NAV = [

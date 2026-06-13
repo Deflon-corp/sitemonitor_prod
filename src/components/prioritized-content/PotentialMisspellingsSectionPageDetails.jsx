@@ -1,7 +1,6 @@
 function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; } import React, { useState, useMemo, useCallback } from "react";
 import { downloadBlob, safeFilename } from "@/lib/download";
 
-import { POTENTIAL_MISSPELLINGS_SAMPLE } from "@/components/prioritized-content/PotentialMisspellingsSection";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -11,13 +10,9 @@ const LANGUAGES = [
   { key: "id-ID", label: "Indonesian (Indonesia)" },
   { key: "en-AU", label: "English (Australian)" },
 ];
-/**
- * Potential Misspellings section for the Page Details drawer.
- * Table: Checkbox, Word, Lookup in Google, Language, Confirm, Action (info + dropdown + details).
- * All options working: language tabs, download, search, confirm modal, pagination (10/25/50).
- */
+
 export default function PotentialMisspellingsSectionPageDetails({
-  items = POTENTIAL_MISSPELLINGS_SAMPLE,
+  items = [],
   onOpenIssue,
   onConfirmMisspelling,
 }) {
@@ -118,28 +113,7 @@ export default function PotentialMisspellingsSectionPageDetails({
         )
 
         , React.createElement('div', { className: "d-flex flex-nowrap align-items-center justify-content-between gap-3 mb-4" }
-          , React.createElement('nav', { className: "nav nav-tabs border-0 gap-2 gap-md-4 mb-0 flex-shrink-0", 'aria-label': "Language filter" }
-            , LANGUAGES.map((lang) => {
-              const isActive = languageFilter === lang.key;
-              const count = languageCount(lang.key);
-              return (
-                React.createElement('button', {
-                  key: lang.key,
-                  type: "button",
-                  className: `nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"}`,
-                  onClick: () => {
-                    setLanguageFilter(lang.key);
-                    setCurrentPage(1);
-                  }
-                }
-
-                  , React.createElement('i', { className: "isax isax-edit-2", 'aria-hidden': true })
-                  , lang.label
-                  , lang.key !== "all" && React.createElement('span', { className: "text-muted" }, "(", count, ")")
-                )
-              );
-            })
-          )
+          , React.createElement('div', {} )
           , React.createElement('div', { className: "d-flex align-items-center gap-2 flex-shrink-0" }
             , React.createElement('div', { className: "dropdown" }
               , React.createElement('button', {
@@ -205,9 +179,7 @@ export default function PotentialMisspellingsSectionPageDetails({
                     )
                   )
                   , React.createElement('th', { className: "py-3 text-body fs-13 fw-semibold" }, "Lookup in Google")
-                 
-                 
-                  , React.createElement('th', { className: "py-3 pe-4 text-body fs-13 fw-semibold", style: { width: 140 } }, "Action")
+                  , React.createElement('th', { className: "fw-semibold text-body py-3 text-center", style: { width: 100 } }, "Details")
                 )
               )
               , React.createElement('tbody', {}
@@ -230,29 +202,15 @@ export default function PotentialMisspellingsSectionPageDetails({
                         , React.createElement('span', { className: "fw-bold" }, "G")
                       )
                     )
-                   
-                   
-                    , React.createElement('td', { className: "py-3 pe-4" }
-                      , React.createElement('div', { className: "d-inline-flex align-items-center gap-1" }
-                        , React.createElement('div', { className: "dropdown d-inline-block" }
-                          , React.createElement('button', { type: "button", className: "btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2 dropdown-toggle py-1 px-2", 'data-bs-toggle': "dropdown", 'aria-expanded': "false", title: "Action" }, "Action "
-                            , React.createElement('i', { className: "isax isax-arrow-down-1 ms-1 fs-12", 'aria-hidden': true })
-                          )
-                          , React.createElement('ul', { className: "dropdown-menu dropdown-menu-end" }
-                            , React.createElement('li', {}, React.createElement('button', { type: "button", className: "dropdown-item" }, "Ignore"))
-                            , React.createElement('li', {}, React.createElement('button', { type: "button", className: "dropdown-item" }, "Add to dictionary"))
-                          )
-                        )
-                        , React.createElement('button', {
-                          type: "button",
-                          className: "btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary",
-                          title: "Open potential misspelling page",
-                          onClick: () => _optionalChain([onOpenIssue, 'optionalCall', _8 => _8(row.id)]),
-                          'aria-label': "Open potential misspelling page"
-                        }
-
-                          , React.createElement('i', { className: "isax isax-info-circle fs-18", 'aria-hidden': true })
-                        )
+                    , React.createElement('td', { className: "py-3 pe-2 text-center align-middle" }
+                      , React.createElement('button', {
+                        type: "button",
+                        className: "btn btn-icon btn-sm btn-light border-0 rounded-2 text-primary",
+                        title: "Open potential misspelling details",
+                        onClick: () => _optionalChain([onOpenIssue, 'optionalCall', _8 => _8(row.id)]),
+                        'aria-label': "Open potential misspelling details"
+                      }
+                        , React.createElement('i', { className: "isax isax-info-circle fs-18", 'aria-hidden': true })
                       )
                     )
                   )
