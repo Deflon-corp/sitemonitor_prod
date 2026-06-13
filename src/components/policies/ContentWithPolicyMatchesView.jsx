@@ -8,9 +8,6 @@ import React, {
 import { downloadBlob, safeFilename } from "../../lib/download";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
-import ContentWithPolicyMatchesPagesView from "./ContentWithPolicyMatchesPagesView";
-import ContentWithPolicyMatchesPdfView from "./ContentWithPolicyMatchesPdfView";
-import ContentWithPolicyMatchesOtherView from "./ContentWithPolicyMatchesOtherView";
 import { getPolicyContentMatchesApi } from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import toast from "react-hot-toast";
@@ -24,18 +21,6 @@ const TABS = [
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-/** Sample data – replaced with API */
-// const SAMPLE_ROWS = Array.from({ length: 499 }, (_, i) => ({
-//   id: `row-${i + 1}`,
-//   title: i % 5 === 0 ? "(No title found)" : "Search",
-//   url: `https://example.com/search${i > 0 ? `?q=${i}` : ""}`,
-//   unwanted: 0,
-//   required: 0,
-//   matches: 1,
-//   priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
-//   views: 0,
-// }));
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
@@ -70,10 +55,14 @@ const ContentWithPolicyMatchesView = () => {
             id: m._id || m.id,
             title: m.url || "Untitled",
             url: m.url || "#",
+            policyName: m.policyName || "Unknown Policy",
+            category: m.category || "matches",
+            matchCount: m.matchCount || 0,
+            priority: m.priority || "Low",
+            scanDate: m.scanDate,
             unwanted: m.unwanted || 0,
             required: m.required || 0,
-            matches: m.matches || 0,
-            priority: m.priority || "Low",
+            matches: m.matches || m.matchCount || 0,
             views: m.views || 0,
           })),
         );
@@ -95,25 +84,29 @@ const ContentWithPolicyMatchesView = () => {
   }, []);
 
   useEffect(() => {
-    const el = viewsTooltipRef.current;
-    if (!el || typeof window === "undefined") return;
-    const bootstrap = window.bootstrap;
-    if (!bootstrap?.Tooltip) return;
-    const t = new bootstrap.Tooltip(el, { placement: "top" });
-    return () => t.dispose();
+    // tooltip logic removed for views
   }, []);
 
   const filteredRows = useMemo(() => {
     let rows = policies || [];
+    
+    if (activeTab === "pages") {
+      rows = rows.filter(r => !(r.url || "").match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i));
+    } else if (activeTab === "pdf") {
+      rows = rows.filter(r => (r.url || "").match(/\.pdf$/i));
+    } else if (activeTab === "other") {
+      rows = rows.filter(r => (r.url || "").match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i));
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       rows = rows.filter(
         (r) =>
-          r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
+          (r.title && r.title.toLowerCase().includes(q)) || (r.url && r.url.toLowerCase().includes(q)),
       );
     }
     return rows;
-  }, [search, policies]);
+  }, [search, policies, activeTab]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;
@@ -124,7 +117,10 @@ const ContentWithPolicyMatchesView = () => {
         const vb = PRIORITY_ORDER[b.priority];
         return dir * (va - vb);
       }
-      return dir * (a.views - b.views);
+      if (sortBy === "matchCount") {
+        return dir * (a.matchCount - b.matchCount);
+      }
+      return 0;
     });
   }, [filteredRows, sortBy, sortDir, policies]);
 
@@ -152,17 +148,16 @@ const ContentWithPolicyMatchesView = () => {
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Unwanted,Required,Matches,Priority,Views\n";
+    const header = "Title,URL,Policy Violated,Category,Match Count,Priority\n";
     const body = sortedRows
       .map((r) =>
         [
           `"${(r.title || "").replace(/"/g, '""')}"`,
           `"${(r.url || "").replace(/"/g, '""')}"`,
-          r.unwanted,
-          r.required,
-          r.matches,
+          `"${(r.policyName || "").replace(/"/g, '""')}"`,
+          r.category,
+          r.matchCount,
           r.priority,
-          r.views,
         ].join(","),
       )
       .join("\n");
@@ -175,15 +170,14 @@ const ContentWithPolicyMatchesView = () => {
     const rows = sortedRows.map((r) => ({
       Title: r.title,
       URL: r.url,
-      Unwanted: r.unwanted,
-      Required: r.required,
-      Matches: r.matches,
+      "Policy Violated": r.policyName,
+      Category: r.category,
+      "Match Count": r.matchCount,
       Priority: r.priority,
-      Views: r.views,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Content with Policy Matches");
+    XLSX.utils.book_append_sheet(wb, ws, "Policy Violations by Page");
     XLSX.writeFile(wb, `${baseName}.xlsx`);
   }, [sortedRows, baseName]);
 
@@ -192,16 +186,15 @@ const ContentWithPolicyMatchesView = () => {
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [
-      ["Title", "URL", "Unwanted", "Required", "Matches", "Priority", "Views"],
+      ["Title", "URL", "Policy Violated", "Category", "Match Count", "Priority"],
     ];
     const body = paginatedRows.map((r) => [
       (r.title || "").slice(0, 30),
       (r.url || "").slice(0, 40),
-      String(r.unwanted),
-      String(r.required),
-      String(r.matches),
+      (r.policyName || "").slice(0, 30),
+      r.category || "",
+      String(r.matchCount),
       r.priority,
-      String(r.views),
     ]);
     autoTable(doc, {
       head,
@@ -231,10 +224,10 @@ const ContentWithPolicyMatchesView = () => {
             className="isax isax-document-copy fs-20 text-primary"
             aria-hidden="true"
           />
-          Content with Policy Matches
+          Policy Violations by Page
         </h5>
         <p className="text-muted fs-13 mb-0">
-          Found {filteredRows.length} pages
+          Found {filteredRows.length} policy violations
         </p>
       </div>
 
@@ -257,8 +250,6 @@ const ContentWithPolicyMatchesView = () => {
         ))}
       </ul>
 
-      {activeTab === "all" && (
-        <>
           {/* Action bar */}
           <div className="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3">
             <div className="dropdown">
@@ -349,15 +340,37 @@ const ContentWithPolicyMatchesView = () => {
                       />
                     </th>
                     <th className="py-3 text-body fs-13 fw-semibold">
-                      Unwanted
+                      Policy Violated
                     </th>
                     <th className="py-3 text-body fs-13 fw-semibold">
-                      Required
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
+                        onClick={() => handleSort("matchCount")}
+                        aria-label={
+                          sortBy === "matchCount"
+                            ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
+                            : "Sort by Match Count"
+                        }
+                      >
+                        Match Count
+                        {sortBy === "matchCount" ? (
+                          <i
+                            className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <i
+                            className="isax isax-arrow-down ms-1 text-muted opacity-50"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
                     </th>
                     <th className="py-3 text-body fs-13 fw-semibold">
-                      Matches
+                      Category
                     </th>
-                    <th className="py-3 text-body fs-13 fw-semibold">
+                    <th className="py-3 pe-4 text-body fs-13 fw-semibold">
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
@@ -382,46 +395,7 @@ const ContentWithPolicyMatchesView = () => {
                         )}
                       </button>
                     </th>
-                    <th className="py-3 pe-4 text-body fs-13 fw-semibold">
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
-                        onClick={() => handleSort("views")}
-                        aria-label={
-                          sortBy === "views"
-                            ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
-                            : "Sort by Views"
-                        }
-                      >
-                        Views
-                        <span
-                          ref={viewsTooltipRef}
-                          className="ms-1 d-inline-flex"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-title="Total page views over the last 30 days"
-                          onClick={(e) => e.stopPropagation()}
-                          role="img"
-                          aria-label="Total page views over the last 30 days"
-                        >
-                          <i
-                            className="isax isax-information text-muted"
-                            aria-hidden="true"
-                          />
-                        </span>
-                        {sortBy === "views" ? (
-                          <i
-                            className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <i
-                            className="isax isax-sort ms-1 text-muted opacity-50"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </button>
-                    </th>
+                    <th className="py-3 pe-4" style={{ width: 60 }} aria-label="Actions"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -444,30 +418,22 @@ const ContentWithPolicyMatchesView = () => {
                         </div>
                       </td>
                       <td className="py-3">
-                        <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
-                          <i
-                            className="isax isax-close-circle text-secondary"
-                            aria-hidden="true"
-                          />
-                          {row.unwanted}
+                        <span className="text-body fs-13 fw-medium">
+                          {row.policyName}
                         </span>
                       </td>
                       <td className="py-3">
                         <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
                           <i
-                            className="isax isax-danger text-warning"
+                            className="isax isax-document-text text-primary"
                             aria-hidden="true"
                           />
-                          {row.required}
+                          {row.matchCount} Matches
                         </span>
                       </td>
                       <td className="py-3">
-                        <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
-                          <i
-                            className="isax isax-search-normal-1 text-primary"
-                            aria-hidden="true"
-                          />
-                          {row.matches}
+                        <span className="text-body fs-13 text-capitalize">
+                          {row.category}
                         </span>
                       </td>
                       <td className="py-3">
@@ -479,14 +445,6 @@ const ContentWithPolicyMatchesView = () => {
                       </td>
                       <td className="py-3 pe-4">
                         <div className="d-flex align-items-center gap-1">
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            style={{ width: 56 }}
-                            value={row.views}
-                            readOnly
-                            aria-label="Views"
-                          />
                           <button
                             type="button"
                             className="btn btn-icon btn-sm btn-light"
@@ -589,32 +547,6 @@ const ContentWithPolicyMatchesView = () => {
               )}
             </div>
           </div>
-        </>
-      )}
-
-      {activeTab === "pages" && (
-        <ContentWithPolicyMatchesPagesView
-          data={policies.filter(
-            (p) =>
-              !p.url.toLowerCase().endsWith(".pdf") &&
-              !p.url.toLowerCase().endsWith(".docx"),
-          )}
-        />
-      )}
-      {activeTab === "pdf" && (
-        <ContentWithPolicyMatchesPdfView
-          data={policies.filter((p) => p.url.toLowerCase().endsWith(".pdf"))}
-        />
-      )}
-      {activeTab === "other" && (
-        <ContentWithPolicyMatchesOtherView
-          data={policies.filter(
-            (p) =>
-              p.url.toLowerCase().endsWith(".docx") ||
-              p.url.toLowerCase().endsWith(".xlsx"),
-          )}
-        />
-      )}
 
       <PageDetailsDrawer
         open={pageDetailsOpen}

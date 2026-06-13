@@ -7,9 +7,6 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-/** Replace with API: pages with ignored checks. Empty by default to show "No content was found". */
-const SAMPLE_PAGES = [];
-
 const TEAL = "#14b8a6";
 
 const ComplianceRing = ({ percent }) => {
@@ -57,7 +54,7 @@ const ComplianceRing = ({ percent }) => {
   );
 };
 
-const PagesWithIgnoredChecksView = () => {
+const PagesWithIgnoredChecksView = ({ pages = [] }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -72,9 +69,9 @@ const PagesWithIgnoredChecksView = () => {
   };
 
   const filteredPages = useMemo(() => {
-    if (!searchQuery.trim()) return SAMPLE_PAGES;
+    if (!searchQuery.trim()) return pages;
     const q = searchQuery.toLowerCase();
-    return SAMPLE_PAGES.filter(
+    return pages.filter(
       (p) =>
         (p.title || "").toLowerCase().includes(q) ||
         p.url.toLowerCase().includes(q),

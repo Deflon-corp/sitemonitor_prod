@@ -362,7 +362,6 @@
           }, self));
         }
 
-
       self.$container.on('keydown', 'input', $.proxy(function(event) {
         var $input = $(event.target),
             $inputWrapper = self.findInputWrapper();
@@ -644,4 +643,3 @@
     $("input[data-role=tagsinput], select[multiple][data-role=tagsinput]").tagsinput();
   });
 })(window.jQuery);
-

@@ -33,36 +33,11 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-function getSamplePagesWithDocument() {
-  const base = "https://www.example.com";
-  const paths = [
-    "/personal-loans",
-    "/home-loans",
-    "/contact-us",
-    "/careers",
-    "/about-us",
-    "/emi-calculator",
-    "/insurance",
-    "/investments",
-    "/faq",
-    "/privacy-policy",
-  ];
-  return paths.map((path, i) => ({
-    id: `page-${i + 1}`,
-    title: "(No title found)",
-    url: path.startsWith("http") ? path : `${base}${path}`,
-    type: "text/html",
-    responseCode: 200,
-    views: Math.floor(Math.random() * 500),
-  }));
-}
-
-const SAMPLE_PAGES = getSamplePagesWithDocument();
-
 export default function DocumentDetailsDrawer({
   open,
   onClose,
   document: documentRow,
+  pages = [],
 }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,9 +50,9 @@ export default function DocumentDetailsDrawer({
   );
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_PAGES;
+    if (!search.trim()) return pages;
     const q = search.trim().toLowerCase();
-    return SAMPLE_PAGES.filter(
+    return pages.filter(
       (r) =>
         r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
     );

@@ -2,86 +2,57 @@
  * Run Website Audit → Spell Checker — detail page sample data (10–20 rows each).
  */
 
-const BASE = "https://uat.aarogyaabharat.com";
-const DATES = [
-  "Dec 11, 2025",
-  "Dec 9, 2025",
-  "Nov 28, 2025",
-  "Nov 22, 2025",
-  "Nov 15, 2025",
-  "Nov 13, 2025",
-  "Nov 12, 2025",
-  "Nov 10, 2025",
-  "Nov 8, 2025",
-  "Oct 30, 2025",
-  "Oct 22, 2025",
-  "Oct 15, 2025",
-  "Oct 2, 2025",
-  "Sep 18, 2025",
-  "Sep 5, 2025",
-  "Aug 20, 2025",
-  "Aug 1, 2025",
-  "Jul 12, 2025",
-];
-
-function makeRows(pathPrefix, count, queryKey) {
-  return Array.from({ length: count }, (_, i) => ({
-    url: `${BASE}${pathPrefix}/page-${i + 1}${queryKey ? `?${queryKey}=${i + 1}` : ""}`,
-    lastCrawled: DATES[i % DATES.length],
-  }));
-}
-
 /** Slug = last segment of /audit/spell-checker/:slug */
 export const SPELL_CHECKER_AUDIT_CONFIG = {
   "title-meta-spelling": {
     title: "Title & Meta spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/title-meta", 18, "s"),
+    rows: [],
   },
   "headings-spelling": {
     title: "Headings (H1–H6) spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/headings", 14, "h"),
+    rows: [],
   },
   "image-alt-spelling": {
     title: "Image alt text spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/image-alt", 10, "a"),
+    rows: [],
   },
   "anchor-cta-spelling": {
     title: "Anchor & CTA text spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/anchor-cta", 12, "c"),
+    rows: [],
   },
   "navigation-footer-spelling": {
     title: "Navigation & footer spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/nav-footer", 11, "n"),
+    rows: [],
   },
   "form-labels-placeholders": {
     title: "Form labels & placeholders",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/forms", 13, "f"),
+    rows: [],
   },
   "language-consistency": {
     title: "Language consistency check",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/language", 15, "l"),
+    rows: [],
   },
   "accessibility-text-spelling": {
     title: "Accessibility text spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/a11y-text", 12, "x"),
+    rows: [],
   },
   "content-spelling": {
     title: "Content spelling",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/content", 16, "t"),
+    rows: [],
   },
   "broken-links": {
     title: "Broken links",
     affectedCount: 0,
-    rows: makeRows("/spellcheck/broken-links", 10, "b"),
+    rows: [],
   },
 };
 

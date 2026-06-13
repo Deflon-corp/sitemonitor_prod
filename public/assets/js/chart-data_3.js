@@ -15,7 +15,6 @@ $(function() {
         height: '50'
     })
 
-
     $(".peity-line").peity("line",{
         width: '100%',
         height: '65',
@@ -174,7 +173,6 @@ $(".country-chart-4").peity("line",{
     stroke:['#F301CA']
 })
 
-
 $(".company-bar1").peity("bar", {
     fill: ["#3550DC"],
     width: '36',
@@ -200,5 +198,3 @@ $(".company-bar4").peity("bar", {
 })
 
 })(jQuery);
-
-

@@ -9,8 +9,9 @@ import GlobalPolicyListView from "./GlobalPolicyListView";
 import UnwantedPoliciesView from "./UnwantedPoliciesView";
 import PagesWithIgnoredChecksView from "./PagesWithIgnoredChecksView";
 import VerticalBarChart from "./VerticalBarChart";
-import { getPolicyStatsApi } from "@/api/policyApi";
+import { getPolicyStatsApi, scanDomainPoliciesApi } from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import toast from "react-hot-toast";
 
 const LANDING_NAV = [
   { href: "/home", label: "Domain Overview", icon: "isax-global" },
@@ -27,27 +28,11 @@ const POLICY_NAV = [
   { key: "summary", label: "Summary", icon: "isax-home-2" },
   {
     key: "content-matches",
-    label: "Content with Policy Matches",
+    label: "Policy Violations by Page",
     icon: "isax-document-copy",
   },
   { key: "list", label: "Policy List", icon: "isax-shield-tick" },
-  {
-    key: "ignored",
-    label: "Pages with Ignored Checks",
-    icon: "isax-eye-slash",
-  },
 ];
-
-/** Sample data – replaced with API */
-// const PRIORITIES_DATA = [{ label: "High", value: 1 }, { label: "Medium", value: 0 }, { label: "Low", value: 0 }];
-// const POLICY_DIST_DATA = [
-//   { label: "Unwanted", value: 0 },
-//   { label: "Required", value: 0 },
-//   { label: "Matches", value: 1 },
-// ];
-// const COMPLIANCE_PERCENT = 66.73;
-// const POLICIES_WITH_VIOLATIONS = 1;
-// const CONTENT_WITH_VIOLATIONS = 499;
 
 const DonutChart = ({ percent, label }) => {
   const r = 62;
@@ -187,6 +172,7 @@ const PoliciesView = ({ isLanding = false }) => {
     trend: [],
   });
   const [loading, setLoading] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -203,6 +189,12 @@ const PoliciesView = ({ isLanding = false }) => {
             compliancePercent: res.data.compliancePercent || 0,
             trend: res.data.trend || [],
           });
+          
+          if (res.data.isScanning) {
+            setIsScanning(true);
+          } else {
+            setIsScanning(false);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch policy stats:", err);
@@ -212,6 +204,44 @@ const PoliciesView = ({ isLanding = false }) => {
     };
     fetchStats();
   }, [refreshKey]);
+
+  useEffect(() => {
+    let intervalId;
+    if (isScanning) {
+      intervalId = setInterval(() => {
+        setRefreshKey((prev) => prev + 1);
+      }, 3000); // Poll every 3 seconds while scanning
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isScanning]);
+
+  const handleScanPolicies = async () => {
+    const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+    if (!selectedId) {
+      toast.error("Please select a domain first.");
+      return;
+    }
+
+    setIsScanning(true);
+    try {
+      const res = await scanDomainPoliciesApi(selectedId);
+      if (res.success) {
+        toast.success("Policy scan completed successfully!");
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        toast.error(res.message || "Failed to scan policies.");
+        setIsScanning(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to scan policies.");
+      setIsScanning(false);
+    } finally {
+      // setIsScanning(false) is intentionally removed here on success
+      // because we want it to stay true until the backend says it's done via polling!
+    }
+  };
 
   if (isLanding) {
     return (
@@ -291,7 +321,7 @@ const PoliciesView = ({ isLanding = false }) => {
       <div>
         {/* Horizontal nav – same pattern as Accessibility / Quality Assurance */}
         <div className="card mb-4">
-          <div className="card-body py-3">
+          <div className="card-body py-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
             <nav
               className="d-flex flex-wrap gap-1 gap-md-4 align-items-center"
               aria-label="Policies navigation"
@@ -314,6 +344,26 @@ const PoliciesView = ({ isLanding = false }) => {
                 );
               })}
             </nav>
+            <div className="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-outline-primary btn-sm rounded-2 d-inline-flex align-items-center"
+                onClick={handleScanPolicies}
+                disabled={isScanning}
+              >
+                {isScanning ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Scanning...
+                  </>
+                ) : (
+                  <>
+                    <i className="isax isax-scan fs-18 me-1" aria-hidden="true" />
+                    Scan Policies
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -372,8 +422,6 @@ const PoliciesView = ({ isLanding = false }) => {
             />
           ) : currentView === "unwanted" ? (
             <UnwantedPoliciesView />
-          ) : currentView === "ignored" ? (
-            <PagesWithIgnoredChecksView />
           ) : (
             <>
               {/* Header */}
@@ -395,17 +443,6 @@ const PoliciesView = ({ isLanding = false }) => {
                     your website.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setNewPolicyDrawerOpen(true)}
-                >
-                  <i
-                    className="isax isax-add-circle fs-18 me-1"
-                    aria-hidden="true"
-                  />
-                  Add new policy
-                </button>
               </div>
 
               {/* Cards grid */}

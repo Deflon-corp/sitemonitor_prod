@@ -5,129 +5,6 @@ import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = [
-  {
-    id: "bl-p1",
-    title: "Search",
-    url: "https://example.com/search",
-    notifications: 12,
-    priority: "High",
-    views: 0,
-  },
-  {
-    id: "bl-p2",
-    title: "(No title found)",
-    url: "https://example.com/page/2",
-    notifications: 10,
-    priority: "High",
-    views: 24,
-  },
-  {
-    id: "bl-p3",
-    title: "Laptops",
-    url: "https://example.com/bmall/laptops",
-    notifications: 8,
-    priority: "Medium",
-    views: 156,
-  },
-  {
-    id: "bl-p4",
-    title: "Personal Loan",
-    url: "https://example.com/loans/personal-loan",
-    notifications: 6,
-    priority: "Medium",
-    views: 89,
-  },
-  {
-    id: "bl-p5",
-    title: "(No title found)",
-    url: "https://example.com/about",
-    notifications: 5,
-    priority: "Low",
-    views: 42,
-  },
-  {
-    id: "bl-p6",
-    title: "Contact Us",
-    url: "https://example.com/contact",
-    notifications: 4,
-    priority: "Low",
-    views: 31,
-  },
-  {
-    id: "bl-p7",
-    title: "Home",
-    url: "https://example.com/",
-    notifications: 3,
-    priority: "High",
-    views: 1200,
-  },
-  {
-    id: "bl-p8",
-    title: "Insurance",
-    url: "https://example.com/insurance",
-    notifications: 9,
-    priority: "Medium",
-    views: 67,
-  },
-  {
-    id: "bl-p9",
-    title: "(No title found)",
-    url: "https://example.com/faq",
-    notifications: 7,
-    priority: "Low",
-    views: 18,
-  },
-  {
-    id: "bl-p10",
-    title: "Careers",
-    url: "https://example.com/careers",
-    notifications: 2,
-    priority: "Low",
-    views: 12,
-  },
-  {
-    id: "bl-p11",
-    title: "Terms and Conditions",
-    url: "https://example.com/terms",
-    notifications: 11,
-    priority: "High",
-    views: 5,
-  },
-  {
-    id: "bl-p12",
-    title: "Privacy Policy",
-    url: "https://example.com/privacy",
-    notifications: 6,
-    priority: "Medium",
-    views: 8,
-  },
-  {
-    id: "bl-p13",
-    title: "Products",
-    url: "https://example.com/products",
-    notifications: 5,
-    priority: "Medium",
-    views: 234,
-  },
-  {
-    id: "bl-p14",
-    title: "(No title found)",
-    url: "https://example.com/offers",
-    notifications: 4,
-    priority: "Low",
-    views: 56,
-  },
-  {
-    id: "bl-p15",
-    title: "Customer Support",
-    url: "https://example.com/support",
-    notifications: 8,
-    priority: "High",
-    views: 112,
-  },
-];
-
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
 function toPageDetailsPage(row) {
@@ -135,8 +12,11 @@ function toPageDetailsPage(row) {
   return { id, title: row.title, url: row.url };
 }
 
-export default function ContentWithBrokenLinksPagesView(props = {}) {
-  const { search: searchProp, onSearchChange } = props;
+export default function ContentWithBrokenLinksPagesView({
+  data = [],
+  search: searchProp,
+  onSearchChange,
+}) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = searchProp ?? internalSearch;
   const setSearch = onSearchChange ?? setInternalSearch;
@@ -170,13 +50,13 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
   }, []);
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return data;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter(
+    return data.filter(
       (r) =>
         r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [search, data]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;

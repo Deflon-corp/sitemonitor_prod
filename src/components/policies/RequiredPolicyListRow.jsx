@@ -53,11 +53,10 @@ const RequiredPolicyListRow = ({
       <td className="py-2 ps-4">
         <div className="d-flex align-items-start gap-2">
           <span
-            className={`d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle ${
-              row.status === "hits"
+            className={`d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle ${row.status === "hits"
                 ? "bg-secondary bg-opacity-25"
                 : "bg-success bg-opacity-25"
-            }`}
+              }`}
             style={{ width: 32, height: 32 }}
           >
             {row.status === "hits" ? (

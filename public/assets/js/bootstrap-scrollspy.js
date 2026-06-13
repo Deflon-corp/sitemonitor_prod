@@ -17,11 +17,9 @@
  * limitations under the License.
  * ============================================================== */
 
-
 !function ($) {
 
   "use strict"; // jshint ;_;
-
 
  /* SCROLLSPY CLASS DEFINITION
   * ========================== */
@@ -117,7 +115,6 @@
 
   }
 
-
  /* SCROLLSPY PLUGIN DEFINITION
   * =========================== */
 
@@ -139,7 +136,6 @@
     offset: 10
   }
 
-
  /* SCROLLSPY NO CONFLICT
   * ===================== */
 
@@ -147,7 +143,6 @@
     $.fn.scrollspy = old
     return this
   }
-
 
  /* SCROLLSPY DATA-API
   * ================== */

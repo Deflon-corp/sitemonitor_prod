@@ -136,6 +136,7 @@ export default function PageDetailsDrawer({
     useState(null);
   const [brokenLinksPage, setBrokenLinksPage] = useState(1);
   const [brokenLinksRowsPerPage, setBrokenLinksRowsPerPage] = useState(10);
+  const [selectedPolicyId, setSelectedPolicyId] = useState(null);
 
   const domainId = useQaDomainId();
   const pageUrl = _optionalChain([page, "optionalAccess", (_u) => _u.url]);
@@ -152,12 +153,22 @@ export default function PageDetailsDrawer({
   const misspellingsCount = (effectivePage.misspellings || []).length;
   const potentialCount = (effectivePage.potentialMisspellings || []).length;
 
+  const [showPassedPolicies, setShowPassedPolicies] = useState(true);
+
   const filteredPolicies = useMemo(() => {
-    const list = effectivePage.policies || [];
+    let list = effectivePage.policies || [];
+    if (!showPassedPolicies) {
+      list = list.filter((p) => p.isHit);
+    }
     if (policyFilterTab === "All") return list;
     const key = policyFilterTab.toLowerCase();
     return list.filter((p) => String(p.category || "").toLowerCase() === key);
-  }, [effectivePage.policies, policyFilterTab]);
+  }, [effectivePage.policies, policyFilterTab, showPassedPolicies]);
+
+  const selectedPolicy = useMemo(() => {
+    if (!selectedPolicyId && filteredPolicies.length > 0) return filteredPolicies[0];
+    return filteredPolicies.find((p) => (p.id || p.name) === selectedPolicyId) || filteredPolicies[0] || null;
+  }, [filteredPolicies, selectedPolicyId]);
 
   const policyCompliancePct = effectivePage.policyCompliancePercent ?? 100;
 
@@ -507,23 +518,6 @@ export default function PageDetailsDrawer({
                                   aria-hidden={true}
                                 />
                               </button>
-                              <Link to="#" className="text-primary fs-13">
-                                Ignored policies
-                              </Link>
-                              <div className="form-check form-check-inline mb-0 ms-0">
-                                <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                  id="passedPolicyChecks"
-                                  defaultChecked={true}
-                                />
-                                <label
-                                  className="form-check-label fs-13"
-                                  htmlFor="passedPolicyChecks"
-                                >
-                                  Passed policy checks
-                                </label>
-                              </div>
                             </div>
                           </div>
                           /* Content policies header: title + compliance % and donut */
@@ -541,7 +535,10 @@ export default function PageDetailsDrawer({
                                 Name
                               </th>
                               <th className="fw-semibold text-body py-3">
-                                Note
+                                Category
+                              </th>
+                              <th className="fw-semibold text-body py-3 text-center">
+                                Matches
                               </th>
                               <th className="fw-semibold text-body py-3 pe-4">
                                 Priority
@@ -552,7 +549,7 @@ export default function PageDetailsDrawer({
                             {filteredPolicies.length === 0 ? (
                               <tr>
                                 <td
-                                  colSpan={4}
+                                  colSpan={5}
                                   className="text-center py-4 text-muted"
                                 >
                                   No policy results for this page.
@@ -563,21 +560,26 @@ export default function PageDetailsDrawer({
                                 <tr
                                   key={p.id || p.name}
                                   className={
-                                    p.isHit
-                                      ? "table-danger table-danger-opacity"
-                                      : ""
+                                    `${p.isHit ? "table-danger table-danger-opacity" : ""} ${(p.id || p.name) === (selectedPolicy?.id || selectedPolicy?.name) ? "border-start border-3 border-primary bg-primary bg-opacity-10" : ""}`
                                   }
+                                  onClick={() => setSelectedPolicyId(p.id || p.name)}
+                                  style={{ cursor: "pointer" }}
                                 >
                                   <td className="ps-4 py-2 align-middle">
                                     <i
                                       className={`isax ${p.isHit ? "isax-close-circle text-danger" : "isax-tick-circle text-success"} fs-24`}
                                     />
                                   </td>
-                                  <td className="py-2 align-middle">
+                                  <td className="py-2 align-middle fw-medium">
                                     {p.name || "Policy"}
                                   </td>
-                                  <td className="py-2 align-middle text-muted">
-                                    {p.note || "—"}
+                                  <td className="py-2 align-middle text-muted text-capitalize">
+                                    {p.category || "Matches"}
+                                  </td>
+                                  <td className="py-2 align-middle text-center">
+                                    <span className={`badge ${p.matchCount > 0 ? "bg-danger" : "bg-secondary"} text-white rounded-pill`}>
+                                      {p.matchCount || 0}
+                                    </span>
                                   </td>
                                   <td className="pe-4 py-2 align-middle">
                                     <span
@@ -599,101 +601,96 @@ export default function PageDetailsDrawer({
                 <div className="col-lg-4">
                   <div className="card border-0 shadow-sm">
                     <div className="card-body">
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="mb-0 d-flex align-items-center">
-                          <i className="isax isax-tick-circle text-success me-2 fs-18" />
-                          Text
-                        </h6>
-                        <div className="d-flex align-items-center gap-1">
-                          <div className="dropdown">
-                            <button
-                              className="btn btn-sm btn-light dropdown-toggle"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                            >
-                              Action
-                            </button>
-                            <ul className="dropdown-menu dropdown-menu-end">
-                              <li>
-                                <button
-                                  type="button"
-                                  className="dropdown-item d-flex align-items-center gap-2 text-primary"
-                                  onClick={() =>
-                                    setRunPolicyAgainConfirmOpen(true)
-                                  }
-                                >
-                                  <i
-                                    className="isax isax-refresh-25"
-                                    aria-hidden={true}
-                                  />
-                                  Run policy again
-                                </button>
-                              </li>
-                              <li>
-                                <button
-                                  type="button"
-                                  className="dropdown-item d-flex align-items-center gap-2 text-primary"
-                                >
-                                  <i
-                                    className="isax isax-eye-slash"
-                                    aria-hidden={true}
-                                  />
-                                  Ignore
-                                </button>
-                              </li>
-                              <li>
-                                <button
-                                  type="button"
-                                  className="dropdown-item d-flex align-items-center gap-2 text-primary"
-                                >
-                                  <i
-                                    className="isax isax-tick-circle"
-                                    aria-hidden={true}
-                                  />
-                                  Mark as fixed
-                                </button>
-                              </li>
-                            </ul>
+                      {selectedPolicy ? (
+                        <React.Fragment>
+                          <div className="d-flex align-items-center justify-content-between mb-3">
+                            <h6 className="mb-0 d-flex align-items-center">
+                              <i className={`isax ${selectedPolicy.isHit ? "isax-close-circle text-danger" : "isax-tick-circle text-success"} me-2 fs-18`} />
+                              {selectedPolicy.name || "Policy"}
+                            </h6>
+                            <div className="d-flex align-items-center gap-1">
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            className="btn btn-icon btn-sm btn-light"
-                            title="Search"
-                          >
-                            <i className="isax isax-search-normal-1" />
-                          </button>
+                          <div className="border-bottom pb-3 mb-3">
+                            <button
+                              type="button"
+                              className="btn btn-sm rounded-0 border-0 border-bottom border-2 border-primary px-0 pb-1 fw-medium"
+                            >
+                              Information
+                            </button>
+                          </div>
+                          <div className="mb-3">
+                            <p className="fs-13 text-muted mb-2 d-flex align-items-center gap-2">
+                              <i className="isax isax-flag-2 fs-16 text-secondary" />
+                              <strong className="text-dark">Category:</strong> <span className="text-capitalize">{selectedPolicy.category || "Matches"}</span>
+                            </p>
+                            <p className="fs-13 text-muted mb-2 d-flex align-items-center gap-2">
+                              <i className="isax isax-danger fs-16 text-secondary" />
+                              <strong className="text-dark">Priority:</strong> <span className={`badge ${selectedPolicy.isHit ? "bg-danger" : "bg-success"} bg-opacity-10 text-${selectedPolicy.isHit ? "danger" : "success"} rounded-pill`}>{selectedPolicy.priority || "Medium"}</span>
+                            </p>
+                            <p className="fs-13 text-muted mb-2 d-flex align-items-center gap-2">
+                              <i className="isax isax-document-text fs-16 text-secondary" />
+                              <strong className="text-dark">Matches found:</strong> <span className="badge bg-secondary text-white rounded-pill">{selectedPolicy.matchCount || 0}</span>
+                            </p>
+                          </div>
+                          {selectedPolicy.matchedRules && selectedPolicy.matchedRules.length > 0 && (
+                            <>
+                              <p className="fs-13 text-muted mb-1 mt-4 d-flex align-items-center gap-2">
+                                <i className="isax isax-search-status fs-16 text-secondary" />
+                                <strong className="text-dark">Matched Rules Details:</strong>
+                              </p>
+                              <div className="mt-2">
+                                {selectedPolicy.matchedRules.map((mr, idx) => (
+                                  <div key={idx} className="bg-light border rounded p-3 mb-2 fs-13">
+                                    <div className="d-flex justify-content-between mb-1">
+                                      <span className="fw-medium text-dark">{mr.ruleName || `Rule ${idx + 1}`}</span>
+                                      <span className="badge bg-secondary text-white">{mr.matchCount || 0} hits</span>
+                                    </div>
+                                    {mr.ruleDescription && <p className="text-muted mb-1">{mr.ruleDescription}</p>}
+                                    {mr.matchedText && mr.matchedText.length > 0 && (
+                                      <div className="mt-2">
+                                        <span className="text-muted d-block mb-1" style={{ fontSize: '11px' }}>MATCHED TEXT:</span>
+                                        <div className="bg-white border rounded p-2" style={{ maxHeight: '150px', overflowY: 'auto', fontSize: '12px' }}>
+                                          {mr.matchedText.map((t, i) => {
+                                            // Check if it's a URL pattern with optional size in parens
+                                            const urlMatch = t.match(/^(https?:\/\/[^\s]+)(?:\s*\((.*?)\))?$/);
+                                            if (urlMatch) {
+                                              const url = urlMatch[1];
+                                              const size = urlMatch[2];
+                                              const isImage = /\.(jpeg|jpg|gif|png|webp|svg|ico)$/i.test(url);
+                                              const ext = url.split('.').pop().split(/#|\?/)[0].toUpperCase();
+                                              return (
+                                                <div key={i} className="mb-2 p-2 bg-light border rounded d-flex flex-column gap-1">
+                                                  <div className="d-flex align-items-center justify-content-between gap-2">
+                                                    <a href={url} target="_blank" rel="noreferrer" className="text-primary text-truncate" style={{ maxWidth: '80%' }} title={url}>
+                                                      <i className={`isax ${isImage ? 'isax-image' : 'isax-link'} me-1`} />
+                                                      {url}
+                                                    </a>
+                                                    {size && <span className="badge bg-secondary">{size}</span>}
+                                                  </div>
+                                                  <div className="d-flex gap-2">
+                                                    {isImage && <span className="badge bg-info text-white">{ext} Image</span>}
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                            return <div key={i} className="mb-1 text-danger text-break" style={{ fontFamily: 'monospace' }}>{t}</div>;
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </React.Fragment>
+                      ) : (
+                        <div className="text-center text-muted py-5">
+                          <i className="isax isax-shield-tick fs-1 mb-2 d-block opacity-50" />
+                          <p>Select a policy from the list to view its details.</p>
                         </div>
-                      </div>
-                      <div className="border-bottom pb-3 mb-3">
-                        <button
-                          type="button"
-                          className="btn btn-sm rounded-0 border-0 border-bottom border-2 border-primary px-0 pb-1"
-                        >
-                          Information
-                        </button>
-                      </div>
-                      <div className="mb-3">
-                        <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-1">
-                          <i className="isax isax-info-circle fs-14" />
-                          Created Dec 9, 2025
-                        </p>
-                        <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-1">
-                          <i className="isax isax-clock fs-14" />
-                          Last run
-                        </p>
-                        <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-1">
-                          <i className="isax isax-clock fs-14" />
-                          This policy is scheduled
-                        </p>
-                        <p className="fs-13 text-muted mb-0 d-flex align-items-center gap-1">
-                          <i className="isax isax-note-2 fs-14" />
-                          Policy note
-                        </p>
-                        <p className="fs-13 text-muted mb-0 ps-4">
-                          No note has been added
-                        </p>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1113,9 +1110,9 @@ export default function PageDetailsDrawer({
         issue={
           selectedBrokenLinkId != null
             ? _nullishCoalesce(
-                brokenLinksList.find((r) => r.id === selectedBrokenLinkId),
-                () => null,
-              )
+              brokenLinksList.find((r) => r.id === selectedBrokenLinkId),
+              () => null,
+            )
             : null
         }
         page={
@@ -1130,11 +1127,11 @@ export default function PageDetailsDrawer({
         issue={
           selectedBrokenImageId != null
             ? _nullishCoalesce(
-                (effectivePage.brokenImages || []).find(
-                  (r) => r.id === selectedBrokenImageId,
-                ),
-                () => null,
-              )
+              (effectivePage.brokenImages || []).find(
+                (r) => r.id === selectedBrokenImageId,
+              ),
+              () => null,
+            )
             : null
         }
         page={
@@ -1149,11 +1146,11 @@ export default function PageDetailsDrawer({
         issue={
           selectedMisspellingId != null
             ? _nullishCoalesce(
-                (effectivePage.misspellings || []).find(
-                  (r) => r.id === selectedMisspellingId,
-                ),
-                () => null,
-              )
+              (effectivePage.misspellings || []).find(
+                (r) => r.id === selectedMisspellingId,
+              ),
+              () => null,
+            )
             : null
         }
       />
@@ -1163,11 +1160,11 @@ export default function PageDetailsDrawer({
         issue={
           selectedPotentialMisspellingId != null
             ? _nullishCoalesce(
-                (effectivePage.potentialMisspellings || []).find(
-                  (r) => r.id === selectedPotentialMisspellingId,
-                ),
-                () => null,
-              )
+              (effectivePage.potentialMisspellings || []).find(
+                (r) => r.id === selectedPotentialMisspellingId,
+              ),
+              () => null,
+            )
             : null
         }
       />
@@ -1178,11 +1175,11 @@ export default function PageDetailsDrawer({
           issue={
             selectedIgnoredSpellingId != null
               ? _nullishCoalesce(
-                  IGNORED_SPELLINGS_SAMPLE.find(
-                    (r) => r.id === selectedIgnoredSpellingId,
-                  ),
-                  () => null,
-                )
+                IGNORED_SPELLINGS_SAMPLE.find(
+                  (r) => r.id === selectedIgnoredSpellingId,
+                ),
+                () => null,
+              )
               : null
           }
           page={page ? { title: page.title, url: page.url } : undefined}

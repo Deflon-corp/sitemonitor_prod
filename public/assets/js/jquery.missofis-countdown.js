@@ -9,11 +9,7 @@
  */ 
 ;( function ( $, window, document, undefined ) {
 
-
-
 	'use strict';
-
-
 
 	/**
 	 * Plugin defaults
@@ -30,8 +26,6 @@
 
 		},
 		outputReplacement = new RegExp( '\\$day|\\$hour|\\$minute|\\$second', 'g' );
-
-
 
 	/**
 	 * Plugin constructor
@@ -66,8 +60,6 @@
 		this.init();
 
 	}
-
-
 
 	/**
 	 * Plugin prototype
@@ -139,14 +131,11 @@
 
 		},
 
-
-
 		/*
 		------------------------------------------------------------
 		    PLUGIN PSEUDO-PRIVATE API by "_" NAMING CONVENTION
 		------------------------------------------------------------
 		*/
-
 
 		/**
 		 * Starts counter
@@ -315,8 +304,6 @@
 
 	};
 
-
-
 	/**
 	 * Plugin wrapper
 	 */
@@ -359,7 +346,5 @@
 		}
 
     };
-
-
 
 } ) ( jQuery, window, document );

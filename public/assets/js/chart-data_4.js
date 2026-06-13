@@ -172,7 +172,6 @@ $(function() {
 		ymax: 'auto 100',
 	});
 
-
 	var nReloads = 0;
 	function data(offset) {
 	  var ret = [];

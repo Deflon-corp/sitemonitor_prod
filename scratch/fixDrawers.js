@@ -50,7 +50,7 @@ ${settersWithoutInitial}    }
 `;
 
   // Insert useEffect block before the existing useEffect
-  content = content.replace(/  useEffect\(\(\) => \{\n    if \(\!open\) return;/, useEffectBlock + '\n  useEffect(() => {\n    if (!open) return;');
+  content = content.replace(/ {2}useEffect\(\(\) => \{\n {4}if \(\!open\) return;/, useEffectBlock + '\n  useEffect(() => {\n    if (!open) return;');
 
   fs.writeFileSync(filePath, content, 'utf8');
   console.log('Fixed', file);

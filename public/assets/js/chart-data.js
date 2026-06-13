@@ -17,7 +17,6 @@ $(document).ready(function () {
     return series;
   }
 
-
   // Column chart
   if ($('#sales_chart').length > 0) {
     var columnCtx = document.getElementById("sales_chart"),
@@ -80,7 +79,6 @@ $(document).ready(function () {
     var columnChart = new ApexCharts(columnCtx, columnConfig);
     columnChart.render();
   }
-
 
   if ($('#reservation-chart').length > 0) {
     var sCol = {
@@ -184,9 +182,6 @@ $(document).ready(function () {
         }
       }
     };
-    
-    
-    
 
     var chart = new ApexCharts(document.querySelector("#report_chart"), options);
     chart.render();
@@ -229,9 +224,6 @@ $(document).ready(function () {
         }
       }
     };
-    
-    
-    
 
     var chart = new ApexCharts(document.querySelector("#report_chart_2"), options);
     chart.render();
@@ -358,9 +350,6 @@ $(document).ready(function () {
         }
       }
     };
-    
-    
-    
 
     var chart = new ApexCharts(document.querySelector("#payment_report_chart"), options);
     chart.render();
@@ -402,9 +391,6 @@ $(document).ready(function () {
         }
       }
     };
-    
-    
-    
 
     var chart = new ApexCharts(document.querySelector("#payment_report_chart_2"), options);
     chart.render();
@@ -554,7 +540,6 @@ $(document).ready(function () {
     pieChart.render();
   }
 
-
   // Simple Line
   if ($('#s-line').length > 0) {
     var sline = {
@@ -601,7 +586,6 @@ $(document).ready(function () {
 
     chart.render();
   }
-
 
   // Simple Line Area
   if ($('#s-line-area').length > 0) {
@@ -996,7 +980,6 @@ $(document).ready(function () {
     var chart = new ApexCharts(document.querySelector("#plane-chart"), options);
     chart.render();
   }
-  
   
   // Simple Column Stacked
   if ($('#s-col-stacked').length > 0) {
@@ -1395,7 +1378,6 @@ $(document).ready(function () {
     
       chart.render();
     }
-
 
     // Radial Chart5
     if ($('#radial-chart5').length > 0) {
@@ -1967,7 +1949,6 @@ $(document).ready(function () {
       chart.render();
     }
   
-  
   // end chart
 
   if ($('#sales_charts').length > 0) {
@@ -2113,7 +2094,6 @@ $(document).ready(function () {
     donut.render();
   }
 
-
   // Student Chart
 
   if ($('#staff-chart').length > 0) {
@@ -2149,7 +2129,6 @@ $(document).ready(function () {
 
     donut.render();
   }
-
 
   // Class Chart
 
@@ -3416,7 +3395,6 @@ if($('#task-reports').length > 0 ){
   chart.render();
 }
 
-
 if($('#project-report').length > 0 ){
   var options = {
     series: [30, 10, 20, 40],
@@ -4355,8 +4333,6 @@ var chart = new ApexCharts(document.querySelector("#donut-chart-2"), options);
 chart.render();
  }
 
- 
-
  // Revenue income
 
  if ($('#revenue-income').length > 0) {
@@ -4450,7 +4426,6 @@ chart.render();
 
   chart.render();
 }
-
 
  if ($('#heat_chart').length > 0) {
   var options = {
@@ -4743,7 +4718,6 @@ var chart = new ApexCharts(document.querySelector("#user-chart"), options);
 chart.render();
 }
 
-
 // web app chart
 if ($('#web_app_chart').length > 0) {
   var donutChart = {
@@ -4850,7 +4824,6 @@ if ($('#utilization').length > 0) {
   chart.render();
 }
 
-
 // app chart
 if ($('#car-chart').length > 0) {
   var sCol = {
@@ -4925,7 +4898,6 @@ if ($('#car-chart').length > 0) {
 
   chart.render();
 }
-
 
 if ($('#locationChart').length > 0) {
   var sCol1 = {
@@ -5429,7 +5401,6 @@ if($('#hours_chart').length > 0) {
       }
     },
     };
-    
 
     var chart = new ApexCharts(document.querySelector("#hours_chart"), options);
     chart.render();
@@ -5705,6 +5676,3 @@ if ($('#invoice_analytics').length > 0) {
 var chart = new ApexCharts(document.querySelector("#invoice_analytics"), options);
 chart.render();
  }
-
-
-

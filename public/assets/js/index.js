@@ -82,7 +82,6 @@ module.exports = function (options) {
     disable();
   } //private methods
 
-
   function onMouseMove(e) {
     onMove(e, false);
   }
@@ -90,7 +89,6 @@ module.exports = function (options) {
    * Called by eventhandlers when mouse or touch events are triggered
    * @param {MouseEvent} e
    */
-
 
   function onMove(e, isTouch) {
     if (disabled === true || isRating === true) {
@@ -136,7 +134,6 @@ module.exports = function (options) {
         }
       } //todo: check why this happens and fix
 
-
       if (currentRating > stars) {
         currentRating = stars;
       }
@@ -159,7 +156,6 @@ module.exports = function (options) {
    * @param {MouseEvent} e
    */
 
-
   function onStarOut(e) {
     if (!rating) {
       elem.querySelector(".star-value").style.width = "0%";
@@ -177,7 +173,6 @@ module.exports = function (options) {
    * Called when star is clicked.
    * @param {MouseEvent} e
    */
-
 
   function onStarClick(e) {
     if (disabled === true) {
@@ -213,13 +208,12 @@ module.exports = function (options) {
    * Disables the rater so that it's not possible to click the stars.
    */
 
-
   function disable() {
     disabled = true;
     elem.classList.add("disabled");
 
     if (showToolTip && !!disableText) {
-      var toolTip = disableText.replace("{rating}", !!rating ? rating : 0);
+      var toolTip = disableText.replace("{rating}", rating ? rating : 0);
       toolTip = toolTip.replace("{maxRating}", stars);
       elem.setAttribute("title", toolTip);
     } else {
@@ -230,7 +224,6 @@ module.exports = function (options) {
    * Enabled the rater so that it's possible to click the stars.
    */
 
-
   function enable() {
     disabled = false;
     elem.removeAttribute("title");
@@ -239,7 +232,6 @@ module.exports = function (options) {
   /**
    * Sets the rating
    */
-
 
   function setRating(value) {
     if (typeof value === "undefined") {
@@ -266,14 +258,12 @@ module.exports = function (options) {
    * Gets the rating
    */
 
-
   function getRating() {
     return rating;
   }
   /**
    * Set the rating to a value to inducate it's not rated.
    */
-
 
   function clear() {
     rating = null;
@@ -283,7 +273,6 @@ module.exports = function (options) {
   /**
    * Remove event handlers.
    */
-
 
   function dispose() {
     elem.removeEventListener("mousemove", onMouseMove);
@@ -324,7 +313,6 @@ module.exports = function (options) {
    * @param {TouchEvent} e 
    */
 
-
   function handleStart(e) {
     e.preventDefault();
     onMove(e, true);
@@ -333,7 +321,6 @@ module.exports = function (options) {
    * Handles touchend event.
    * @param {TouchEvent} e 
    */
-
 
   function handleEnd(evt) {
     evt.preventDefault();
@@ -344,7 +331,6 @@ module.exports = function (options) {
    * Handles touchend event.
    * @param {TouchEvent} e 
    */
-
 
   function handleCancel(e) {
     e.preventDefault();
@@ -440,4 +426,3 @@ module.exports = {
 
 },{}]},{},[1])(1)
 });
-

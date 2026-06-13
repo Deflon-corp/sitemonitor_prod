@@ -3,7 +3,6 @@
 
     $(document).ready(function(){
 
-
     /* basic vector map */
     var map = new jsVectorMap({
         selector: "#vector-map",

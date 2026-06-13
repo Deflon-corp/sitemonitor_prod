@@ -5,137 +5,6 @@ import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_ROWS = [
-  {
-    id: "bl-pdf1",
-    title: "Annual Report 2024",
-    url: "https://example.com/docs/annual-report-2024.pdf",
-    notifications: 15,
-    priority: "High",
-    views: 0,
-  },
-  {
-    id: "bl-pdf2",
-    title: "(No title found)",
-    url: "https://example.com/assets/terms-conditions.pdf",
-    notifications: 10,
-    priority: "High",
-    views: 12,
-  },
-  {
-    id: "bl-pdf3",
-    title: "Product Brochure",
-    url: "https://example.com/downloads/product-brochure.pdf",
-    notifications: 8,
-    priority: "Medium",
-    views: 45,
-  },
-  {
-    id: "bl-pdf4",
-    title: "Privacy Policy",
-    url: "https://example.com/legal/privacy-policy.pdf",
-    notifications: 6,
-    priority: "Medium",
-    views: 28,
-  },
-  {
-    id: "bl-pdf5",
-    title: "Loan Application Form",
-    url: "https://example.com/forms/loan-application.pdf",
-    notifications: 12,
-    priority: "High",
-    views: 89,
-  },
-  {
-    id: "bl-pdf6",
-    title: "(No title found)",
-    url: "https://example.com/docs/whitepaper-q3.pdf",
-    notifications: 4,
-    priority: "Low",
-    views: 7,
-  },
-  {
-    id: "bl-pdf7",
-    title: "Insurance Guide",
-    url: "https://example.com/insurance/guide.pdf",
-    notifications: 9,
-    priority: "Medium",
-    views: 34,
-  },
-  {
-    id: "bl-pdf8",
-    title: "FAQ Document",
-    url: "https://example.com/help/faq.pdf",
-    notifications: 5,
-    priority: "Low",
-    views: 19,
-  },
-  {
-    id: "bl-pdf9",
-    title: "Compliance Report",
-    url: "https://example.com/compliance/report-2024.pdf",
-    notifications: 11,
-    priority: "High",
-    views: 3,
-  },
-  {
-    id: "bl-pdf10",
-    title: "User Manual",
-    url: "https://example.com/support/user-manual.pdf",
-    notifications: 7,
-    priority: "Medium",
-    views: 56,
-  },
-  {
-    id: "bl-pdf11",
-    title: "(No title found)",
-    url: "https://example.com/old/catalog.pdf",
-    notifications: 14,
-    priority: "High",
-    views: 0,
-  },
-  {
-    id: "bl-pdf12",
-    title: "Rate Card",
-    url: "https://example.com/rates/rate-card.pdf",
-    notifications: 6,
-    priority: "Medium",
-    views: 102,
-  },
-  {
-    id: "bl-pdf13",
-    title: "Sustainability Report",
-    url: "https://example.com/esg/sustainability-2024.pdf",
-    notifications: 3,
-    priority: "Low",
-    views: 22,
-  },
-  {
-    id: "bl-pdf14",
-    title: "Investor Presentation",
-    url: "https://example.com/investors/presentation.pdf",
-    notifications: 8,
-    priority: "Medium",
-    views: 41,
-  },
-  {
-    id: "bl-pdf15",
-    title: "(No title found)",
-    url: "https://example.com/archive/legacy-doc.pdf",
-    notifications: 2,
-    priority: "Low",
-    views: 1,
-  },
-  {
-    id: "bl-pdf16",
-    title: "Claim Form",
-    url: "https://example.com/insurance/claim-form.pdf",
-    notifications: 13,
-    priority: "High",
-    views: 67,
-  },
-];
-
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
 function toPageDetailsPage(row) {
@@ -143,8 +12,11 @@ function toPageDetailsPage(row) {
   return { id, title: row.title, url: row.url };
 }
 
-export default function ContentWithBrokenLinksPdfView(props = {}) {
-  const { search: searchProp, onSearchChange } = props;
+export default function ContentWithBrokenLinksPdfView({
+  data = [],
+  search: searchProp,
+  onSearchChange,
+}) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = searchProp ?? internalSearch;
   const setSearch = onSearchChange ?? setInternalSearch;
@@ -178,13 +50,13 @@ export default function ContentWithBrokenLinksPdfView(props = {}) {
   }, []);
 
   const filteredRows = useMemo(() => {
-    if (!search.trim()) return SAMPLE_ROWS;
+    if (!search.trim()) return data;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter(
+    return data.filter(
       (r) =>
         r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [search, data]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;

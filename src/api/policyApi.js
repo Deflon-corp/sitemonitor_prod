@@ -45,3 +45,7 @@ export const getPolicyContentMatchesApi = async (query = {}) => {
   });
   return response.data;
 };
+export const scanDomainPoliciesApi = async (domainId) => {
+  const response = await axiosInstance.post(`/policies/scan/${domainId}`);
+  return response.data;
+};

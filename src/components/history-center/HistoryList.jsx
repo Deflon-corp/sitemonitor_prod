@@ -17,42 +17,6 @@ const LANDING_NAV = [
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SAMPLE_HISTORY = [
-  {
-    id: "1",
-    crawledAt: "Feb 15, 2026 4:56 PM",
-    accessibilityIssues: 500,
-    seoOpportunities: 500,
-    qaIssues: 499,
-    policyIssues: 499,
-    pagesCrawled: 500,
-    documentsCrawled: 0,
-    changesPct: "0%",
-  },
-  {
-    id: "2",
-    crawledAt: "Dec 9, 2025 2:09 PM",
-    accessibilityIssues: 500,
-    seoOpportunities: 500,
-    qaIssues: 500,
-    policyIssues: 0,
-    pagesCrawled: 500,
-    documentsCrawled: 0,
-    changesPct: "0%",
-  },
-  {
-    id: "3",
-    crawledAt: "Dec 9, 2025 8:26 AM",
-    accessibilityIssues: 500,
-    seoOpportunities: 500,
-    qaIssues: 500,
-    policyIssues: 0,
-    pagesCrawled: 500,
-    documentsCrawled: 0,
-    changesPct: "0%",
-  },
-];
-
 const CHART_LEGEND = [
   { label: "Pages with accessibility issues", color: "#8b5cf6" },
   { label: "Pages with SEO opportunities", color: "#f97316" },
@@ -87,7 +51,7 @@ function triggerCsvDownload(filename, csvText) {
   URL.revokeObjectURL(url);
 }
 
-export default function HistoryList() {
+export default function HistoryList({ data = [] }) {
   const pathname = useLocation().pathname;
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,13 +61,13 @@ export default function HistoryList() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(SAMPLE_HISTORY.length / rowsPerPage),
+    Math.ceil(data.length / rowsPerPage),
   );
 
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return SAMPLE_HISTORY.slice(start, start + rowsPerPage);
-  }, [currentPage, rowsPerPage]);
+    return data.slice(start, start + rowsPerPage);
+  }, [currentPage, rowsPerPage, data]);
 
   const downloadHistoryReport = useCallback(() => {
     const headers = [
@@ -117,7 +81,7 @@ export default function HistoryList() {
       "Changes since previous crawl",
     ];
 
-    const rows = SAMPLE_HISTORY.map((r) =>
+    const rows = data.map((r) =>
       [
         r.crawledAt,
         r.accessibilityIssues,
@@ -135,7 +99,7 @@ export default function HistoryList() {
     const csv = [headers.map(csvCell).join(","), ...rows].join("\r\n");
     const date = new Date().toISOString().slice(0, 10);
     triggerCsvDownload(`history-center-report-${date}.csv`, csv);
-  }, []);
+  }, [data]);
 
   return (
     <div className="content landing-content">
@@ -460,8 +424,8 @@ export default function HistoryList() {
               </select>
               <span className="text-muted small">
                 {(currentPage - 1) * rowsPerPage + 1}–
-                {Math.min(currentPage * rowsPerPage, SAMPLE_HISTORY.length)} of{" "}
-                {SAMPLE_HISTORY.length}
+                {Math.min(currentPage * rowsPerPage, data.length)} of{" "}
+                {data.length}
               </span>
             </div>
 

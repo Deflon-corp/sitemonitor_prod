@@ -32,76 +32,19 @@ import { downloadBlob } from "@/lib/download";
 const DIAGNOSTICS_DESCRIPTION =
   "Diagnostics, which flags particular problems that currently exist on your site that need to be addressed, like having file sizes that are too large that are potentially slowing down loading times. They'll let you know exactly what the problem is, how it's impacting your site, and why it needs to be fixed.";
 
-const SAMPLE_AUDITS = [
-  {
-    id: 1,
-    title: "Uses passive listeners to improve scrolling performance",
-    description:
-      "Consider marking your touch and wheel event listeners as `passive` to improve your page's scroll performance. Learn more about adopting passive event listeners.",
-    difficulty: "Easy",
-    priority: "Low",
-    relevantFor: null,
-  },
-  {
-    id: 2,
-    title: "Uses efficient cache policy on static assets",
-    description:
-      "A long cache lifetime can speed up repeat visits to your page. Learn more about efficient cache policies.",
-    difficulty: "Easy",
-    priority: "Low",
-    relevantFor: null,
-  },
-  {
-    id: 3,
-    title: "User Timing marks and measures",
-    description:
-      "Consider instrumenting your app with the User Timing API to measure your app's real-world performance during key user experiences. Learn more about User Timing marks.",
-    difficulty: "Hard",
-    priority: "Low",
-    relevantFor: null,
-  },
-  {
-    id: 4,
-    title: "Use video formats for animated content",
-    description:
-      "Large GIFs are inefficient for delivering animated content. Consider using MPEG4/WebM videos for animations and PNG/WebP for static images instead of GIF to save network bytes. Learn more about efficient video formats.",
-    difficulty: "Easy",
-    priority: "Low",
-    relevantFor: "LCP",
-  },
-  {
-    id: 5,
-    title: "Use HTTP/2",
-    description:
-      "HTTP/2 offers many benefits over HTTP/1.1, including binary headers and multiplexing. Learn more about HTTP/2.",
-    difficulty: "Moderate",
-    priority: "Low",
-    relevantFor: null,
-  },
-  {
-    id: 6,
-    title: "Serve images in next-gen formats",
-    description:
-      "Image formats like WebP and AVIF often provide better compression than PNG or JPEG, which means faster downloads and less data consumption. Learn more about modern image formats.",
-    difficulty: "Moderate",
-    priority: "Low",
-    relevantFor: null,
-  },
-];
-
 function escapeCsvCell(value) {
   const s = String(_nullishCoalesce(value, () => ""));
   if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
-export default function PerformanceDiagnosticsView() {
+export default function PerformanceDiagnosticsView({ data = [] }) {
   const [filter, setFilter] = useState("errors");
   const errorsCount = 38;
   const passedCount = 0;
 
   const handleExportCsv = useCallback(() => {
-    const rows = filter === "errors" ? SAMPLE_AUDITS : [];
+    const rows = filter === "errors" ? data : [];
     const header = [
       "Audit",
       "Description",
@@ -247,7 +190,7 @@ export default function PerformanceDiagnosticsView() {
               </tr>
             </thead>
             <tbody>
-              {SAMPLE_AUDITS.map((audit) => (
+              {data.map((audit) => (
                 <tr
                   key={audit.id}
                   className="border-bottom border-secondary border-opacity-10"

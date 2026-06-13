@@ -37,7 +37,6 @@ Version      : 1.0
 		// Sidebar Initiate
 		init();
 	}
-
        
         /* ==================================================
             # Smooth Scroll
@@ -61,7 +60,6 @@ Version      : 1.0
 		$('html').addClass('menu-opened');
 		return false;
 	});
-
 
 	$(document).on('click', '.sidebar-overlay', function () {
 		$('html').removeClass('menu-opened');
@@ -88,7 +86,6 @@ Version      : 1.0
 		}
 		return false;
 	});
-
 
 	$(document).on('mouseover', function (e) {
 		e.stopPropagation();
@@ -245,7 +242,6 @@ Version      : 1.0
 	};
 	mim_tm_cursor()
 
-
 	$(window).scroll(function() { 
         var scroll = $(window).scrollTop();
         if (scroll >= 500) {
@@ -254,8 +250,6 @@ Version      : 1.0
          $(".back-to-top-icon").removeClass("show");
         }
      });
-
-	
 
 	// JQuery counterUp
 
@@ -266,7 +260,6 @@ Version      : 1.0
 		  });
 		$('.counter').addClass('animated fadeInDownBig');
 	}	
-	
 
 	// Banner
 
@@ -357,7 +350,3 @@ Version      : 1.0
 	});
 	
 })(jQuery);
-
-	
-
-

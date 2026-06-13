@@ -37,20 +37,6 @@ const FILTER_TABS = [
   },
 ];
 
-/** Sample data – replaced with API */
-// const SAMPLE_POLICIES = [
-//   {
-//     id: "1",
-//     title: "Text",
-//     searchScope: "Everything",
-//     status: "hits",
-//     compliancePercent: 0.2,
-//     policyHits: 499,
-//     category: "matches",
-//   },
-//   ...
-// ];
-
 const PolicyListView = ({
   onAddNewPolicy,
   onEditPolicy,
@@ -94,12 +80,12 @@ const PolicyListView = ({
           category: p.category || "matches",
           addDate: p.createdAt
             ? (() => {
-                const d = new Date(p.createdAt);
-                const day = String(d.getDate()).padStart(2, "0");
-                const month = String(d.getMonth() + 1).padStart(2, "0");
-                const year = d.getFullYear();
-                return `${day}-${month}-${year}`;
-              })()
+              const d = new Date(p.createdAt);
+              const day = String(d.getDate()).padStart(2, "0");
+              const month = String(d.getMonth() + 1).padStart(2, "0");
+              const year = d.getFullYear();
+              return `${day}-${month}-${year}`;
+            })()
             : "N/A",
         }));
         setPolicies(normalized);

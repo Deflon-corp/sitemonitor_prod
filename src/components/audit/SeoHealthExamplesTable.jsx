@@ -1,83 +1,19 @@
 import React, { useState, useMemo } from "react";
 
-const SAMPLE_ROWS = [
-  {
-    url: "https://uat.aarogyaabharat.com/categories/home-care/aarogyaa-bharat-tpe-threshold-ramp-rx973rx974rx975rx976",
-    lastCrawled: "Dec 11, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/2388/what-is-i-v-cannula-and-how-is-it-used",
-    lastCrawled: "Nov 15, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/1108/how-can-sedentary-patients-prevent-bedsores",
-    lastCrawled: "Nov 13, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/2102/benefits-of-physiotherapy-after-surgery",
-    lastCrawled: "Nov 12, 2025",
-  },
-  {
-    url: "https://uat.aarogyaabharat.com/products/health-monitors",
-    lastCrawled: "Nov 12, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/1890/importance-of-rehabilitation",
-    lastCrawled: "Nov 12, 2025",
-  },
-  {
-    url: "https://uat.aarogyaabharat.com/categories/personal-care",
-    lastCrawled: "Nov 11, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/1500/patient-care-guidelines",
-    lastCrawled: "Nov 10, 2025",
-  },
-  {
-    url: "https://uat.aarogyaabharat.com/blog/wellness-tips",
-    lastCrawled: "Nov 9, 2025",
-  },
-  {
-    url: "https://community.aarogyaabharat.com/discussion/3200/physiotherapy-exercises",
-    lastCrawled: "Nov 8, 2025",
-  },
-];
-
-const buildRows = (totalCount) => {
-  const dates = [
-    "Dec 11, 2025",
-    "Nov 15, 2025",
-    "Nov 13, 2025",
-    "Nov 12, 2025",
-    "Nov 11, 2025",
-    "Nov 10, 2025",
-    "Nov 9, 2025",
-    "Nov 8, 2025",
-    "Oct 28, 2025",
-    "Oct 20, 2025",
-  ];
-  const baseUrls = SAMPLE_ROWS.map((r) => r.url);
-  return Array.from({ length: totalCount }, (_, i) => ({
-    url: baseUrls[i % baseUrls.length],
-    lastCrawled: dates[i % dates.length],
-  }));
-};
-
-const SeoHealthExamplesTable = ({ totalCount = 91 }) => {
+const SeoHealthExamplesTable = ({ data = [] }) => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDesc, setSortDesc] = useState(true);
 
-  const allRows = useMemo(() => buildRows(totalCount), [totalCount]);
   const sortedRows = useMemo(() => {
-    const byDate = [...allRows].sort((a, b) => {
+    const byDate = [...data].sort((a, b) => {
       const d = (s) => new Date(s).getTime();
       return sortDesc
         ? d(b.lastCrawled) - d(a.lastCrawled)
         : d(a.lastCrawled) - d(b.lastCrawled);
     });
     return byDate;
-  }, [allRows, sortDesc]);
+  }, [data, sortDesc]);
 
   const start = (page - 1) * rowsPerPage;
   const pageRows = sortedRows.slice(start, start + rowsPerPage);

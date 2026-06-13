@@ -25,50 +25,6 @@ const getGlobalNav = (basePath) => [
   },
 ];
 
-const PRIORITIES_DATA = [
-  { label: "Low", value: 0 },
-  { label: "Medium", value: 0 },
-  { label: "High", value: 1 },
-];
-
-const POLICY_DIST_DATA = [
-  { label: "Unwanted", value: 0 },
-  { label: "Required", value: 0 },
-  { label: "Matches", value: 1 },
-];
-
-/** Sample row – replace with API */
-const SAMPLE_MOST_MATCHES = [
-  {
-    id: "1",
-    title: "Text",
-    searchScope: "Everything",
-    status: "hits",
-    hits: 499,
-  },
-  {
-    id: "2",
-    title: "Text that starts with Lorem ipsum",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    hits: 0,
-  },
-  {
-    id: "3",
-    title: "Text that starts with FD",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    hits: 0,
-  },
-  {
-    id: "4",
-    title: "Text that starts with Lorem ipsum",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    hits: 0,
-  },
-];
-
 const GlobalPoliciesView = ({
   onAddNewPolicy,
   basePath = "/policies",

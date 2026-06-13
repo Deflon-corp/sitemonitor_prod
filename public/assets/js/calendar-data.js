@@ -1,4 +1,3 @@
-
 if($('#calendar').length > 0) {
     document.addEventListener('DOMContentLoaded', function() {
         var Draggable = FullCalendar.Draggable;
@@ -76,8 +75,6 @@ if($('#calendar').length > 0) {
     });			
 }
 
-
-
 if($('#calendar1').length > 0) {
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -103,7 +100,6 @@ if($('#calendar1').length > 0) {
             height: 500,
             contentHeight: 580,
             aspectRatio: 3,  // see: https://fullcalendar.io/docs/aspectRatio
-
 
             views: {
                 dayGridMonth: { buttonText: 'month' },
@@ -143,4 +139,3 @@ if($('#calendar1').length > 0) {
         calendar.render();
     });
 }
-

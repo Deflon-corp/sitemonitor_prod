@@ -218,5 +218,4 @@
     }, false);
     /* Clear/reset rater */
 
-
 })();

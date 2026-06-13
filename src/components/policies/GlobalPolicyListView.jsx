@@ -57,55 +57,13 @@ const FILTER_TABS = [
 
 const HITS_BAR_MAX = 500;
 
-const SAMPLE_POLICIES = [
-  {
-    id: "1",
-    title: "Text",
-    searchScope: "Everything",
-    status: "hits",
-    addedBy: "Irfan Shaikh",
-    creationDate: "Dec 9, 2025",
-    hits: 499,
-    category: "matches",
-  },
-  {
-    id: "2",
-    title: "Text that starts with Lorem ipsum",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    addedBy: "Irfan Shaikh",
-    creationDate: "Dec 9, 2025",
-    hits: 0,
-    category: "matches",
-  },
-  {
-    id: "3",
-    title: "Text that starts with Lorem ipsum",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    addedBy: "Irfan Shaikh",
-    creationDate: "Dec 9, 2025",
-    hits: 0,
-    category: "matches",
-  },
-  {
-    id: "4",
-    title: "Text that starts with FD",
-    searchScope: "Only HTML pages",
-    status: "compliant",
-    addedBy: "Irfan Shaikh",
-    creationDate: "Feb 14, 2026",
-    hits: 0,
-    category: "required",
-  },
-];
-
 const GlobalPolicyListView = ({
   onAddNewPolicy,
   onEditPolicy,
   onViewPolicy,
   basePath = "/policies",
   currentView = "global-list",
+  policies = [],
 }) => {
   const GLOBAL_NAV = getGlobalNav(basePath);
   const [activeTab, setActiveTab] = useState("all");
@@ -119,7 +77,7 @@ const GlobalPolicyListView = ({
   const [selectedPolicyForHits, setSelectedPolicyForHits] = useState(null);
 
   const filteredBySearch = useMemo(() => {
-    let rows = SAMPLE_POLICIES;
+    let rows = policies;
     if (search.trim()) {
       const q = search.toLowerCase();
       rows = rows.filter(

@@ -225,7 +225,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 		});
 		$('.sidebar-menu ul li.submenu a.active').parents('li:last').children('a:first').addClass('active').trigger('click');
 	}
-
 	
 	// Sidebar Initiate
 	init();
@@ -270,7 +269,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 	colinit();
 
 	// Date Range Picker
-
 	
 	if($('#reportrange').length > 0) {
 		var start = moment().subtract(29, "days"),
@@ -314,7 +312,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 		}, booking_range);
 		booking_range(start, end);
 	}
-
 	
 	if($('.daterange').length > 0) {
 		$('.daterange').daterangepicker({
@@ -383,7 +380,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 		$(this).addClass('active');
 	});
 
-
 	if($('.win-maximize').length > 0) {
 		$('.win-maximize').on('click', function(e){
 			if (!document.fullscreenElement) {
@@ -418,7 +414,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 				utilsScript: "assets/plugins/intltelinput/js/utils.js",
 			});
 		}
-
 
 // select all 2
 	$(document).on('click', '#check_all', function() {
@@ -488,7 +483,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 			localStorage.setItem('theme', 'light');
 		}
 	}
-
 	
 	$('ul.tabs li').on('click', function(){
 		var $this = $(this);
@@ -595,7 +589,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 	    item.val(Math.max(newValue, 0));
 	}
 
-
 	  /* card with fullscreen */
 	  let DIV_CARD = ".card";
 	  let cardFullscreenBtn = document.querySelectorAll(
@@ -682,7 +675,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 		});
 	}
 
-
 	var selectAllItems = "#select-all";
 	var checkboxItem = ".form-check.form-check-md :checkbox";
 	$(selectAllItems).on('click', function(){	
@@ -695,7 +687,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 			this.checked = false;
 		});
 		}
-
 		
 	});
 
@@ -751,8 +742,6 @@ Template Name: Kanakku - Bootstrap Admin Template
 				}
 			});
 		});
-		
-		
 
 		//Trial Item
 		if($('.trial-item').length > 0) {

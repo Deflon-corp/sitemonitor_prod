@@ -14,62 +14,11 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-/** Sample internal page links – replace with API */
-const SAMPLE_INTERNAL = [
-  {
-    id: "1",
-    url: "https://example.com/zomato-gift-card",
-    documents: 0,
-    pages: 499,
-  },
-  {
-    id: "2",
-    url: "https://example.com/webform/v1/offersModulenew/offer?category=personal-loan",
-    documents: 0,
-    pages: 499,
-  },
-  {
-    id: "3",
-    url: "https://example.com/webform/v1/offersModulenew/offer?category=home-loan",
-    documents: 0,
-    pages: 499,
-  },
-  {
-    id: "4",
-    url: "https://example.com/personal-loans",
-    documents: 0,
-    pages: 648,
-  },
-  { id: "5", url: "https://example.com/home-loans", documents: 0, pages: 648 },
-  { id: "6", url: "https://example.com/contact-us", documents: 0, pages: 648 },
-  { id: "7", url: "https://example.com/careers", documents: 0, pages: 648 },
-  { id: "8", url: "https://example.com/about-us", documents: 0, pages: 648 },
-  {
-    id: "9",
-    url: "https://example.com/emi-calculator",
-    documents: 0,
-    pages: 648,
-  },
-  { id: "10", url: "https://example.com/insurance", documents: 0, pages: 648 },
-];
-
-/** Sample external page links – replace with API */
-const SAMPLE_EXTERNAL = [
-  {
-    id: "e1",
-    url: "https://www.linkedin.com/company/example",
-    documents: 0,
-    pages: 12,
-  },
-  { id: "e2", url: "https://twitter.com/example", documents: 0, pages: 8 },
-  { id: "e3", url: "https://www.facebook.com/example", documents: 0, pages: 5 },
-];
-
 export default function InventoryPageLinksView({
   onBack,
   downloadDropup,
-  internalRows = SAMPLE_INTERNAL,
-  externalRows = SAMPLE_EXTERNAL,
+  internalRows = [],
+  externalRows = [],
 }) {
   const [tab, setTab] = useState("internal");
   const [search, setSearch] = useState("");

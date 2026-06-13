@@ -547,7 +547,6 @@ let themesettings = `
             } else {
                 document.body.classList.remove("mini-sidebar", "menu-horizontal");
             }
-
             
             if (size === 'compact') {
                 document.body.classList.add("mini-sidebar");
@@ -616,7 +615,6 @@ let themesettings = `
             const layout = document.querySelector('input[name="LayoutTheme"]:checked').value;
             const size = document.querySelector('input[name="size"]:checked').value;
             const width = document.querySelector('input[name="width"]:checked').value;
-
             
             color = localStorage.getItem('primaryRGB');
             sidebarTheme = localStorage.getItem('sidebarRGB');
@@ -645,8 +643,6 @@ let themesettings = `
     
             setThemeAndSidebarTheme(theme, sidebarTheme, color, layout, topbar, size, width);
         }
-
-      
     
         function resetThemeAndSidebarThemeAndColorAndBg() {
             setThemeAndSidebarTheme('light', 'light', 'primary', 'default', 'white', 'default', 'fluid');
@@ -782,4 +778,3 @@ let themesettings = `
             sidebarBgContainer.classList.remove('show');
         }
     });
-    

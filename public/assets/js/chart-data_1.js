@@ -424,7 +424,6 @@ if ($('#time-chart').length > 0) {
     chart.render();
   }
 
-
   // Time Chart03
 
   if ($('#time-chart03').length > 0) {

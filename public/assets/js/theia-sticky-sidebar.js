@@ -369,6 +369,3 @@
         return this;
     }
 })(jQuery);
-
-
-
