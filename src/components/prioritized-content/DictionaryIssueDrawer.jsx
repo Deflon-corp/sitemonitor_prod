@@ -24,21 +24,38 @@ const DictionaryIssueDrawer = ({
 
   const resolvedPagesWithEntry = useMemo(() => {
     if (pagesWithEntry && pagesWithEntry.length > 0) return pagesWithEntry;
-    if (page) return [{ title: page.title || "Untitled Page", url: page.url, language: "N/A", pages: 0, views: 0 }];
+    if (page)
+      return [
+        {
+          title: page.title || "Untitled Page",
+          url: page.url,
+          language: "N/A",
+          pages: 0,
+          views: 0,
+        },
+      ];
     return [];
   }, [pagesWithEntry, page]);
 
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return resolvedPagesWithEntry;
     const q = searchQuery.toLowerCase();
-    return resolvedPagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+    return resolvedPagesWithEntry.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q),
+    );
   }, [resolvedPagesWithEntry, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
       if (sortBy === "pages") return dir * (a.pages - b.pages);
       return dir * (a.views - b.views);
     });
@@ -59,12 +76,17 @@ const DictionaryIssueDrawer = ({
     }
   };
 
-  const baseName = safeFilename(issue ? `Dictionary-${issue.word}-Pages` : "Dictionary-Pages-Report");
+  const baseName = safeFilename(
+    issue ? `Dictionary-${issue.word}-Pages` : "Dictionary-Pages-Report",
+  );
 
   const exportCSV = useCallback(() => {
     const header = "Title,URL,Language,Pages,Views\n";
     const body = sortedPages
-      .map((p) => `"${(p.title || "").replace(/"/g, '""')}","${p.url.replace(/"/g, '""')}","${(p.language || "").replace(/"/g, '""')}",${p.pages || 0},${p.views || 0}`)
+      .map(
+        (p) =>
+          `"${(p.title || "").replace(/"/g, '""')}","${p.url.replace(/"/g, '""')}","${(p.language || "").replace(/"/g, '""')}",${p.pages || 0},${p.views || 0}`,
+      )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -72,7 +94,13 @@ const DictionaryIssueDrawer = ({
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = sortedPages.map((p) => ({ Title: p.title || "", URL: p.url, Language: p.language || "", Pages: p.pages || 0, Views: p.views || 0 }));
+    const rows = sortedPages.map((p) => ({
+      Title: p.title || "",
+      URL: p.url,
+      Language: p.language || "",
+      Pages: p.pages || 0,
+      Views: p.views || 0,
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -84,8 +112,26 @@ const DictionaryIssueDrawer = ({
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Title", "URL", "Language", "Pages", "Views"]];
-    const body = sortedPages.map((p) => [(p.title || "").slice(0, 30), p.url.slice(0, 50), p.language || "", String(p.pages || 0), String(p.views || 0)]);
-    autoTable(doc, { head, body, startY: 10, styles: { fontSize: 7 }, columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 55 }, 2: { cellWidth: 28 }, 3: { cellWidth: 14 }, 4: { cellWidth: 14 } } });
+    const body = sortedPages.map((p) => [
+      (p.title || "").slice(0, 30),
+      p.url.slice(0, 50),
+      p.language || "",
+      String(p.pages || 0),
+      String(p.views || 0),
+    ]);
+    autoTable(doc, {
+      head,
+      body,
+      startY: 10,
+      styles: { fontSize: 7 },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 14 },
+        4: { cellWidth: 14 },
+      },
+    });
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedPages]);
 
@@ -120,7 +166,11 @@ const DictionaryIssueDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow overflow-auto d-flex flex-column"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 960px)", maxWidth: "960px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 960px)",
+          maxWidth: "960px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dictionary-issue-drawer-title"
@@ -135,10 +185,16 @@ const DictionaryIssueDrawer = ({
                 title="Close"
                 aria-label="Close"
               >
-                <i className="isax isax-close-circle text-body" aria-hidden="true" />
+                <i
+                  className="isax isax-close-circle text-body"
+                  aria-hidden="true"
+                />
               </button>
               <div>
-                <h6 className="mb-0 fw-semibold text-body d-flex align-items-center gap-2" id="dictionary-issue-drawer-title">
+                <h6
+                  className="mb-0 fw-semibold text-body d-flex align-items-center gap-2"
+                  id="dictionary-issue-drawer-title"
+                >
                   Pages with this dictionary entry - {issue.word}
                   <a
                     href={googleSearchUrl}
@@ -151,15 +207,25 @@ const DictionaryIssueDrawer = ({
                     <span className="fw-bold">G</span>
                   </a>
                 </h6>
-                <p className="text-muted fs-13 mb-0 mt-1">Total pages: {filteredPages.length}</p>
+                <p className="text-muted fs-13 mb-0 mt-1">
+                  Total pages: {filteredPages.length}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="d-flex flex-wrap align-items-center justify-content-end gap-2 px-4 py-3 border-bottom border-secondary border-opacity-25">
-          <button type="button" className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2" title="Filter" aria-label="Filter">
-            <i className="isax isax-filter text-primary fs-18" aria-hidden="true" />
+          <button
+            type="button"
+            className="btn btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
+            title="Filter"
+            aria-label="Filter"
+          >
+            <i
+              className="isax isax-filter text-primary fs-18"
+              aria-hidden="true"
+            />
           </button>
           <DownloadReportDropdown
             reportBaseName={baseName}
@@ -170,13 +236,20 @@ const DictionaryIssueDrawer = ({
             className="border border-secondary border-opacity-25 rounded-2"
           />
           <div className="position-relative" style={{ width: 220 }}>
-            <i className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3" style={{ fontSize: "1rem" }} aria-hidden="true" />
+            <i
+              className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+              style={{ fontSize: "1rem" }}
+              aria-hidden="true"
+            />
             <input
               type="search"
               className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2"
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               aria-label="Search"
               style={{ paddingLeft: "2rem" }}
             />
@@ -196,13 +269,19 @@ const DictionaryIssueDrawer = ({
                     >
                       Title
                       {sortBy === "title" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  
+
                   <th className="py-3 text-body fs-13 fw-semibold">
                     <button
                       type="button"
@@ -211,9 +290,15 @@ const DictionaryIssueDrawer = ({
                     >
                       Pages
                       {sortBy === "pages" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
@@ -225,19 +310,31 @@ const DictionaryIssueDrawer = ({
                     >
                       Views
                       {sortBy === "views" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 56 }} aria-label="Open page details" />
+                  <th
+                    className="py-3 pe-4 text-body fs-13 fw-semibold"
+                    style={{ width: 56 }}
+                    aria-label="Open page details"
+                  />
                 </tr>
               </thead>
               <tbody>
                 {resolvedPagesWithEntry.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-5 text-center text-muted">No pages found</td>
+                    <td colSpan={5} className="py-5 text-center text-muted">
+                      No pages found
+                    </td>
                   </tr>
                 )}
                 {paginatedPages.map((p, idx) => (
@@ -251,7 +348,9 @@ const DictionaryIssueDrawer = ({
                           rel="noopener noreferrer"
                           className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
                         >
-                          <span className="flex-shrink-0 d-inline-flex text-primary"><ExternalLinkIcon size={12} /></span>
+                          <span className="flex-shrink-0 d-inline-flex text-primary">
+                            <ExternalLinkIcon size={12} />
+                          </span>
                           {p.url}
                         </a>
                       </div>
@@ -260,7 +359,7 @@ const DictionaryIssueDrawer = ({
                     <td className="py-3">
                       <span className="fs-13 fw-medium">{p.pages}</span>
                     </td>
-                    
+
                     <td className="py-3 pe-4">
                       <button
                         type="button"
@@ -269,7 +368,10 @@ const DictionaryIssueDrawer = ({
                         onClick={() => setSelectedPageForDetails(p)}
                         aria-label={`Open page details for ${p.title}`}
                       >
-                        <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                        <i
+                          className="isax isax-document-text fs-14"
+                          aria-hidden="true"
+                        />
                       </button>
                     </td>
                   </tr>
@@ -285,42 +387,116 @@ const DictionaryIssueDrawer = ({
                 className="form-select form-select-sm rounded-2"
                 style={{ width: "auto", minWidth: 60 }}
                 value={rowsPerPage}
-                onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
               >
-                {ROWS_PER_PAGE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                {ROWS_PER_PAGE_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
               </select>
               <span className="text-muted small">
-                {sortedPages.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                {sortedPages.length === 0
+                  ? 0
+                  : (currentPage - 1) * rowsPerPage + 1}
+                –{Math.min(currentPage * rowsPerPage, sortedPages.length)} of{" "}
+                {sortedPages.length}
               </span>
             </div>
             <nav aria-label="Pages with dictionary entry pagination">
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                  <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(1)} disabled={currentPage <= 1} aria-label="First">«</button>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="page-link rounded-2"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage <= 1}
+                    aria-label="First"
+                  >
+                    «
+                  </button>
                 </li>
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                  <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1} aria-label="Previous">‹</button>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="page-link rounded-2"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage <= 1}
+                    aria-label="Previous"
+                  >
+                    ‹
+                  </button>
                 </li>
                 {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
                   let p;
                   if (totalPages <= 7) p = i + 1;
                   else if (currentPage <= 4) p = i + 1;
-                  else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                  else if (currentPage >= totalPages - 3)
+                    p = totalPages - 6 + i;
                   else p = currentPage - 3 + i;
                   if (p < 1 || p > totalPages) return null;
                   return (
                     <li key={p} className="page-item">
-                      <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                      <button
+                        type="button"
+                        className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                        onClick={() => setCurrentPage(p)}
+                      >
+                        {p}
+                      </button>
                     </li>
                   );
                 })}
-                {totalPages > 7 && currentPage < totalPages - 3 && <li className="page-item disabled"><span className="page-link rounded-2">…</span></li>}
-                {totalPages > 7 && <li className="page-item"><button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button></li>}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                  <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages} aria-label="Next">›</button>
+                {totalPages > 7 && currentPage < totalPages - 3 && (
+                  <li className="page-item disabled">
+                    <span className="page-link rounded-2">…</span>
+                  </li>
+                )}
+                {totalPages > 7 && (
+                  <li className="page-item">
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() => setCurrentPage(totalPages)}
+                    >
+                      {totalPages}
+                    </button>
+                  </li>
+                )}
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="page-link rounded-2"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage >= totalPages}
+                    aria-label="Next"
+                  >
+                    ›
+                  </button>
                 </li>
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                  <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages} aria-label="Last">»</button>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="page-link rounded-2"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage >= totalPages}
+                    aria-label="Last"
+                  >
+                    »
+                  </button>
                 </li>
               </ul>
             </nav>
@@ -331,7 +507,14 @@ const DictionaryIssueDrawer = ({
       <DictionaryPageDetailsDrawer
         open={selectedPageForDetails != null}
         onClose={() => setSelectedPageForDetails(null)}
-        page={selectedPageForDetails ? { title: selectedPageForDetails.title, url: selectedPageForDetails.url } : null}
+        page={
+          selectedPageForDetails
+            ? {
+                title: selectedPageForDetails.title,
+                url: selectedPageForDetails.url,
+              }
+            : null
+        }
         defaultQaSubView="dictionary"
       />
     </>

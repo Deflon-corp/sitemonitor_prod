@@ -13,14 +13,22 @@ export default function DictionarySectionView() {
   const { items, loading, error } = useQaDictionary();
 
   const selectedIssue =
-    selectedDictionaryId != null ? items.find((r) => r.id === selectedDictionaryId) ?? null : null;
+    selectedDictionaryId != null
+      ? (items.find((r) => r.id === selectedDictionaryId) ?? null)
+      : null;
 
   if (loading) {
     return <p className="text-muted py-4">Loading custom dictionary…</p>;
   }
 
   if (error) {
-    return <QaPanelEmpty title="Could not load dictionary" message={error} icon="isax-danger" />;
+    return (
+      <QaPanelEmpty
+        title="Could not load dictionary"
+        message={error}
+        icon="isax-danger"
+      />
+    );
   }
 
   if (items.length === 0) {

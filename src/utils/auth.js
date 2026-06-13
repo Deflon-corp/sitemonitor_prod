@@ -7,16 +7,16 @@
  * This includes tokens and potentially other cached user data
  */
 export const clearSession = () => {
-    // Clear fundamental authentication tokens
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user'); // If user object is stored here
-    
-    // Clear session storage if any sensitive data is there
-    sessionStorage.clear();
-    
-    // Log for debugging
-    console.log('[Auth] Session cleared successfully.');
+  // Clear fundamental authentication tokens
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user"); // If user object is stored here
+
+  // Clear session storage if any sensitive data is there
+  sessionStorage.clear();
+
+  // Log for debugging
+  console.log("[Auth] Session cleared successfully.");
 };
 
 /**
@@ -24,5 +24,5 @@ export const clearSession = () => {
  * (Optional: could also check expiration if using jwt-decode)
  */
 export const isAuthenticated = () => {
-    return !!localStorage.getItem('token');
+  return !!localStorage.getItem("token");
 };

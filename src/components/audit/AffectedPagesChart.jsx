@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from "react";
 
-const AffectedPagesChart = ({ 
-  chartId = "seo-affected-chart", 
-  series = [], 
-  categories = [], 
-  height = 280, 
+const AffectedPagesChart = ({
+  chartId = "seo-affected-chart",
+  series = [],
+  categories = [],
+  height = 280,
   colors = ["#9ca3af"],
   showLegend = false,
   type = "area",
   max = undefined,
-  tooltipLabel = "Pages"
+  tooltipLabel = "Pages",
 }) => {
   const chartRef = useRef(null);
 
@@ -19,9 +19,9 @@ const AffectedPagesChart = ({
     if (!el) return;
 
     const init = () => {
-      const ApexCharts = (window).ApexCharts;
+      const ApexCharts = window.ApexCharts;
       if (!ApexCharts || !mounted) return;
-      
+
       // Destroy existing chart if it exists to allow re-render with new data
       if (chartRef.current) {
         chartRef.current.destroy();
@@ -35,64 +35,65 @@ const AffectedPagesChart = ({
           toolbar: { show: false },
           animations: {
             enabled: true,
-            easing: 'easeinout',
+            easing: "easeinout",
             speed: 800,
-          }
+          },
         },
         legend: {
-          show: showLegend
+          show: showLegend,
         },
         stroke: {
-          curve: 'smooth',
-          width: type === 'bar' ? 0 : 3
+          curve: "smooth",
+          width: type === "bar" ? 0 : 3,
         },
         plotOptions: {
           bar: {
             horizontal: false,
             columnWidth: "60%",
             borderRadius: 4,
-            distributed: type === 'bar' && colors.length > 1
+            distributed: type === "bar" && colors.length > 1,
           },
         },
         fill: {
-          type: type === 'bar' ? 'solid' : (type === 'area' ? 'gradient' : 'solid'),
+          type:
+            type === "bar" ? "solid" : type === "area" ? "gradient" : "solid",
           opacity: 1,
           gradient: {
             shadeIntensity: 1,
             opacityFrom: 0.45,
             opacityTo: 0.05,
-            stops: [20, 100]
-          }
+            stops: [20, 100],
+          },
         },
-        dataLabels: { 
-          enabled: type === 'bar',
+        dataLabels: {
+          enabled: type === "bar",
           style: {
-            fontSize: '10px',
-            colors: ['#fff']
-          }
+            fontSize: "10px",
+            colors: ["#fff"],
+          },
         },
         colors: colors,
         series: series,
-        xaxis: { 
+        xaxis: {
           categories: categories,
           labels: {
             style: {
-              fontSize: '11px',
-              colors: '#6b7280'
-            }
+              fontSize: "11px",
+              colors: "#6b7280",
+            },
           },
           axisBorder: { show: false },
-          axisTicks: { show: false }
+          axisTicks: { show: false },
         },
         yaxis: {
           min: 0,
           max: max,
-          labels: { 
+          labels: {
             formatter: (val) => Math.round(val),
             style: {
-              fontSize: '11px',
-              colors: '#6b7280'
-            }
+              fontSize: "11px",
+              colors: "#6b7280",
+            },
           },
         },
         grid: {
@@ -101,19 +102,19 @@ const AffectedPagesChart = ({
           padding: { top: 0, right: 8, bottom: 0, left: 8 },
         },
         tooltip: {
-          theme: 'light',
+          theme: "light",
           x: { show: true },
-          y: { formatter: (val) => `${val} ${tooltipLabel}` }
-        }
+          y: { formatter: (val) => `${val} ${tooltipLabel}` },
+        },
       };
       chartRef.current = new ApexCharts(el, opts);
       chartRef.current.render();
     };
 
-    if ((window).ApexCharts) init();
+    if (window.ApexCharts) init();
     else {
       const t = setInterval(() => {
-        if ((window).ApexCharts) {
+        if (window.ApexCharts) {
           clearInterval(t);
           init();
         }
@@ -134,9 +135,21 @@ const AffectedPagesChart = ({
         chartRef.current = null;
       }
     };
-  }, [chartId, series, categories, height, colors, showLegend, type, max, tooltipLabel]);
+  }, [
+    chartId,
+    series,
+    categories,
+    height,
+    colors,
+    showLegend,
+    type,
+    max,
+    tooltipLabel,
+  ]);
 
-  return <div id={chartId} style={{ width: "100%", minHeight: `${height}px` }} />;
+  return (
+    <div id={chartId} style={{ width: "100%", minHeight: `${height}px` }} />
+  );
 };
 
 export default AffectedPagesChart;

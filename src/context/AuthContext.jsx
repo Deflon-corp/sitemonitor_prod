@@ -1,13 +1,21 @@
-import { createContext, useContext, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUserThunk, logout, updateTokens, sendOtpThunk, verifyOtpThunk } from '../redux/slices/auth/authSlice';
+import { createContext, useContext, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  loginUserThunk,
+  logout,
+  updateTokens,
+  sendOtpThunk,
+  verifyOtpThunk,
+} from "../redux/slices/auth/authSlice";
 
 // Create Auth Context
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
-  const { user, token, loading, error, success } = useSelector((state) => state.auth);
+  const { user, token, loading, error, success } = useSelector(
+    (state) => state.auth,
+  );
 
   // Sync token from axios interceptor (via custom event) back to Redux
   useEffect(() => {
@@ -18,8 +26,9 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    window.addEventListener('auth:token-refreshed', handleTokenRefreshed);
-    return () => window.removeEventListener('auth:token-refreshed', handleTokenRefreshed);
+    window.addEventListener("auth:token-refreshed", handleTokenRefreshed);
+    return () =>
+      window.removeEventListener("auth:token-refreshed", handleTokenRefreshed);
   }, [dispatch]);
 
   // Function to handle login
@@ -68,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
+    throw new Error("useAuthContext must be used within an AuthProvider");
   }
   return context;
 };

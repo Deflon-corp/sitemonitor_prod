@@ -18,13 +18,20 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
   const [exprType, setExprType] = useState("Starts with");
   const [exprValue, setExprValue] = useState("");
 
-
   useEffect(() => {
     if (open && initialData) {
-      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
-      setMetaName(initialData?.metaName !== undefined ? initialData.metaName : "");
-      setExprType(initialData?.exprType !== undefined ? initialData.exprType : "");
-      setExprValue(initialData?.exprValue !== undefined ? initialData.exprValue : "");
+      setRuleName(
+        initialData?.ruleName !== undefined ? initialData.ruleName : "",
+      );
+      setMetaName(
+        initialData?.metaName !== undefined ? initialData.metaName : "",
+      );
+      setExprType(
+        initialData?.exprType !== undefined ? initialData.exprType : "",
+      );
+      setExprValue(
+        initialData?.exprValue !== undefined ? initialData.exprValue : "",
+      );
     } else if (open && !initialData) {
       setRuleName("");
       setMetaName("");
@@ -80,8 +87,15 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
             <div>
-              <h5 id="new-rule-meta-header-title" className="mb-0 fw-semibold text-body">New rule - Meta header</h5>
-              <p className="text-muted fs-13 mb-0 mt-1">Search for meta header tags, that matches query</p>
+              <h5
+                id="new-rule-meta-header-title"
+                className="mb-0 fw-semibold text-body"
+              >
+                New rule - Meta header
+              </h5>
+              <p className="text-muted fs-13 mb-0 mt-1">
+                Search for meta header tags, that matches query
+              </p>
             </div>
           </div>
         </div>
@@ -114,7 +128,9 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
           </div>
 
           <div className="mb-4">
-            <label className="form-label text-body fs-13">Meta Header Expr</label>
+            <label className="form-label text-body fs-13">
+              Meta Header Expr
+            </label>
             <div className="d-flex gap-2 mb-1">
               <select
                 className="form-select flex-shrink-0"
@@ -123,7 +139,9 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
                 onChange={(e) => setExprType(e.target.value)}
               >
                 {EXPR_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
               </select>
               <input
@@ -134,13 +152,21 @@ const NewRuleMetaHeaderDrawer = ({ open, onClose, onSave, initialData }) => {
                 placeholder="Expression value"
               />
             </div>
-            <p className="text-muted fs-12 mb-0">Define meta headers to match</p>
+            <p className="text-muted fs-12 mb-0">
+              Define meta headers to match
+            </p>
           </div>
         </div>
 
         <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-primary" onClick={handleSave}>Save</button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

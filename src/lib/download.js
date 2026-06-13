@@ -8,5 +8,10 @@ export function downloadBlob(blob, filename) {
 }
 
 export function safeFilename(title) {
-  return title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/gi, "").toLowerCase() || "report";
+  return (
+    title
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-|-$/gi, "")
+      .toLowerCase() || "report"
+  );
 }

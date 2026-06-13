@@ -16,7 +16,10 @@ export const DOMAINS = [
   },
   // Add more domains here, e.g.:
   {
-    id: "aarogyaabharat", name: "Aarogyaa Bharat", url: "https://aarogyaabharat.com/", lastScan: "DEC 09 2025",
+    id: "aarogyaabharat",
+    name: "Aarogyaa Bharat",
+    url: "https://aarogyaabharat.com/",
+    lastScan: "DEC 09 2025",
     metrics: {
       issues: 0,
       passed: 44,
@@ -28,7 +31,10 @@ export const DOMAINS = [
     },
   },
   {
-    id: "gmd", name: "GMD", url: "https://gmd.com/", lastScan: "DEC 09 2025",
+    id: "gmd",
+    name: "GMD",
+    url: "https://gmd.com/",
+    lastScan: "DEC 09 2025",
     metrics: {
       issues: 0,
       passed: 44,

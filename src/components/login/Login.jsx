@@ -1,18 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import useAuth from '../../hooks/useAuth'
-import { showToast } from '../common/alerts/ToastAlert'
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import { showToast } from "../common/alerts/ToastAlert";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    login_id: '',
-    password: '',
+    login_id: "",
+    password: "",
   });
 
   const { login, sendOtp, verifyOtp, loading } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('password');
+  const [activeTab, setActiveTab] = useState("password");
   const [showPassword, setShowPassword] = useState(false);
 
   // ✅ OTP states
@@ -56,7 +56,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (activeTab === 'password') {
+    if (activeTab === "password") {
       if (!formData.login_id) {
         showToast("Please enter your Login ID", "error");
         return;
@@ -68,9 +68,9 @@ const Login = () => {
 
       const result = await login(formData);
 
-      if (result.meta.requestStatus === 'fulfilled') {
-        showToast("Login successful", 'success');
-        navigate('/home');
+      if (result.meta.requestStatus === "fulfilled") {
+        showToast("Login successful", "success");
+        navigate("/home");
       }
     } else {
       // OTP logic triggered via Enter key
@@ -91,7 +91,7 @@ const Login = () => {
 
     const result = await sendOtp(formData.login_id);
 
-    if (result.meta.requestStatus === 'fulfilled') {
+    if (result.meta.requestStatus === "fulfilled") {
       setOtpSent(true);
       setTimer(expirySeconds);
       setOtpExpired(false);
@@ -133,9 +133,9 @@ const Login = () => {
 
     const result = await verifyOtp(formData.login_id, finalOtp);
 
-    if (result.meta.requestStatus === 'fulfilled') {
+    if (result.meta.requestStatus === "fulfilled") {
       showToast(result.payload.message || "Login successful", "success");
-      navigate('/home');
+      navigate("/home");
     }
   };
 
@@ -170,9 +170,9 @@ const Login = () => {
             <div className="d-flex mb-3 border-bottom">
               <button
                 type="button"
-                className={`btn w-50 ${activeTab === 'password' ? 'btn-primary' : 'btn-light'}`}
+                className={`btn w-50 ${activeTab === "password" ? "btn-primary" : "btn-light"}`}
                 onClick={() => {
-                  setActiveTab('password');
+                  setActiveTab("password");
                   setOtpSent(false);
                 }}
               >
@@ -181,15 +181,15 @@ const Login = () => {
 
               <button
                 type="button"
-                className={`btn w-50 ${activeTab === 'otp' ? 'btn-primary' : 'btn-light'}`}
-                onClick={() => setActiveTab('otp')}
+                className={`btn w-50 ${activeTab === "otp" ? "btn-primary" : "btn-light"}`}
+                onClick={() => setActiveTab("otp")}
               >
                 Login with OTP
               </button>
             </div>
 
             {/* PASSWORD LOGIN */}
-            {activeTab === 'password' && (
+            {activeTab === "password" && (
               <>
                 <div className="mb-3">
                   <label className="form-label">Login Id</label>
@@ -215,7 +215,7 @@ const Login = () => {
                       <i className="isax isax-lock"></i>
                     </span>
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
@@ -225,11 +225,14 @@ const Login = () => {
                     <span
                       className="input-group-text border-start-0 cursor-pointer"
                       onClick={togglePasswordVisibility}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: "pointer" }}
                     >
-                      <i className={`isax ${showPassword ? 'isax-eye-slash' : 'isax-eye'}`}></i>
+                      <i
+                        className={`isax ${showPassword ? "isax-eye-slash" : "isax-eye"}`}
+                      ></i>
                     </span>
-                  </div></div>
+                  </div>
+                </div>
 
                 <button className="btn bg-primary-gradient text-white w-100">
                   {loading ? "Signing..." : "Sign In"}
@@ -238,7 +241,7 @@ const Login = () => {
             )}
 
             {/* OTP LOGIN */}
-            {activeTab === 'otp' && (
+            {activeTab === "otp" && (
               <>
                 <div className="mb-3">
                   <label className="form-label">Login Id</label>
@@ -269,7 +272,11 @@ const Login = () => {
                           type="text"
                           maxLength="1"
                           className="form-control text-center"
-                          style={{ width: "45px", height: "45px", fontSize: "18px" }}
+                          style={{
+                            width: "45px",
+                            height: "45px",
+                            fontSize: "18px",
+                          }}
                           value={data}
                           ref={(el) => (otpRefs.current[index] = el)}
                           onChange={(e) => handleOtpChange(e.target, index)}
@@ -278,7 +285,10 @@ const Login = () => {
                       ))}
                     </div>
                     <div className="text-center mt-3">
-                      <p className="text-muted mb-0">Resend OTP in <span className="text-primary fw-bold">{timer}s</span></p>
+                      <p className="text-muted mb-0">
+                        Resend OTP in{" "}
+                        <span className="text-primary fw-bold">{timer}s</span>
+                      </p>
                     </div>
                   </div>
                 )}
@@ -292,10 +302,16 @@ const Login = () => {
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
                         Sending...
                       </>
-                    ) : "Send OTP"}
+                    ) : (
+                      "Send OTP"
+                    )}
                   </button>
                 ) : otpExpired ? (
                   <button
@@ -306,10 +322,16 @@ const Login = () => {
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
                         Resending...
                       </>
-                    ) : "Resend OTP"}
+                    ) : (
+                      "Resend OTP"
+                    )}
                   </button>
                 ) : (
                   <button
@@ -323,7 +345,6 @@ const Login = () => {
                 )}
               </>
             )}
-
           </div>
         </div>
       </div>

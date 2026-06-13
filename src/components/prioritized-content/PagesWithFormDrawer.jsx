@@ -17,7 +17,16 @@ function getSamplePagesForForm(formUrl) {
 
 function ExternalLinkIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ms-1" style={{ verticalAlign: "middle", flexShrink: 0 }}>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="ms-1"
+      style={{ verticalAlign: "middle", flexShrink: 0 }}
+    >
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <path d="M15 3h6v6" />
       <path d="M10 14L21 3" />
@@ -25,13 +34,21 @@ function ExternalLinkIcon() {
   );
 }
 
-export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPageDetails }) {
+export default function PagesWithFormDrawer({
+  open,
+  onClose,
+  formUrl,
+  onOpenPageDetails,
+}) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortViewsAsc, setSortViewsAsc] = useState(true);
 
-  const samplePages = useMemo(() => (formUrl ? getSamplePagesForForm(formUrl) : []), [formUrl]);
+  const samplePages = useMemo(
+    () => (formUrl ? getSamplePagesForForm(formUrl) : []),
+    [formUrl],
+  );
 
   const filteredRows = useMemo(() => {
     if (!search.trim()) return samplePages;
@@ -39,13 +56,13 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
     return samplePages.filter(
       (r) =>
         (r.title && r.title.toLowerCase().includes(q)) ||
-        (r.url && r.url.toLowerCase().includes(q))
+        (r.url && r.url.toLowerCase().includes(q)),
     );
   }, [samplePages, search]);
 
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((a, b) =>
-      sortViewsAsc ? a.views - b.views : b.views - a.views
+      sortViewsAsc ? a.views - b.views : b.views - a.views,
     );
   }, [filteredRows, sortViewsAsc]);
 
@@ -61,18 +78,22 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
     const body = sortedRows
       .map(
         (r) =>
-          `"${(r.title || "").replace(/"/g, '""')}","${(r.url || "").replace(/"/g, '""')}",${r.views}`
+          `"${(r.title || "").replace(/"/g, '""')}","${(r.url || "").replace(/"/g, '""')}",${r.views}`,
       )
       .join("\n");
     downloadBlob(
       new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
-      `${reportBase}.csv`
+      `${reportBase}.csv`,
     );
   };
   const exportExcel = async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
-      sortedRows.map((r) => ({ "Title and URL": r.title || r.url, URL: r.url, Views: r.views }))
+      sortedRows.map((r) => ({
+        "Title and URL": r.title || r.url,
+        URL: r.url,
+        Views: r.views,
+      })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -84,7 +105,11 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["Title", "URL", "Views"]],
-      body: sortedRows.map((r) => [r.title || "", r.url || "", String(r.views)]),
+      body: sortedRows.map((r) => [
+        r.title || "",
+        r.url || "",
+        String(r.views),
+      ]),
       startY: 10,
       styles: { fontSize: 8 },
     });
@@ -116,7 +141,11 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
       />
       <div
         className="bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column"
-        style={{ zIndex: 1055, width: "min(100%, 1200px)", overflow: "visible" }}
+        style={{
+          zIndex: 1055,
+          width: "min(100%, 1200px)",
+          overflow: "visible",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="pages-with-form-drawer-title"
@@ -132,9 +161,15 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
                   onClick={onClose}
                   aria-label="Close"
                 >
-                  <i className="isax isax-close-circle fs-20 text-body" aria-hidden />
+                  <i
+                    className="isax isax-close-circle fs-20 text-body"
+                    aria-hidden
+                  />
                 </button>
-                <h5 id="pages-with-form-drawer-title" className="mb-0 fw-semibold text-body">
+                <h5
+                  id="pages-with-form-drawer-title"
+                  className="mb-0 fw-semibold text-body"
+                >
                   Pages with this form
                 </h5>
               </div>
@@ -158,9 +193,15 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
                 variant="icon"
                 dropup
               />
-              <div className="input-group input-group-sm" style={{ width: 200 }}>
+              <div
+                className="input-group input-group-sm"
+                style={{ width: 200 }}
+              >
                 <span className="input-group-text bg-transparent border-end-0">
-                  <i className="isax isax-search-normal-1 text-muted" aria-hidden />
+                  <i
+                    className="isax isax-search-normal-1 text-muted"
+                    aria-hidden
+                  />
                 </span>
                 <input
                   type="search"
@@ -227,7 +268,9 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
                         className="btn btn-icon btn-sm btn-primary rounded-2"
                         aria-label="Open page details"
                         title="Open page details"
-                        onClick={() => onOpenPageDetails && onOpenPageDetails(row)}
+                        onClick={() =>
+                          onOpenPageDetails && onOpenPageDetails(row)
+                        }
                       >
                         <i className="isax isax-document-text" aria-hidden />
                       </button>
@@ -260,7 +303,8 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
             </select>
             <span className="text-muted small">
               {(currentPage - 1) * rowsPerPage + 1}–
-              {Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+              {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+              {sortedRows.length}
             </span>
           </div>
           <nav aria-label="Pages pagination">
@@ -290,11 +334,15 @@ export default function PagesWithFormDrawer({ open, onClose, formUrl, onOpenPage
                   </li>
                 );
               })}
-              <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+              <li
+                className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+              >
                 <button
                   type="button"
                   className="page-link rounded-2"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage >= totalPages}
                 >
                   »

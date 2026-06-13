@@ -1,5 +1,5 @@
-import React from 'react'
-import Login from '../components/login/Login'
+import React from "react";
+import Login from "../components/login/Login";
 const LoginPage = () => {
   return (
     <div className="main-wrapper auth-bg">
@@ -13,7 +13,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

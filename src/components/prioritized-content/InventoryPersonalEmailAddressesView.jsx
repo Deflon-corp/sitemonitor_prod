@@ -18,13 +18,15 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortEmailAsc, setSortEmailAsc] = useState(true);
   const [documentsDrawerOpen, setDocumentsDrawerOpen] = useState(false);
-  const [selectedEmailForDocuments, setSelectedEmailForDocuments] = useState(null);
+  const [selectedEmailForDocuments, setSelectedEmailForDocuments] =
+    useState(null);
   const [pagesDrawerOpen, setPagesDrawerOpen] = useState(false);
   const [selectedEmailForPages, setSelectedEmailForPages] = useState(null);
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
   /** Inventory sub-view when Page Details opens (documents drawer → Documents; pages drawer → Email addresses). */
-  const [pageDetailsInventorySubView, setPageDetailsInventorySubView] = useState("email-addresses");
+  const [pageDetailsInventorySubView, setPageDetailsInventorySubView] =
+    useState("email-addresses");
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
@@ -34,7 +36,9 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
-      const cmp = (a.email || "").localeCompare(b.email || "", undefined, { sensitivity: "base" });
+      const cmp = (a.email || "").localeCompare(b.email || "", undefined, {
+        sensitivity: "base",
+      });
       return sortEmailAsc ? cmp : -cmp;
     });
   }, [filteredItems, sortEmailAsc]);
@@ -49,14 +53,24 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
   const exportCSV = useCallback(() => {
     const header = "Email,Documents,Pages\n";
     const body = sortedItems
-      .map((r) => `"${(r.email || "").replace(/"/g, '""')}",${r.documents ?? 0},${r.pages ?? 0}`)
+      .map(
+        (r) =>
+          `"${(r.email || "").replace(/"/g, '""')}",${r.documents ?? 0},${r.pages ?? 0}`,
+      )
       .join("\n");
-    downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${reportBase}.csv`);
+    downloadBlob(
+      new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
+      `${reportBase}.csv`,
+    );
   }, [sortedItems, reportBase]);
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
-      sortedItems.map((r) => ({ Email: r.email || "", Documents: r.documents ?? 0, Pages: r.pages ?? 0 }))
+      sortedItems.map((r) => ({
+        Email: r.email || "",
+        Documents: r.documents ?? 0,
+        Pages: r.pages ?? 0,
+      })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Emails");
@@ -68,7 +82,11 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["Email", "Documents", "Pages"]],
-      body: sortedItems.map((r) => [r.email || "", String(r.documents ?? 0), String(r.pages ?? 0)]),
+      body: sortedItems.map((r) => [
+        r.email || "",
+        String(r.documents ?? 0),
+        String(r.pages ?? 0),
+      ]),
       startY: 10,
       styles: { fontSize: 8 },
     });
@@ -98,7 +116,10 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
           onExportPDF={exportPDF}
           variant="icon"
         />
-        <div className="position-relative" style={{ minWidth: 200, maxWidth: 280 }}>
+        <div
+          className="position-relative"
+          style={{ minWidth: 200, maxWidth: 280 }}
+        >
           <input
             type="search"
             className="form-control form-control-sm ps-3 pe-4"
@@ -110,7 +131,10 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
             }}
             aria-label="Search email addresses"
           />
-          <span className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted" style={{ pointerEvents: "none" }}>
+          <span
+            className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted"
+            style={{ pointerEvents: "none" }}
+          >
             <i className="isax isax-search-normal small" aria-hidden />
           </span>
         </div>
@@ -129,13 +153,24 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
                       onClick={() => setSortEmailAsc((v) => !v)}
                     >
                       Email
-                      <i className={`isax fs-12 ${sortEmailAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden />
+                      <i
+                        className={`isax fs-12 ${sortEmailAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                        aria-hidden
+                      />
                     </button>
                   </th>
-                  <th className="border-0 py-3 pe-2 text-end fw-semibold text-body text-uppercase small" style={{ width: 120 }} scope="col">
+                  <th
+                    className="border-0 py-3 pe-2 text-end fw-semibold text-body text-uppercase small"
+                    style={{ width: 120 }}
+                    scope="col"
+                  >
                     <span className="visually-hidden">Documents</span>
                   </th>
-                  <th className="border-0 pe-4 py-3 text-end fw-semibold text-body text-uppercase small" style={{ width: 120 }} scope="col">
+                  <th
+                    className="border-0 pe-4 py-3 text-end fw-semibold text-body text-uppercase small"
+                    style={{ width: 120 }}
+                    scope="col"
+                  >
                     <span className="visually-hidden">Pages</span>
                   </th>
                 </tr>
@@ -144,7 +179,10 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
                 {paginatedItems.map((row) => (
                   <tr key={row.id}>
                     <td className="ps-4 py-3">
-                      <a href={`mailto:${row.email}`} className="text-primary text-decoration-none text-break">
+                      <a
+                        href={`mailto:${row.email}`}
+                        className="text-primary text-decoration-none text-break"
+                      >
                         {row.email}
                       </a>
                     </td>
@@ -161,10 +199,16 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
                         }}
                         aria-label={`Open pages for documents containing ${row.email} (${row.documents} documents)`}
                       >
-                        <span className="fw-semibold text-primary" style={{ fontSize: "1.125rem" }}>
+                        <span
+                          className="fw-semibold text-primary"
+                          style={{ fontSize: "1.125rem" }}
+                        >
                           {row.documents}
                         </span>
-                        <span className="text-body text-uppercase small" style={{ fontSize: "0.7rem" }}>
+                        <span
+                          className="text-body text-uppercase small"
+                          style={{ fontSize: "0.7rem" }}
+                        >
                           documents
                         </span>
                       </button>
@@ -182,10 +226,16 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
                         }}
                         aria-label={`Open list of pages containing ${row.email} (${row.pages} pages)`}
                       >
-                        <span className="fw-semibold text-primary" style={{ fontSize: "1.125rem" }}>
+                        <span
+                          className="fw-semibold text-primary"
+                          style={{ fontSize: "1.125rem" }}
+                        >
                           {row.pages}
                         </span>
-                        <span className="text-body text-uppercase small" style={{ fontSize: "0.7rem" }}>
+                        <span
+                          className="text-body text-uppercase small"
+                          style={{ fontSize: "0.7rem" }}
+                        >
                           pages
                         </span>
                       </button>
@@ -215,11 +265,15 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
               </select>
             </div>
             <span className="text-muted small">
-              {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, sortedItems.length)} of {sortedItems.length}
+              {(currentPage - 1) * rowsPerPage + 1}-
+              {Math.min(currentPage * rowsPerPage, sortedItems.length)} of{" "}
+              {sortedItems.length}
             </span>
             <nav aria-label="Email addresses pagination">
               <ul className="pagination pagination-sm mb-0">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link"
@@ -230,18 +284,31 @@ export default function InventoryPersonalEmailAddressesView({ items = [] }) {
                     Previous
                   </button>
                 </li>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <li key={p} className={`page-item ${currentPage === p ? "active" : ""}`}>
-                    <button type="button" className="page-link" onClick={() => setCurrentPage(p)}>
-                      {p}
-                    </button>
-                  </li>
-                ))}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <li
+                      key={p}
+                      className={`page-item ${currentPage === p ? "active" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() => setCurrentPage(p)}
+                      >
+                        {p}
+                      </button>
+                    </li>
+                  ),
+                )}
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                     aria-label="Next"
                   >

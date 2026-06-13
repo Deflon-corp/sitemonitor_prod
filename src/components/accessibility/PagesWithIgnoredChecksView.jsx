@@ -15,14 +15,44 @@ const TEAL = "#14b8a6";
 const ComplianceRing = ({ percent }) => {
   const r = 20;
   const circumference = 2 * Math.PI * r;
-  const filled = Math.min(100, Math.max(0, percent)) / 100 * circumference;
+  const filled = (Math.min(100, Math.max(0, percent)) / 100) * circumference;
   return (
-    <div className="position-relative d-inline-flex align-items-center justify-content-center" style={{ width: 48, height: 48 }}>
-      <svg width={48} height={48} viewBox="0 0 48 48" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
-        <circle cx="24" cy="24" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
-        <circle cx="24" cy="24" r={r} fill="none" stroke={TEAL} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${filled} ${circumference}`} />
+    <div
+      className="position-relative d-inline-flex align-items-center justify-content-center"
+      style={{ width: 48, height: 48 }}
+    >
+      <svg
+        width={48}
+        height={48}
+        viewBox="0 0 48 48"
+        style={{ transform: "rotate(-90deg)" }}
+        aria-hidden="true"
+      >
+        <circle
+          cx="24"
+          cy="24"
+          r={r}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="4"
+        />
+        <circle
+          cx="24"
+          cy="24"
+          r={r}
+          fill="none"
+          stroke={TEAL}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circumference}`}
+        />
       </svg>
-      <span className="position-absolute fw-semibold text-body" style={{ fontSize: "0.7rem" }}>{Math.round(percent)}%</span>
+      <span
+        className="position-absolute fw-semibold text-body"
+        style={{ fontSize: "0.7rem" }}
+      >
+        {Math.round(percent)}%
+      </span>
     </div>
   );
 };
@@ -45,7 +75,9 @@ const PagesWithIgnoredChecksView = () => {
     if (!searchQuery.trim()) return SAMPLE_PAGES;
     const q = searchQuery.toLowerCase();
     return SAMPLE_PAGES.filter(
-      (p) => (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q)
+      (p) =>
+        (p.title || "").toLowerCase().includes(q) ||
+        p.url.toLowerCase().includes(q),
     );
   }, [searchQuery]);
 
@@ -53,9 +85,16 @@ const PagesWithIgnoredChecksView = () => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
-      if (sortBy === "ignoredChecks") return dir * (a.ignoredChecks - b.ignoredChecks);
-      if (sortBy === "compliancePercent") return dir * (a.compliancePercent - b.compliancePercent);
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
+      if (sortBy === "ignoredChecks")
+        return dir * (a.ignoredChecks - b.ignoredChecks);
+      if (sortBy === "compliancePercent")
+        return dir * (a.compliancePercent - b.compliancePercent);
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
@@ -83,7 +122,8 @@ const PagesWithIgnoredChecksView = () => {
   const reportBaseName = safeFilename("Pages-With-Ignored-Checks-Report");
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Ignored checks,Page compliance %,Priority,Views\n";
+    const header =
+      "Title,URL,Ignored checks,Page compliance %,Priority,Views\n";
     const body = sortedPages
       .map((p) =>
         [
@@ -93,7 +133,7 @@ const PagesWithIgnoredChecksView = () => {
           p.compliancePercent.toFixed(2),
           `"${p.priority}"`,
           p.views,
-        ].join(",")
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -120,7 +160,9 @@ const PagesWithIgnoredChecksView = () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Ignored checks", "Compliance %", "Priority", "Views"]];
+    const head = [
+      ["Title", "URL", "Ignored checks", "Compliance %", "Priority", "Views"],
+    ];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 30),
       p.url.slice(0, 50),
@@ -134,7 +176,14 @@ const PagesWithIgnoredChecksView = () => {
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 35 }, 1: { cellWidth: 55 }, 2: { cellWidth: 22 }, 3: { cellWidth: 22 }, 4: { cellWidth: 18 }, 5: { cellWidth: 14 } },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 14 },
+      },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
@@ -145,7 +194,11 @@ const PagesWithIgnoredChecksView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <div>
           <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
-            <i className="isax isax-eye-slash text-primary fs-22" aria-hidden="true" /> Pages with ignored checks
+            <i
+              className="isax isax-eye-slash text-primary fs-22"
+              aria-hidden="true"
+            />{" "}
+            Pages with ignored checks
           </h5>
           <p className="text-muted fs-13 mb-0">
             {totalPagesCount} pages with ignored checks WCAG 2.2
@@ -166,14 +219,24 @@ const PagesWithIgnoredChecksView = () => {
             title="Filter"
             aria-label="Filter"
           >
-            <i className="isax isax-filter text-primary fs-18" aria-hidden="true" />
+            <i
+              className="isax isax-filter text-primary fs-18"
+              aria-hidden="true"
+            />
           </button>
           <div
             className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
             style={{ width: 220 }}
           >
-            <span className="d-flex align-items-center ps-3 flex-shrink-0 text-muted" aria-hidden="true">
-              <i className="isax isax-search-normal-1" style={{ fontSize: "1rem" }} aria-hidden="true" />
+            <span
+              className="d-flex align-items-center ps-3 flex-shrink-0 text-muted"
+              aria-hidden="true"
+            >
+              <i
+                className="isax isax-search-normal-1"
+                style={{ fontSize: "1rem" }}
+                aria-hidden="true"
+              />
             </span>
             <input
               type="search"
@@ -195,7 +258,9 @@ const PagesWithIgnoredChecksView = () => {
       <div className="card border-0 shadow-sm">
         <div className="card-body p-0">
           {sortedPages.length === 0 ? (
-            <div className="text-center text-muted py-5">No content was found.</div>
+            <div className="text-center text-muted py-5">
+              No content was found.
+            </div>
           ) : (
             <>
               <div className="table-responsive">
@@ -210,9 +275,15 @@ const PagesWithIgnoredChecksView = () => {
                         >
                           Title and URL
                           {sortBy === "title" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
@@ -224,13 +295,21 @@ const PagesWithIgnoredChecksView = () => {
                         >
                           Ignored checks
                           {sortBy === "ignoredChecks" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
-                      <th className="py-3 text-body fs-13 fw-semibold">Page compliance</th>
+                      <th className="py-3 text-body fs-13 fw-semibold">
+                        Page compliance
+                      </th>
                       <th className="py-3 text-body fs-13 fw-semibold">
                         <button
                           type="button"
@@ -239,9 +318,15 @@ const PagesWithIgnoredChecksView = () => {
                         >
                           Priority
                           {sortBy === "priority" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-arrow-down-1 fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-arrow-down-1 fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
@@ -252,17 +337,34 @@ const PagesWithIgnoredChecksView = () => {
                           onClick={() => handleSort("views")}
                         >
                           Views
-                          <span className="ms-1 d-inline-flex" title="Total page views" aria-label="Info">
-                            <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
+                          <span
+                            className="ms-1 d-inline-flex"
+                            title="Total page views"
+                            aria-label="Info"
+                          >
+                            <i
+                              className="isax isax-information text-muted fs-12"
+                              aria-hidden="true"
+                            />
                           </span>
                           {sortBy === "views" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
-                      <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions" />
+                      <th
+                        className="py-3 pe-4 text-body fs-13 fw-semibold"
+                        style={{ width: 120 }}
+                        aria-label="Actions"
+                      />
                     </tr>
                   </thead>
                   <tbody>
@@ -285,7 +387,9 @@ const PagesWithIgnoredChecksView = () => {
                           </div>
                         </td>
                         <td className="py-3">
-                          <span className="fs-13 text-body">{p.ignoredChecks}</span>
+                          <span className="fs-13 text-body">
+                            {p.ignoredChecks}
+                          </span>
                         </td>
                         <td className="py-3">
                           <div className="d-flex align-items-center gap-2">
@@ -311,8 +415,15 @@ const PagesWithIgnoredChecksView = () => {
                         <td className="py-3">
                           <div className="d-flex flex-column gap-1">
                             <span className="fs-13 text-body">{p.views}</span>
-                            <div className="progress rounded-pill" style={{ height: 4, maxWidth: 80 }}>
-                              <div className="progress-bar bg-secondary bg-opacity-25" style={{ width: "100%" }} role="progressbar" />
+                            <div
+                              className="progress rounded-pill"
+                              style={{ height: 4, maxWidth: 80 }}
+                            >
+                              <div
+                                className="progress-bar bg-secondary bg-opacity-25"
+                                style={{ width: "100%" }}
+                                role="progressbar"
+                              />
                             </div>
                           </div>
                         </td>
@@ -325,7 +436,10 @@ const PagesWithIgnoredChecksView = () => {
                               aria-label="Open page details"
                               onClick={() => openIssuePage(p, idx)}
                             >
-                              <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                              <i
+                                className="isax isax-document-text fs-14"
+                                aria-hidden="true"
+                              />
                             </button>
                           </div>
                         </td>
@@ -354,16 +468,22 @@ const PagesWithIgnoredChecksView = () => {
                     ))}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalPagesCount)} of {totalPagesCount}
+                    {(currentPage - 1) * rowsPerPage + 1}-
+                    {Math.min(currentPage * rowsPerPage, totalPagesCount)} of{" "}
+                    {totalPagesCount}
                   </span>
                 </div>
                 <nav aria-label="Pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage <= 1}
                         aria-label="Previous"
                       >
@@ -374,7 +494,8 @@ const PagesWithIgnoredChecksView = () => {
                       let p;
                       if (totalPages <= 7) p = i + 1;
                       else if (currentPage <= 4) p = i + 1;
-                      else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                      else if (currentPage >= totalPages - 3)
+                        p = totalPages - 6 + i;
                       else p = currentPage - 3 + i;
                       if (p < 1 || p > totalPages) return null;
                       return (
@@ -396,16 +517,24 @@ const PagesWithIgnoredChecksView = () => {
                     )}
                     {totalPages > 7 && (
                       <li className="page-item">
-                        <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)}>
+                        <button
+                          type="button"
+                          className="page-link rounded-2"
+                          onClick={() => setCurrentPage(totalPages)}
+                        >
                           {totalPages}
                         </button>
                       </li>
                     )}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
                         disabled={currentPage >= totalPages}
                         aria-label="Next"
                       >

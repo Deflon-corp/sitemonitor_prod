@@ -1,36 +1,35 @@
-import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import LoginPage from '../pages/LoginPage'
-import ProtectedRouter from './ProtectedRouter'
-import GuestRouter from './GuestRouter'
-import HomePage from '../pages/HomePage'
-import Welcome from '../components/welcome/Welcome'
-import Home from '../components/home/Home'
-import UserList from '../components/user/UserList'
-import RuleList from '../components/rule/RuleList'
-import HistoryList from '../components/history-center/HistoryList'
-import { getTenantId } from '../utils/subdomain'
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "../pages/LoginPage";
+import ProtectedRouter from "./ProtectedRouter";
+import GuestRouter from "./GuestRouter";
+import HomePage from "../pages/HomePage";
+import Welcome from "../components/welcome/Welcome";
+import Home from "../components/home/Home";
+import UserList from "../components/user/UserList";
+import RuleList from "../components/rule/RuleList";
+import HistoryList from "../components/history-center/HistoryList";
+import { getTenantId } from "../utils/subdomain";
 
-import AddDomain from '../components/domain/AddDomain'
-import UpdateDomain from '../components/domain/UpdateDomain'
-import AddUser from '../components/user/AddUser'
-import UpdateProfile from '../components/user/UpdateProfile'
-import PoliciesView from '../components/policies/PoliciesView'
-import Policies from '../components/policies/Policies'
-import QualityAssurance from '../components/quality-assurance/QualityAssurance'
-import Dashboard from '../components/domain/Dashboard'
-import DashboardLayout from '../layouts/DashboardLayout'
-import PrioritizedContentPage from '../components/prioritized-content/PrioritizedContentTable'
-import Seo from '../components/seo/Seo'
-import Accessibility from '../components/accessibility/Accessibility'
-import RunWebsiteAuditPage from '../components/audit/Audit'
-import SEOHealthSlugPage from '../components/audit/seo-health/SEOHealthSlugPage'
-import ResponseStatusDetailPage from '../components/audit/response-status/ResponseStatusDetailPage'
-import SpellCheckerDetailPage from '../components/audit/spell-checker/SpellCheckerDetailPage'
-import HeartbeatView from '../components/heartbeat/HeartbeatView'
-import PerformanceView from '../components/performance/PerformanceView'
-import InventoryPage from '../components/inventory/Inventory'
-
+import AddDomain from "../components/domain/AddDomain";
+import UpdateDomain from "../components/domain/UpdateDomain";
+import AddUser from "../components/user/AddUser";
+import UpdateProfile from "../components/user/UpdateProfile";
+import PoliciesView from "../components/policies/PoliciesView";
+import Policies from "../components/policies/Policies";
+import QualityAssurance from "../components/quality-assurance/QualityAssurance";
+import Dashboard from "../components/domain/Dashboard";
+import DashboardLayout from "../layouts/DashboardLayout";
+import PrioritizedContentPage from "../components/prioritized-content/PrioritizedContentTable";
+import Seo from "../components/seo/Seo";
+import Accessibility from "../components/accessibility/Accessibility";
+import RunWebsiteAuditPage from "../components/audit/Audit";
+import SEOHealthSlugPage from "../components/audit/seo-health/SEOHealthSlugPage";
+import ResponseStatusDetailPage from "../components/audit/response-status/ResponseStatusDetailPage";
+import SpellCheckerDetailPage from "../components/audit/spell-checker/SpellCheckerDetailPage";
+import HeartbeatView from "../components/heartbeat/HeartbeatView";
+import PerformanceView from "../components/performance/PerformanceView";
+import InventoryPage from "../components/inventory/Inventory";
 
 const MainRouter = () => {
   const tenantId = getTenantId();
@@ -84,7 +83,11 @@ const MainRouter = () => {
         path="/domain/prioritized-content"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Prioritized Content" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Prioritized Content"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <PrioritizedContentPage />
             </DashboardLayout>
           </ProtectedRouter>
@@ -94,7 +97,11 @@ const MainRouter = () => {
         path="/domain/policies"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Policies" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Policies"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <Policies />
             </DashboardLayout>
           </ProtectedRouter>
@@ -104,7 +111,11 @@ const MainRouter = () => {
         path="/domain/quality-assurance"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Quality Assurance" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Quality Assurance"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <QualityAssurance />
             </DashboardLayout>
           </ProtectedRouter>
@@ -114,7 +125,11 @@ const MainRouter = () => {
         path="/domain/seo"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="SEO" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="SEO"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <Seo />
             </DashboardLayout>
           </ProtectedRouter>
@@ -124,7 +139,11 @@ const MainRouter = () => {
         path="/domain/accessibility"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Accessibility" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Accessibility"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <Accessibility />
             </DashboardLayout>
           </ProtectedRouter>
@@ -166,7 +185,11 @@ const MainRouter = () => {
         path="/domain/heartbeat"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Heartbeat" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Heartbeat"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <HeartbeatView />
             </DashboardLayout>
           </ProtectedRouter>
@@ -176,7 +199,11 @@ const MainRouter = () => {
         path="/domain/performance"
         element={
           <ProtectedRouter>
-            <DashboardLayout breadcrumbTitle="Performance" breadcrumbParent="Dashboard" breadcrumbParentHref="/domain">
+            <DashboardLayout
+              breadcrumbTitle="Performance"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
               <PerformanceView />
             </DashboardLayout>
           </ProtectedRouter>
@@ -192,7 +219,8 @@ const MainRouter = () => {
       />
 
       <Route path="*" element={<Navigate to="/" />} />
-    </Routes>)
-}
+    </Routes>
+  );
+};
 
-export default MainRouter
+export default MainRouter;

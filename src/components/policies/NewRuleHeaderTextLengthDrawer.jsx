@@ -8,17 +8,29 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRuleHeaderTextLengthDrawer = ({ open, onClose, onSave, initialData }) => {
+const NewRuleHeaderTextLengthDrawer = ({
+  open,
+  onClose,
+  onSave,
+  initialData,
+}) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Less than");
   const [characterCount, setCharacterCount] = useState("");
 
-
   useEffect(() => {
     if (open && initialData) {
-      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
-      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
-      setCharacterCount(initialData?.characterCount !== undefined ? initialData.characterCount : "");
+      setRuleName(
+        initialData?.ruleName !== undefined ? initialData.ruleName : "",
+      );
+      setComparison(
+        initialData?.comparison !== undefined ? initialData.comparison : "",
+      );
+      setCharacterCount(
+        initialData?.characterCount !== undefined
+          ? initialData.characterCount
+          : "",
+      );
     } else if (open && !initialData) {
       setRuleName("");
       setComparison("");
@@ -72,8 +84,15 @@ const NewRuleHeaderTextLengthDrawer = ({ open, onClose, onSave, initialData }) =
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
             <div>
-              <h5 id="new-rule-header-text-length-title" className="mb-0 fw-semibold text-body">New rule - Header text length</h5>
-              <p className="text-muted fs-13 mb-0 mt-1">Define when the rule should apply header texts</p>
+              <h5
+                id="new-rule-header-text-length-title"
+                className="mb-0 fw-semibold text-body"
+              >
+                New rule - Header text length
+              </h5>
+              <p className="text-muted fs-13 mb-0 mt-1">
+                Define when the rule should apply header texts
+              </p>
             </div>
           </div>
         </div>
@@ -93,7 +112,9 @@ const NewRuleHeaderTextLengthDrawer = ({ open, onClose, onSave, initialData }) =
           </div>
 
           <div className="mb-4">
-            <label className="form-label text-body fs-13">Characters (Number of characters in header text):</label>
+            <label className="form-label text-body fs-13">
+              Characters (Number of characters in header text):
+            </label>
             <div className="d-flex gap-2 align-items-center flex-wrap">
               <select
                 className="form-select flex-shrink-0"
@@ -102,7 +123,9 @@ const NewRuleHeaderTextLengthDrawer = ({ open, onClose, onSave, initialData }) =
                 onChange={(e) => setComparison(e.target.value)}
               >
                 {COMPARISON_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
               </select>
               <input
@@ -120,7 +143,13 @@ const NewRuleHeaderTextLengthDrawer = ({ open, onClose, onSave, initialData }) =
 
         <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-primary" onClick={handleSave}>Save</button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

@@ -4,8 +4,16 @@ import React from "react";
 const LANGUAGE_TAG_ANALYSIS = [
   { label: "Pages without issues", pages: 499, color: "#22c55e" },
   { label: "Pages with issues", pages: 1, color: "#ef4444" },
-  { label: "Pages with multiple languages detected", pages: 1, color: "#94a3b8" },
-  { label: "Pages with insufficient text for language detection", pages: 1, color: "#94a3b8" },
+  {
+    label: "Pages with multiple languages detected",
+    pages: 1,
+    color: "#94a3b8",
+  },
+  {
+    label: "Pages with insufficient text for language detection",
+    pages: 1,
+    color: "#94a3b8",
+  },
 ];
 
 const X_AXIS_MAX = 500;
@@ -15,9 +23,14 @@ const BAR_GAP = 8;
 const PADDING = { left: 280, right: 24, top: 24, bottom: 48 };
 
 function LanguageTagAnalysisChart() {
-  const chartHeight = LANGUAGE_TAG_ANALYSIS.length * (BAR_HEIGHT + BAR_GAP) - BAR_GAP + PADDING.top + PADDING.bottom;
+  const chartHeight =
+    LANGUAGE_TAG_ANALYSIS.length * (BAR_HEIGHT + BAR_GAP) -
+    BAR_GAP +
+    PADDING.top +
+    PADDING.bottom;
   const barAreaWidth = CHART_WIDTH - PADDING.left - PADDING.right - 40;
-  const xAxisCenterX = PADDING.left + (CHART_WIDTH - PADDING.left - PADDING.right - 40) / 2;
+  const xAxisCenterX =
+    PADDING.left + (CHART_WIDTH - PADDING.left - PADDING.right - 40) / 2;
   const tickLabelY = chartHeight - 28;
   const pagesLabelY = chartHeight - 10;
   const ticks = [0, 100, 200, 300, 400, 500];
@@ -34,14 +47,35 @@ function LanguageTagAnalysisChart() {
           const x = PADDING.left + (tick / X_AXIS_MAX) * barAreaWidth;
           return (
             <g key={tick}>
-              <line x1={x} y1={PADDING.top} x2={x} y2={chartHeight - PADDING.bottom} stroke="#e2e8f0" strokeWidth="1" />
-              <text x={x} y={tickLabelY} textAnchor="middle" className="text-muted" fill="currentColor" style={{ fontSize: 14 }}>
+              <line
+                x1={x}
+                y1={PADDING.top}
+                x2={x}
+                y2={chartHeight - PADDING.bottom}
+                stroke="#e2e8f0"
+                strokeWidth="1"
+              />
+              <text
+                x={x}
+                y={tickLabelY}
+                textAnchor="middle"
+                className="text-muted"
+                fill="currentColor"
+                style={{ fontSize: 14 }}
+              >
                 {tick}
               </text>
             </g>
           );
         })}
-        <text x={xAxisCenterX} y={pagesLabelY} textAnchor="middle" className="text-muted" fill="currentColor" style={{ fontSize: 14 }}>
+        <text
+          x={xAxisCenterX}
+          y={pagesLabelY}
+          textAnchor="middle"
+          className="text-muted"
+          fill="currentColor"
+          style={{ fontSize: 14 }}
+        >
           Pages
         </text>
         {LANGUAGE_TAG_ANALYSIS.map((row, i) => {
@@ -102,8 +136,12 @@ export default function LanguageValidationSummaryView() {
             AB
           </span>
           <div>
-            <h5 className="mb-0 fw-semibold text-body">Language Validation summary</h5>
-            <p className="text-muted fs-13 mb-0 mt-1">Identify pages with incorrect or missing language tags.</p>
+            <h5 className="mb-0 fw-semibold text-body">
+              Language Validation summary
+            </h5>
+            <p className="text-muted fs-13 mb-0 mt-1">
+              Identify pages with incorrect or missing language tags.
+            </p>
           </div>
         </div>
       </div>
@@ -127,12 +165,18 @@ export default function LanguageValidationSummaryView() {
               <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                 <span className="fw-medium text-body">Detected languages</span>
                 <span className="text-muted fs-13">
-                  {DETECTED_LANGUAGES.length} different detected languages across {detectedTotal} pages ({DETECTED_UNDETECTED} pages undetected)
+                  {DETECTED_LANGUAGES.length} different detected languages
+                  across {detectedTotal} pages ({DETECTED_UNDETECTED} pages
+                  undetected)
                 </span>
               </div>
               <div
                 className="rounded-3 overflow-hidden d-flex align-items-center justify-content-center text-white fw-semibold"
-                style={{ height: 48, backgroundColor: "#3b82f6", fontSize: "1.1rem" }}
+                style={{
+                  height: 48,
+                  backgroundColor: "#3b82f6",
+                  fontSize: "1.1rem",
+                }}
                 role="img"
                 aria-label={`${detectedTotal} pages detected`}
               >
@@ -140,8 +184,19 @@ export default function LanguageValidationSummaryView() {
               </div>
               <div className="d-flex flex-wrap align-items-center gap-3 mt-2">
                 {DETECTED_LANGUAGES.map((lang) => (
-                  <span key={lang.code} className="d-inline-flex align-items-center gap-2 fs-13 text-body">
-                    <span className="rounded-circle d-inline-block flex-shrink-0" style={{ width: 10, height: 10, backgroundColor: "#3b82f6" }} aria-hidden="true"></span>
+                  <span
+                    key={lang.code}
+                    className="d-inline-flex align-items-center gap-2 fs-13 text-body"
+                  >
+                    <span
+                      className="rounded-circle d-inline-block flex-shrink-0"
+                      style={{
+                        width: 10,
+                        height: 10,
+                        backgroundColor: "#3b82f6",
+                      }}
+                      aria-hidden="true"
+                    ></span>
                     {lang.name} {lang.pages} pages
                   </span>
                 ))}
@@ -153,10 +208,14 @@ export default function LanguageValidationSummaryView() {
               <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                 <span className="fw-medium text-body">Declared languages</span>
                 <span className="text-muted fs-13">
-                  {DECLARED_LANGUAGES.length} different declared languages across {declaredTotal} pages
+                  {DECLARED_LANGUAGES.length} different declared languages
+                  across {declaredTotal} pages
                 </span>
               </div>
-              <div className="d-flex rounded-3 overflow-hidden" style={{ height: 48 }}>
+              <div
+                className="d-flex rounded-3 overflow-hidden"
+                style={{ height: 48 }}
+              >
                 {DECLARED_LANGUAGES.map((lang) => {
                   const pct = (lang.pages / TOTAL_PAGES) * 100;
                   const isWide = pct >= 15;
@@ -180,8 +239,19 @@ export default function LanguageValidationSummaryView() {
               </div>
               <div className="d-flex flex-wrap align-items-center gap-3 mt-2">
                 {DECLARED_LANGUAGES.map((lang) => (
-                  <span key={lang.code} className="d-inline-flex align-items-center gap-2 fs-13 text-body">
-                    <span className="rounded-circle d-inline-block flex-shrink-0" style={{ width: 10, height: 10, backgroundColor: lang.color }} aria-hidden="true"></span>
+                  <span
+                    key={lang.code}
+                    className="d-inline-flex align-items-center gap-2 fs-13 text-body"
+                  >
+                    <span
+                      className="rounded-circle d-inline-block flex-shrink-0"
+                      style={{
+                        width: 10,
+                        height: 10,
+                        backgroundColor: lang.color,
+                      }}
+                      aria-hidden="true"
+                    ></span>
                     {lang.name} {lang.pages} page{lang.pages !== 1 ? "s" : ""}
                   </span>
                 ))}
@@ -193,4 +263,3 @@ export default function LanguageValidationSummaryView() {
     </div>
   );
 }
-

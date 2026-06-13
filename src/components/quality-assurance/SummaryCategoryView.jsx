@@ -32,18 +32,12 @@ function toPageDetailsPage(row) {
   return { id, title: row.title, url: row.url };
 }
 
- 
-
-
-
-
-
-
-
-
-
-
-export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, icon }) {
+export default function SummaryCategoryView({
+  title,
+  viewKey,
+  defaultQaSubView,
+  icon,
+}) {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get(TAB_PARAM) || "all";
   const [search, setSearch] = useState("");
@@ -59,8 +53,17 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
   }, [search]);
 
   const listFilter = VIEW_FILTER_MAP[viewKey] || "qa-errors";
-  const apiSortBy = sortBy === "notifications" ? "issues" : sortBy === "title" ? "title" : "url";
-  const { rows: apiRows, pagination, loading } = useQaPagesList({
+  const apiSortBy =
+    sortBy === "notifications"
+      ? "issues"
+      : sortBy === "title"
+        ? "title"
+        : "url";
+  const {
+    rows: apiRows,
+    pagination,
+    loading,
+  } = useQaPagesList({
     filter: listFilter,
     page: currentPage,
     limit: rowsPerPage,
@@ -77,7 +80,8 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     setPageDetailsOpen(true);
   };
 
-  const sortedRows = activeTab === "all" || activeTab === "pages" ? apiRows : [];
+  const sortedRows =
+    activeTab === "all" || activeTab === "pages" ? apiRows : [];
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -97,7 +101,8 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
     />
   );
 
-  const totalPages = activeTab === "all" || activeTab === "pages" ? (pagination.pages || 1) : 1;
+  const totalPages =
+    activeTab === "all" || activeTab === "pages" ? pagination.pages || 1 : 1;
   const paginatedRows = sortedRows;
 
   return (
@@ -105,7 +110,10 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
       {/* Header with highlighted option */}
       <div className="mb-3">
         <div className="d-flex align-items-center gap-2 mb-1">
-          <Link to="/domain/quality-assurance?view=summary" className="fs-13 text-muted text-decoration-none d-inline-flex align-items-center gap-1">
+          <Link
+            to="/domain/quality-assurance?view=summary"
+            className="fs-13 text-muted text-decoration-none d-inline-flex align-items-center gap-1"
+          >
             Summary
           </Link>
           <span className="text-muted">/</span>
@@ -117,11 +125,18 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
           <i className={`isax ${icon} fs-20 text-primary`} aria-hidden="true" />
           {title}
         </h5>
-        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${pagination.total ?? sortedRows.length} pages`}</p>
+        <p className="text-muted fs-13 mb-0">
+          {loading
+            ? "Loading…"
+            : `${pagination.total ?? sortedRows.length} pages`}
+        </p>
       </div>
 
       {/* Filter tabs */}
-      <nav className="prioritized-content-filters mb-4" aria-label="Content type filter">
+      <nav
+        className="prioritized-content-filters mb-4"
+        aria-label="Content type filter"
+      >
         <div className="d-flex flex-wrap gap-1 gap-md-4 align-items-center">
           {TABS.map(({ key, label, icon: tabIcon }) => {
             const isActive = activeTab === key;
@@ -154,24 +169,41 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-3 ps-4">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("title")}
+                        >
                           Title and URL <SortIcon column="title" />
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("notifications")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("notifications")}
+                        >
                           Issues Found <SortIcon column="notifications" />
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
                         <span className="d-inline-flex align-items-center">
                           Priority
-                          <span className="ms-1 opacity-75" title="Priority level">
-                            <i className="isax isax-info-circle fs-14" aria-hidden="true" />
+                          <span
+                            className="ms-1 opacity-75"
+                            title="Priority level"
+                          >
+                            <i
+                              className="isax isax-info-circle fs-14"
+                              aria-hidden="true"
+                            />
                           </span>
                         </span>
                       </th>
-                      <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end" style={{ width: "100px" }} />
+                      <th
+                        className="py-3 pe-4 fw-semibold text-body fs-13 text-end"
+                        style={{ width: "100px" }}
+                      />
                     </tr>
                   </thead>
                   <tbody>
@@ -180,59 +212,101 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                       loading={loading}
                       isEmpty={!loading && paginatedRows.length === 0}
                     />
-                    {!loading && paginatedRows.map((row) => (
-                      <tr key={row.id}>
-                        <td className="py-3 ps-4">
-                          <div className="d-flex flex-column">
-                            <span className="fw-semibold text-primary">{row.title}</span>
-                            <a
-                              href={row.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted small text-decoration-none d-inline-flex align-items-center mt-1"
-                              title="Open in new tab"
-                            >
-                              <span className="d-inline-flex align-items-center me-1" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
-                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M15 3h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
+                    {!loading &&
+                      paginatedRows.map((row) => (
+                        <tr key={row.id}>
+                          <td className="py-3 ps-4">
+                            <div className="d-flex flex-column">
+                              <span className="fw-semibold text-primary">
+                                {row.title}
                               </span>
-                              {row.url}
-                            </a>
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <div className="dropdown">
+                              <a
+                                href={row.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted small text-decoration-none d-inline-flex align-items-center mt-1"
+                                title="Open in new tab"
+                              >
+                                <span
+                                  className="d-inline-flex align-items-center me-1"
+                                  aria-hidden="true"
+                                >
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="text-primary"
+                                  >
+                                    <path
+                                      d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M15 3h6v6"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M10 14L21 3"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </span>
+                                {row.url}
+                              </a>
+                            </div>
+                          </td>
+                          <td className="py-3">
+                            <div className="dropdown">
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 border-0 text-decoration-none d-inline-flex align-items-center"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                aria-label="Show QA quick info"
+                              >
+                                <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                                  {row.notifications}
+                                </span>
+                              </button>
+                              <QAQuickInfoMenu
+                                brokenLinks={row.notifications}
+                                brokenImages={0}
+                                misspellings={0}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-3">
+                            <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill">
+                              {row.priority}
+                            </span>
+                          </td>
+
+                          <td className="py-3 pe-4 text-end">
                             <button
                               type="button"
-                              className="btn btn-link p-0 border-0 text-decoration-none d-inline-flex align-items-center"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                              aria-label="Show QA quick info"
+                              className="btn btn-icon btn-sm btn-light"
+                              title="Open page details"
+                              onClick={() => openPageDetails(row)}
                             >
-                              <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">{row.notifications}</span>
+                              <i
+                                className="isax isax-document-text text-primary"
+                                aria-hidden="true"
+                              />
                             </button>
-                            <QAQuickInfoMenu brokenLinks={row.notifications} brokenImages={0} misspellings={0} />
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <span className="badge bg-danger bg-opacity-10 text-danger rounded-pill">{row.priority}</span>
-                        </td>
-
-                        <td className="py-3 pe-4 text-end">
-                          <button
-                            type="button"
-                            className="btn btn-icon btn-sm btn-light"
-                            title="Open page details"
-                            onClick={() => openPageDetails(row)}
-                          >
-                            <i className="isax isax-document-text text-primary" aria-hidden="true" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -250,16 +324,22 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                   }}
                 >
                   {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                  {(currentPage - 1) * rowsPerPage + 1}–
+                  {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+                  {sortedRows.length}
                 </span>
               </div>
               <nav aria-label="Pagination">
                 <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
@@ -285,11 +365,15 @@ export default function SummaryCategoryView({ title, viewKey, defaultQaSubView, 
                       </li>
                     );
                   })}
-                  <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage >= totalPages}
                       aria-label="Next"
                     >

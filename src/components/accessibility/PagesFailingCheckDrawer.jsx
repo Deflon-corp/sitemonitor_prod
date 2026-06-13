@@ -33,9 +33,14 @@ const PagesFailingCheckDrawer = ({
             id: p.id,
             title: p.title || "(No title found)",
             url: p.url || "",
-            priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+            priority:
+              p.failedCount > 10
+                ? "High"
+                : p.failedCount > 3
+                  ? "Medium"
+                  : "Low",
             views: 0,
-          }))
+          })),
         );
       }
     } catch (err) {
@@ -58,14 +63,23 @@ const PagesFailingCheckDrawer = ({
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return pages;
     const q = searchQuery.toLowerCase();
-    return pages.filter((p) => (p.title || "").toLowerCase().includes(q) || (p.url || "").toLowerCase().includes(q));
+    return pages.filter(
+      (p) =>
+        (p.title || "").toLowerCase().includes(q) ||
+        (p.url || "").toLowerCase().includes(q),
+    );
   }, [pages, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || (a.url || "").localeCompare(b.url || ""));
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            (a.url || "").localeCompare(b.url || ""))
+        );
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
@@ -119,7 +133,11 @@ const PagesFailingCheckDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow overflow-auto d-flex flex-column"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 960px)", maxWidth: "960px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 960px)",
+          maxWidth: "960px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="pages-failing-check-drawer-title"
@@ -135,10 +153,18 @@ const PagesFailingCheckDrawer = ({
                 title="Close"
                 aria-label="Close"
               >
-                <i className="isax isax-close-circle text-body" aria-hidden="true" />
+                <i
+                  className="isax isax-close-circle text-body"
+                  aria-hidden="true"
+                />
               </button>
               <div>
-                <h6 className="mb-0 fw-semibold text-body" id="pages-failing-check-drawer-title">Pages failing check</h6>
+                <h6
+                  className="mb-0 fw-semibold text-body"
+                  id="pages-failing-check-drawer-title"
+                >
+                  Pages failing check
+                </h6>
                 <p className="text-muted fs-13 mb-0 mt-1">"{check.question}"</p>
               </div>
             </div>
@@ -146,8 +172,15 @@ const PagesFailingCheckDrawer = ({
               className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
               style={{ width: 220 }}
             >
-              <span className="d-flex align-items-center ps-3 flex-shrink-0 text-muted" aria-hidden="true">
-                <i className="isax isax-search-normal-1" style={{ fontSize: "1rem" }} aria-hidden="true" />
+              <span
+                className="d-flex align-items-center ps-3 flex-shrink-0 text-muted"
+                aria-hidden="true"
+              >
+                <i
+                  className="isax isax-search-normal-1"
+                  style={{ fontSize: "1rem" }}
+                  aria-hidden="true"
+                />
               </span>
               <input
                 type="search"
@@ -174,18 +207,50 @@ const PagesFailingCheckDrawer = ({
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="py-3 ps-4 text-body fs-13 fw-semibold">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("title")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                          onClick={() => handleSort("title")}
+                        >
                           Page URL
-                          {sortBy === "title" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
+                          {sortBy === "title" ? (
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
+                          )}
                         </button>
                       </th>
                       <th className="py-3 text-body fs-13 fw-semibold">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort("priority")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                          onClick={() => handleSort("priority")}
+                        >
                           Priority
-                          {sortBy === "priority" ? <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" /> : <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />}
+                          {sortBy === "priority" ? (
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
+                          )}
                         </button>
                       </th>
-                      <th className="py-3 pe-4 text-body fs-13 fw-semibold text-end" style={{ width: 120 }} aria-label="Actions">
+                      <th
+                        className="py-3 pe-4 text-body fs-13 fw-semibold text-end"
+                        style={{ width: 120 }}
+                        aria-label="Actions"
+                      >
                         Action
                       </th>
                     </tr>
@@ -194,7 +259,10 @@ const PagesFailingCheckDrawer = ({
                     {isLoading ? (
                       <tr>
                         <td colSpan={4} className="text-center py-5 text-muted">
-                          <div className="spinner-border spinner-border-sm text-primary mb-2" role="status">
+                          <div
+                            className="spinner-border spinner-border-sm text-primary mb-2"
+                            role="status"
+                          >
                             <span className="visually-hidden">Loading...</span>
                           </div>
                           <p className="mb-0 fs-13">Loading pages...</p>
@@ -206,7 +274,12 @@ const PagesFailingCheckDrawer = ({
                           <td className="py-3 ps-4">
                             <div className="d-flex flex-column">
                               <span className="text-body fs-13">{p.title}</span>
-                              <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break">
+                              <a
+                                href={p.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
+                              >
                                 <span className="flex-shrink-0 d-inline-flex text-primary">
                                   <ExternalLinkIcon size={12} />
                                 </span>
@@ -215,7 +288,9 @@ const PagesFailingCheckDrawer = ({
                             </div>
                           </td>
                           <td className="py-3">
-                            <span className={`badge rounded-pill ${p.priority === "High" ? "bg-danger bg-opacity-10 text-danger" : p.priority === "Medium" ? "bg-warning bg-opacity-10 text-warning" : "bg-secondary bg-opacity-10 text-secondary"}`}>
+                            <span
+                              className={`badge rounded-pill ${p.priority === "High" ? "bg-danger bg-opacity-10 text-danger" : p.priority === "Medium" ? "bg-warning bg-opacity-10 text-warning" : "bg-secondary bg-opacity-10 text-secondary"}`}
+                            >
                               {p.priority}
                             </span>
                           </td>
@@ -227,7 +302,10 @@ const PagesFailingCheckDrawer = ({
                               aria-label="Open page accessibility (WCAG) details"
                               onClick={() => onOpenDocuments?.(p)}
                             >
-                              <i className="isax isax-document-text fs-14 text-white" aria-hidden="true" />
+                              <i
+                                className="isax isax-document-text fs-14 text-white"
+                                aria-hidden="true"
+                              />
                             </button>
                           </td>
                         </tr>
@@ -235,7 +313,9 @@ const PagesFailingCheckDrawer = ({
                     ) : (
                       <tr>
                         <td colSpan={3} className="text-center py-5 text-muted">
-                          <p className="mb-0 fs-14">No pages found matching this check.</p>
+                          <p className="mb-0 fs-14">
+                            No pages found matching this check.
+                          </p>
                         </td>
                       </tr>
                     )}
@@ -254,35 +334,84 @@ const PagesFailingCheckDrawer = ({
                     }}
                   >
                     {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                      <option key={n} value={n}>{n}</option>
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
                     ))}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                    {(currentPage - 1) * rowsPerPage + 1}–
+                    {Math.min(currentPage * rowsPerPage, sortedPages.length)} of{" "}
+                    {sortedPages.length}
                   </span>
                 </div>
                 <nav aria-label="Pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                      <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1} aria-label="Previous">«</button>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={currentPage <= 1}
+                        aria-label="Previous"
+                      >
+                        «
+                      </button>
                     </li>
                     {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
                       let p;
                       if (totalPages <= 7) p = i + 1;
                       else if (currentPage <= 4) p = i + 1;
-                      else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                      else if (currentPage >= totalPages - 3)
+                        p = totalPages - 6 + i;
                       else p = currentPage - 3 + i;
                       if (p < 1 || p > totalPages) return null;
                       return (
                         <li key={p} className="page-item">
-                          <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                          <button
+                            type="button"
+                            className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </button>
                         </li>
                       );
                     })}
-                    {totalPages > 7 && currentPage < totalPages - 3 && <li className="page-item disabled"><span className="page-link rounded-2">…</span></li>}
-                    {totalPages > 7 && <li className="page-item"><button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button></li>}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                      <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages} aria-label="Next">»</button>
+                    {totalPages > 7 && currentPage < totalPages - 3 && (
+                      <li className="page-item disabled">
+                        <span className="page-link rounded-2">…</span>
+                      </li>
+                    )}
+                    {totalPages > 7 && (
+                      <li className="page-item">
+                        <button
+                          type="button"
+                          className="page-link rounded-2"
+                          onClick={() => setCurrentPage(totalPages)}
+                        >
+                          {totalPages}
+                        </button>
+                      </li>
+                    )}
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage >= totalPages}
+                        aria-label="Next"
+                      >
+                        »
+                      </button>
                     </li>
                   </ul>
                 </nav>
@@ -294,7 +423,9 @@ const PagesFailingCheckDrawer = ({
     </>
   );
 
-  return typeof document !== "undefined" ? createPortal(drawerContent, document.body) : null;
+  return typeof document !== "undefined"
+    ? createPortal(drawerContent, document.body)
+    : null;
 };
 
 export default PagesFailingCheckDrawer;

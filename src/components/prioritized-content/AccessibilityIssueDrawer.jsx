@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 
-
-
 const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
   useEffect(() => {
     if (!open) return;
@@ -15,11 +13,11 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
   if (!open || !issue) return null;
 
   const copyUrl = () => {
-    const url = issue.pageUrl || (typeof window !== "undefined" ? window.location.href : "");
+    const url =
+      issue.pageUrl ||
+      (typeof window !== "undefined" ? window.location.href : "");
     navigator.clipboard?.writeText(url);
   };
-
-
 
   return (
     <>
@@ -50,24 +48,52 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
                 <i className="isax isax-close-circle fs-20" />
               </button>
               <div>
-                <h6 className="mb-0 fw-semibold" id="accessibility-issue-drawer-title">Accessibility issue</h6>
+                <h6
+                  className="mb-0 fw-semibold"
+                  id="accessibility-issue-drawer-title"
+                >
+                  Accessibility issue
+                </h6>
                 <p className="text-muted fs-13 mb-0">ID: {issue.id}</p>
               </div>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <button type="button" className="btn btn-icon btn-sm btn-light" title="Search" aria-label="Search">
+              <button
+                type="button"
+                className="btn btn-icon btn-sm btn-light"
+                title="Search"
+                aria-label="Search"
+              >
                 <i className="isax isax-search-normal fs-18" />
               </button>
               <div className="dropdown">
-                <button type="button" className="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-light dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
                   Action
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
-                  <li><button type="button" className="dropdown-item">Ignore</button></li>
-                  <li><button type="button" className="dropdown-item">Mark as fixed</button></li>
+                  <li>
+                    <button type="button" className="dropdown-item">
+                      Ignore
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" className="dropdown-item">
+                      Mark as fixed
+                    </button>
+                  </li>
                 </ul>
               </div>
-              <button type="button" className="btn btn-sm btn-light d-inline-flex align-items-center gap-1" onClick={copyUrl} title="Copy URL">
+              <button
+                type="button"
+                className="btn btn-sm btn-light d-inline-flex align-items-center gap-1"
+                onClick={copyUrl}
+                title="Copy URL"
+              >
                 <i className="isax isax-document-copy fs-18" /> Copy URL
               </button>
             </div>
@@ -79,7 +105,9 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
           <div className="card border-0 shadow-sm mb-3">
             <div className="card-body">
               <h6 className="fw-semibold mb-2">Issue description</h6>
-              <p className="text-muted fs-14 mb-0">{issue.description || "Description not available."}</p>
+              <p className="text-muted fs-14 mb-0">
+                {issue.description || "Description not available."}
+              </p>
             </div>
           </div>
 
@@ -98,8 +126,12 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
             <div className="card-body">
               <h6 className="fw-semibold mb-3">Issue details</h6>
               <dl className="row mb-0 fs-13">
-                <dt className="col-6 col-md-5 text-muted">Effect on overall compliance level</dt>
-                <dd className="col-6 col-md-7 mb-2">{issue.effectOnCompliance}</dd>
+                <dt className="col-6 col-md-5 text-muted">
+                  Effect on overall compliance level
+                </dt>
+                <dd className="col-6 col-md-7 mb-2">
+                  {issue.effectOnCompliance}
+                </dd>
                 <dt className="col-6 col-md-5 text-muted">Element</dt>
                 <dd className="col-6 col-md-7 mb-2">{issue.element}</dd>
                 <dt className="col-6 col-md-5 text-muted">Date found</dt>
@@ -120,10 +152,14 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
                   <code>
                     {issue.snippetHtml.split(/(<[^>]+>)/g).map((part, i) =>
                       part.startsWith("<") ? (
-                        <span key={i} className="text-primary">{part}</span>
+                        <span key={i} className="text-primary">
+                          {part}
+                        </span>
                       ) : (
-                        <span key={i} className="text-muted">{part}</span>
-                      )
+                        <span key={i} className="text-muted">
+                          {part}
+                        </span>
+                      ),
                     )}
                   </code>
                 </pre>
@@ -144,7 +180,14 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
                   className="text-primary text-decoration-none fs-13 d-inline-flex align-items-center gap-1"
                 >
                   <span className="text-primary">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                       <path d="M15 3h6v6" />
                       <path d="M10 14L21 3" />
@@ -155,15 +198,23 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
               ) : (
                 <span className="text-muted fs-13">—</span>
               )}
-              <h6 className="fw-semibold mb-0 mt-4 pt-3 border-top text-body">Issue check details</h6>
+              <h6 className="fw-semibold mb-0 mt-4 pt-3 border-top text-body">
+                Issue check details
+              </h6>
               <div className="table-responsive mt-2">
                 <table className="table table-striped table-borderless align-middle mb-0">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-2">Check</th>
-                      <th className="fw-semibold text-body py-2">Help center</th>
-                      <th className="fw-semibold text-body py-2">Responsibility</th>
-                      <th className="fw-semibold text-body py-2">Success criteria</th>
+                      <th className="fw-semibold text-body py-2">
+                        Help center
+                      </th>
+                      <th className="fw-semibold text-body py-2">
+                        Responsibility
+                      </th>
+                      <th className="fw-semibold text-body py-2">
+                        Success criteria
+                      </th>
                       <th className="fw-semibold text-body py-2">Difficulty</th>
                     </tr>
                   </thead>
@@ -173,22 +224,41 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
                         <div className="d-flex align-items-center gap-2">
                           <span
                             className="rounded-circle d-flex align-items-center justify-content-center text-danger flex-shrink-0"
-                            style={{ width: 24, height: 24, backgroundColor: "rgba(220, 53, 69, 0.15)" }}
+                            style={{
+                              width: 24,
+                              height: 24,
+                              backgroundColor: "rgba(220, 53, 69, 0.15)",
+                            }}
                           >
-                            <i className="isax isax-danger fs-14" aria-hidden="true" />
+                            <i
+                              className="isax isax-danger fs-14"
+                              aria-hidden="true"
+                            />
                           </span>
-                          <span className="fw-medium fs-13">{issue.checkName}</span>
+                          <span className="fw-medium fs-13">
+                            {issue.checkName}
+                          </span>
                         </div>
                       </td>
                       <td className="py-2">
-                        <button type="button" className="btn btn-icon btn-sm btn-link text-primary p-0" title="Help center">
+                        <button
+                          type="button"
+                          className="btn btn-icon btn-sm btn-link text-primary p-0"
+                          title="Help center"
+                        >
                           <i className="isax isax-teacher fs-18" />
                         </button>
                       </td>
-                      <td className="py-2 fs-13">{issue.responsibility ?? "—"}</td>
-                      <td className="py-2 fs-13">{issue.successCriteria ?? "—"}</td>
+                      <td className="py-2 fs-13">
+                        {issue.responsibility ?? "—"}
+                      </td>
+                      <td className="py-2 fs-13">
+                        {issue.successCriteria ?? "—"}
+                      </td>
                       <td className="py-2">
-                        <span className="badge bg-success bg-opacity-10 text-success">{issue.difficulty ?? "—"}</span>
+                        <span className="badge bg-success bg-opacity-10 text-success">
+                          {issue.difficulty ?? "—"}
+                        </span>
                       </td>
                     </tr>
                   </tbody>
@@ -196,8 +266,6 @@ const AccessibilityIssueDrawer = ({ open, onClose, issue }) => {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </>

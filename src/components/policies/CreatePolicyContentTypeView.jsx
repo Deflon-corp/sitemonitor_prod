@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 
 const CONTENT_TYPE_OPTIONS = [
-  { key: "all", label: "All assets", subtitle: "(HTML and documents)", icon: "isax-global" },
-  { key: "html", label: "HTML pages", subtitle: "", icon: "isax-document-copy" },
-  { key: "documents", label: "Documents", subtitle: "", icon: "isax-document-text" },
+  {
+    key: "all",
+    label: "All assets",
+    subtitle: "(HTML and documents)",
+    icon: "isax-global",
+  },
+  {
+    key: "html",
+    label: "HTML pages",
+    subtitle: "",
+    icon: "isax-document-copy",
+  },
+  {
+    key: "documents",
+    label: "Documents",
+    subtitle: "",
+    icon: "isax-document-text",
+  },
 ];
 
 const CreatePolicyContentTypeView = ({ onBack, onNext }) => {
@@ -12,7 +27,9 @@ const CreatePolicyContentTypeView = ({ onBack, onNext }) => {
   return (
     <div className="d-flex flex-column flex-grow-1 overflow-hidden">
       <div className="flex-grow-1 overflow-auto p-4">
-        <p className="text-body fs-13 mb-4">Select what type of content the policy should search in:</p>
+        <p className="text-body fs-13 mb-4">
+          Select what type of content the policy should search in:
+        </p>
         <div className="row g-3">
           {CONTENT_TYPE_OPTIONS.map((opt) => {
             const isSelected = selected === opt.key;
@@ -21,7 +38,10 @@ const CreatePolicyContentTypeView = ({ onBack, onNext }) => {
                 <button
                   type="button"
                   className={`card w-100 h-100 border text-start shadow-sm ${isSelected ? "border-primary border-2" : "border-secondary border-opacity-25"}`}
-                  style={{ cursor: "pointer", transition: "border-color 0.15s ease" }}
+                  style={{
+                    cursor: "pointer",
+                    transition: "border-color 0.15s ease",
+                  }}
                   onClick={() => {
                     setSelected(opt.key);
                     if (opt.key === "all") onNext("all");
@@ -31,11 +51,18 @@ const CreatePolicyContentTypeView = ({ onBack, onNext }) => {
                 >
                   <div className="card-body d-flex flex-column align-items-center text-center py-4">
                     <span className="avatar avatar-48 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center mb-2">
-                      <i className={`isax ${opt.icon} fs-24`} aria-hidden="true" />
+                      <i
+                        className={`isax ${opt.icon} fs-24`}
+                        aria-hidden="true"
+                      />
                     </span>
-                    <span className="text-primary fw-semibold fs-13">{opt.label}</span>
+                    <span className="text-primary fw-semibold fs-13">
+                      {opt.label}
+                    </span>
                     {opt.subtitle && (
-                      <span className="text-muted fs-12 mt-1">{opt.subtitle}</span>
+                      <span className="text-muted fs-12 mt-1">
+                        {opt.subtitle}
+                      </span>
                     )}
                   </div>
                 </button>
@@ -52,7 +79,8 @@ const CreatePolicyContentTypeView = ({ onBack, onNext }) => {
             className="btn rounded-2 border border-primary border-opacity-25 bg-white text-primary hover:bg-primary hover:bg-opacity-10 hover:border-primary"
             onClick={onBack}
           >
-            <i className="isax isax-arrow-left-1 me-1" aria-hidden="true" /> Previous
+            <i className="isax isax-arrow-left-1 me-1" aria-hidden="true" />{" "}
+            Previous
           </button>
           <button
             type="button"

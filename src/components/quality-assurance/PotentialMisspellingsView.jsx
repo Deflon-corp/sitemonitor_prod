@@ -15,21 +15,31 @@ import PotentialMisspellingPageDetailsDrawer from "../prioritized-content/Potent
 export default function PotentialMisspellingsView() {
   const [selectedIssueId, setSelectedIssueId] = useState(null);
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
-  const [openPageDetailsDrawerOpen, setOpenPageDetailsDrawerOpen] = useState(false);
+  const [openPageDetailsDrawerOpen, setOpenPageDetailsDrawerOpen] =
+    useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
   const [defaultQaSubView, setDefaultQaSubView] = useState("misspellings");
 
-  const { items, loading } = useQaMisspellings({ page: 1, limit: 500, potential: true });
+  const { items, loading } = useQaMisspellings({
+    page: 1,
+    limit: 500,
+    potential: true,
+  });
 
   const selectedIssue =
-    selectedIssueId != null ? items.find((r) => r.id === selectedIssueId) ?? null : null;
+    selectedIssueId != null
+      ? (items.find((r) => r.id === selectedIssueId) ?? null)
+      : null;
 
   const pagesWithMisspelling = useMemo(
     () =>
       selectedIssue
-        ? mapPagesForMisspellingDrawer(selectedIssue.pagesList, selectedIssue.language)
+        ? mapPagesForMisspellingDrawer(
+            selectedIssue.pagesList,
+            selectedIssue.language,
+          )
         : [],
-    [selectedIssue]
+    [selectedIssue],
   );
 
   function openPageDetails(page, qaSubView) {
@@ -40,10 +50,14 @@ export default function PotentialMisspellingsView() {
 
   return (
     <React.Fragment>
-      {loading && <p className="text-muted py-2">Loading possible misspellings…</p>}
+      {loading && (
+        <p className="text-muted py-2">Loading possible misspellings…</p>
+      )}
       {!loading && !items.length && (
         <div className="card border border-secondary border-opacity-25 rounded-3 p-5 text-center text-muted mb-3">
-          <p className="mb-0 fs-13">No possible misspellings found. Run a QA scan to refresh results.</p>
+          <p className="mb-0 fs-13">
+            No possible misspellings found. Run a QA scan to refresh results.
+          </p>
         </div>
       )}
       {!loading && items.length > 0 && (
@@ -82,7 +96,11 @@ export default function PotentialMisspellingsView() {
         }}
         page={
           selectedPageForDetails
-            ? { id: 0, title: selectedPageForDetails.title, url: selectedPageForDetails.url }
+            ? {
+                id: 0,
+                title: selectedPageForDetails.title,
+                url: selectedPageForDetails.url,
+              }
             : null
         }
         defaultQaSubView={defaultQaSubView}

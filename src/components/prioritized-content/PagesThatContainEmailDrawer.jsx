@@ -7,7 +7,10 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 /** Full-page style sample list (replace with API via `pages` prop). */
-export function getSamplePagesForEmail(email, domainUrl = "https://example.com") {
+export function getSamplePagesForEmail(
+  email,
+  domainUrl = "https://example.com",
+) {
   const safe = (email || "contact").replace(/@/g, "-at-").replace(/\./g, "-");
   const local = email || "contact@example.com";
 
@@ -26,7 +29,11 @@ export function getSamplePagesForEmail(email, domainUrl = "https://example.com")
     { title: "Terms & conditions", path: "/legal/terms", views: 33 },
     { title: "Grievance redressal", path: "/grievance", views: 7 },
     { title: "(No title found)", path: "/news/press", views: 28 },
-    { title: `Email reference — ${local}`, path: `/mentions/${safe}`, views: 1 },
+    {
+      title: `Email reference — ${local}`,
+      path: `/mentions/${safe}`,
+      views: 1,
+    },
     { title: "Branch locator", path: "/locator", views: 512 },
     { title: "(No title found)", path: "/emi-calculator", views: 2100 },
     { title: "Loan products", path: "/loans", views: 3400 },
@@ -48,7 +55,16 @@ export function getSamplePagesForEmail(email, domainUrl = "https://example.com")
 
 function ExternalLinkIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ms-1" style={{ verticalAlign: "middle", flexShrink: 0 }}>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="ms-1"
+      style={{ verticalAlign: "middle", flexShrink: 0 }}
+    >
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <path d="M15 3h6v6" />
       <path d="M10 14L21 3" />
@@ -81,14 +97,21 @@ export default function PagesThatContainEmailDrawer({
         if (selDomainId) {
           const { getDomainsApi } = await import("@/api/domainApi");
           const domainRes = await getDomainsApi();
-          const domainList = Array.isArray(domainRes.data) ? domainRes.data : (domainRes.data?.domains || []);
-          const domain = domainList.find((d) => d._id === selDomainId || String(d.dm_id) === selDomainId);
+          const domainList = Array.isArray(domainRes.data)
+            ? domainRes.data
+            : domainRes.data?.domains || [];
+          const domain = domainList.find(
+            (d) => d._id === selDomainId || String(d.dm_id) === selDomainId,
+          );
           if (domain?.dm_url) {
             setDomainUrl(domain.dm_url.replace(/\/$/, ""));
           }
         }
       } catch (err) {
-        console.error("Failed to load dynamic domain URL in email drawer:", err);
+        console.error(
+          "Failed to load dynamic domain URL in email drawer:",
+          err,
+        );
       }
     };
     if (open) {
@@ -108,13 +131,16 @@ export default function PagesThatContainEmailDrawer({
     return sourcePages.filter(
       (r) =>
         (r.title && r.title.toLowerCase().includes(q)) ||
-        (r.url && r.url.toLowerCase().includes(q))
+        (r.url && r.url.toLowerCase().includes(q)),
     );
   }, [sourcePages, search]);
 
   const sortedRows = useMemo(
-    () => [...filteredRows].sort((a, b) => (sortViewsAsc ? a.views - b.views : b.views - a.views)),
-    [filteredRows, sortViewsAsc]
+    () =>
+      [...filteredRows].sort((a, b) =>
+        sortViewsAsc ? a.views - b.views : b.views - a.views,
+      ),
+    [filteredRows, sortViewsAsc],
   );
 
   const totalPages = Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
@@ -127,14 +153,24 @@ export default function PagesThatContainEmailDrawer({
   const exportCSV = useCallback(() => {
     const header = "Title and URL,Views\n";
     const body = sortedRows
-      .map((r) => `"${(r.title || "").replace(/"/g, '""')}","${(r.url || "").replace(/"/g, '""')}",${r.views}`)
+      .map(
+        (r) =>
+          `"${(r.title || "").replace(/"/g, '""')}","${(r.url || "").replace(/"/g, '""')}",${r.views}`,
+      )
       .join("\n");
-    downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${reportBase}.csv`);
+    downloadBlob(
+      new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
+      `${reportBase}.csv`,
+    );
   }, [sortedRows, reportBase]);
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
-      sortedRows.map((r) => ({ "Title and URL": r.title || r.url, URL: r.url, Views: r.views }))
+      sortedRows.map((r) => ({
+        "Title and URL": r.title || r.url,
+        URL: r.url,
+        Views: r.views,
+      })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -146,7 +182,11 @@ export default function PagesThatContainEmailDrawer({
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["Title", "URL", "Views"]],
-      body: sortedRows.map((r) => [r.title || "", r.url || "", String(r.views)]),
+      body: sortedRows.map((r) => [
+        r.title || "",
+        r.url || "",
+        String(r.views),
+      ]),
       startY: 10,
       styles: { fontSize: 8 },
     });
@@ -181,10 +221,19 @@ export default function PagesThatContainEmailDrawer({
 
   const content = (
     <>
-      <div className="bg-dark bg-opacity-50 position-fixed top-0 start-0 end-0 bottom-0" style={{ zIndex: 1050 }} aria-hidden onClick={onClose} />
+      <div
+        className="bg-dark bg-opacity-50 position-fixed top-0 start-0 end-0 bottom-0"
+        style={{ zIndex: 1050 }}
+        aria-hidden
+        onClick={onClose}
+      />
       <div
         className="bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column"
-        style={{ zIndex: 1055, width: "min(100%, 1200px)", overflow: "visible" }}
+        style={{
+          zIndex: 1055,
+          width: "min(100%, 1200px)",
+          overflow: "visible",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledBy}
@@ -193,22 +242,32 @@ export default function PagesThatContainEmailDrawer({
           <div className="d-flex align-items-start justify-content-between gap-3">
             <div className="min-w-0 flex-grow-1">
               <div className="d-flex align-items-center gap-2 mb-1">
-                <button type="button" className="btn btn-icon btn-sm btn-light border-0" onClick={onClose} aria-label="Close">
-                  <i className="isax isax-close-circle fs-20 text-body" aria-hidden />
+                <button
+                  type="button"
+                  className="btn btn-icon btn-sm btn-light border-0"
+                  onClick={onClose}
+                  aria-label="Close"
+                >
+                  <i
+                    className="isax isax-close-circle fs-20 text-body"
+                    aria-hidden
+                  />
                 </button>
                 <h5 id={ariaLabelledBy} className="mb-0 fw-semibold text-body">
                   Pages that contain the Email
                 </h5>
               </div>
-              {email && (
-                mailto ? (
-                  <a href={mailto} className="text-primary text-decoration-none small ms-4 d-inline-block text-break">
+              {email &&
+                (mailto ? (
+                  <a
+                    href={mailto}
+                    className="text-primary text-decoration-none small ms-4 d-inline-block text-break"
+                  >
                     {email}
                   </a>
                 ) : (
                   <p className="text-muted small mb-0 ms-4 ps-1">{email}</p>
-                )
-              )}
+                ))}
             </div>
             <div className="d-flex align-items-center gap-2 flex-shrink-0">
               <DownloadReportDropdown
@@ -219,9 +278,15 @@ export default function PagesThatContainEmailDrawer({
                 variant="icon"
                 dropup
               />
-              <div className="input-group input-group-sm" style={{ width: 200 }}>
+              <div
+                className="input-group input-group-sm"
+                style={{ width: 200 }}
+              >
                 <span className="input-group-text bg-transparent border-end-0">
-                  <i className="isax isax-search-normal-1 text-muted" aria-hidden />
+                  <i
+                    className="isax isax-search-normal-1 text-muted"
+                    aria-hidden
+                  />
                 </span>
                 <input
                   type="search"
@@ -241,7 +306,10 @@ export default function PagesThatContainEmailDrawer({
 
         <div className="flex-grow-1 overflow-auto">
           {sortedRows.length === 0 ? (
-            <div className="d-flex align-items-center justify-content-center text-muted py-5 px-4" style={{ minHeight: 240 }}>
+            <div
+              className="d-flex align-items-center justify-content-center text-muted py-5 px-4"
+              style={{ minHeight: 240 }}
+            >
               No content was found
             </div>
           ) : (
@@ -249,14 +317,20 @@ export default function PagesThatContainEmailDrawer({
               <table className="table table-hover table-borderless mb-0 align-middle">
                 <thead className="sticky-top bg-white">
                   <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                    <th className="py-3 ps-4 fw-semibold text-body fs-13 text-nowrap">Title and URL</th>
+                    <th className="py-3 ps-4 fw-semibold text-body fs-13 text-nowrap">
+                      Title and URL
+                    </th>
                     <th className="py-3 fw-semibold text-body fs-13 text-nowrap text-end">
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center text-nowrap"
                         onClick={() => setSortViewsAsc((v) => !v)}
                       >
-                        Views <i className={`isax ms-1 fs-12 ${sortViewsAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden />
+                        Views{" "}
+                        <i
+                          className={`isax ms-1 fs-12 ${sortViewsAsc ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden
+                        />
                       </button>
                     </th>
                     <th className="py-3 pe-4" style={{ width: 48 }} />
@@ -267,7 +341,9 @@ export default function PagesThatContainEmailDrawer({
                     <tr key={row.id || row.url}>
                       <td className="py-3 ps-4">
                         <div className="d-flex flex-column">
-                          <span className="text-primary small">{row.title || "(No title found)"}</span>
+                          <span className="text-primary small">
+                            {row.title || "(No title found)"}
+                          </span>
                           <a
                             href={row.url}
                             target="_blank"
@@ -286,7 +362,9 @@ export default function PagesThatContainEmailDrawer({
                           className="btn btn-icon btn-sm btn-primary rounded-2"
                           aria-label="Open page details"
                           title="Open page details"
-                          onClick={() => onOpenPageDetails && onOpenPageDetails(row)}
+                          onClick={() =>
+                            onOpenPageDetails && onOpenPageDetails(row)
+                          }
                         >
                           <i className="isax isax-document-text" aria-hidden />
                         </button>
@@ -319,12 +397,16 @@ export default function PagesThatContainEmailDrawer({
                 ))}
               </select>
               <span className="text-muted small">
-                {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                {(currentPage - 1) * rowsPerPage + 1}–
+                {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+                {sortedRows.length}
               </span>
             </div>
             <nav aria-label="Pages pagination">
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
@@ -349,11 +431,15 @@ export default function PagesThatContainEmailDrawer({
                     </li>
                   );
                 })}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                   >
                     »

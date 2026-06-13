@@ -5,9 +5,24 @@ import PolicyHitsPerDomainDrawer from "./PolicyHitsPerDomainDrawer";
 import VerticalBarChart from "./VerticalBarChart";
 
 const getGlobalNav = (basePath) => [
-  { key: "dashboard", label: "Global Policy Dashboard", icon: "isax-hammer", href: `${basePath}?view=global` },
-  { key: "list", label: "Policy List", icon: "isax-category-2", href: `${basePath}?view=global-list` },
-  { key: "assistant", label: "Policy Assistant", icon: "isax-magic-star", href: `${basePath}?view=global-assistant` },
+  {
+    key: "dashboard",
+    label: "Global Policy Dashboard",
+    icon: "isax-hammer",
+    href: `${basePath}?view=global`,
+  },
+  {
+    key: "list",
+    label: "Policy List",
+    icon: "isax-category-2",
+    href: `${basePath}?view=global-list`,
+  },
+  {
+    key: "assistant",
+    label: "Policy Assistant",
+    icon: "isax-magic-star",
+    href: `${basePath}?view=global-assistant`,
+  },
 ];
 
 const PRIORITIES_DATA = [
@@ -24,10 +39,34 @@ const POLICY_DIST_DATA = [
 
 /** Sample row – replace with API */
 const SAMPLE_MOST_MATCHES = [
-  { id: "1", title: "Text", searchScope: "Everything", status: "hits", hits: 499 },
-  { id: "2", title: "Text that starts with Lorem ipsum", searchScope: "Only HTML pages", status: "compliant", hits: 0 },
-  { id: "3", title: "Text that starts with FD", searchScope: "Only HTML pages", status: "compliant", hits: 0 },
-  { id: "4", title: "Text that starts with Lorem ipsum", searchScope: "Only HTML pages", status: "compliant", hits: 0 },
+  {
+    id: "1",
+    title: "Text",
+    searchScope: "Everything",
+    status: "hits",
+    hits: 499,
+  },
+  {
+    id: "2",
+    title: "Text that starts with Lorem ipsum",
+    searchScope: "Only HTML pages",
+    status: "compliant",
+    hits: 0,
+  },
+  {
+    id: "3",
+    title: "Text that starts with FD",
+    searchScope: "Only HTML pages",
+    status: "compliant",
+    hits: 0,
+  },
+  {
+    id: "4",
+    title: "Text that starts with Lorem ipsum",
+    searchScope: "Only HTML pages",
+    status: "compliant",
+    hits: 0,
+  },
 ];
 
 const GlobalPoliciesView = ({
@@ -50,7 +89,7 @@ const GlobalPoliciesView = ({
         setLoading(true);
         const [statsRes, policiesRes] = await Promise.all([
           getPolicyStatsApi({ domainId: null }), // Global stats
-          getPoliciesApi({ domainId: null }),   // Global policies
+          getPoliciesApi({ domainId: null }), // Global policies
         ]);
         if (statsRes.success) setStats(statsRes.data);
         if (policiesRes.success) setPolicies(policiesRes.data);
@@ -65,17 +104,21 @@ const GlobalPoliciesView = ({
 
   const sortedRows = useMemo(() => {
     return [...policies]
-      .sort((a, b) => sortHitsDesc ? (b.policyHits || 0) - (a.policyHits || 0) : (a.policyHits || 0) - (b.policyHits || 0))
+      .sort((a, b) =>
+        sortHitsDesc
+          ? (b.policyHits || 0) - (a.policyHits || 0)
+          : (a.policyHits || 0) - (b.policyHits || 0),
+      )
       .slice(0, 5);
   }, [policies, sortHitsDesc]);
 
   const domainHitsForPolicy = useMemo(() => {
     if (!hitsDrawerPolicy || !hitsDrawerPolicy.domainIds) return [];
-    return (hitsDrawerPolicy.domainIds || []).map(d => ({
+    return (hitsDrawerPolicy.domainIds || []).map((d) => ({
       domainId: d._id,
       domainName: d.dm_title || "Unknown Domain",
       domainUrl: d.dm_url || "#",
-      hits: hitsDrawerPolicy.policyHits || 0
+      hits: hitsDrawerPolicy.policyHits || 0,
     }));
   }, [hitsDrawerPolicy]);
 
@@ -85,7 +128,8 @@ const GlobalPoliciesView = ({
       <ul className="nav nav-tabs border-0 border-bottom border-secondary border-opacity-25 mb-4">
         {GLOBAL_NAV.map((item) => {
           const isActive =
-            (item.key === "dashboard" && (currentView === "global" || !currentView)) ||
+            (item.key === "dashboard" &&
+              (currentView === "global" || !currentView)) ||
             (item.key === "list" && currentView === "global-list") ||
             (item.key === "assistant" && currentView === "global-assistant");
           return (
@@ -105,7 +149,10 @@ const GlobalPoliciesView = ({
       {/* Header */}
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <h5 className="mb-0 d-flex align-items-center gap-2 text-body">
-          <i className="isax isax-hammer fs-20 text-primary" aria-hidden="true" />
+          <i
+            className="isax isax-hammer fs-20 text-primary"
+            aria-hidden="true"
+          />
           Global Policies
         </h5>
         <div className="d-flex align-items-center gap-2">
@@ -117,7 +164,10 @@ const GlobalPoliciesView = ({
             <i className="isax isax-add-circle fs-18 me-1" aria-hidden="true" />
             Add new policy
           </button>
-          <button type="button" className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-primary btn-sm rounded-2 d-inline-flex align-items-center gap-2"
+          >
             <i className="isax isax-magic-star fs-18" aria-hidden="true" />
             Add Policy with AI
           </button>
@@ -130,17 +180,35 @@ const GlobalPoliciesView = ({
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <h6 className="fw-semibold text-body mb-1">Priorities</h6>
-              <p className="fs-13 text-muted mb-3">Distribution of policies with matches across priority levels</p>
-              <VerticalBarChart items={stats.priorities || []} maxVal={Math.max(5, ...(stats.priorities || []).map(p => p.value || 0))} />
+              <p className="fs-13 text-muted mb-3">
+                Distribution of policies with matches across priority levels
+              </p>
+              <VerticalBarChart
+                items={stats.priorities || []}
+                maxVal={Math.max(
+                  5,
+                  ...(stats.priorities || []).map((p) => p.value || 0),
+                )}
+              />
             </div>
           </div>
         </div>
         <div className="col-lg-6">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <h6 className="fw-semibold text-body mb-1">Policy Distribution</h6>
-              <p className="fs-13 text-muted mb-3">Distribution of policies that match their corresponding setting</p>
-              <VerticalBarChart items={stats.distribution || []} maxVal={Math.max(5, ...(stats.distribution || []).map(d => d.value || 0))} />
+              <h6 className="fw-semibold text-body mb-1">
+                Policy Distribution
+              </h6>
+              <p className="fs-13 text-muted mb-3">
+                Distribution of policies that match their corresponding setting
+              </p>
+              <VerticalBarChart
+                items={stats.distribution || []}
+                maxVal={Math.max(
+                  5,
+                  ...(stats.distribution || []).map((d) => d.value || 0),
+                )}
+              />
             </div>
           </div>
         </div>
@@ -149,25 +217,38 @@ const GlobalPoliciesView = ({
       {/* Policies with most matches */}
       <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
         <div className="card-header border-0 bg-transparent py-3">
-          <h6 className="mb-0 fw-semibold text-body">Policies with most matches</h6>
+          <h6 className="mb-0 fw-semibold text-body">
+            Policies with most matches
+          </h6>
         </div>
         <div className="table-responsive flex-grow-1">
           <table className="table table-hover table-striped table-borderless align-middle mb-0">
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                <th className="py-3 ps-4 text-body fs-13 fw-semibold" style={{ minWidth: 280 }}>Title</th>
+                <th
+                  className="py-3 ps-4 text-body fs-13 fw-semibold"
+                  style={{ minWidth: 280 }}
+                >
+                  Title
+                </th>
                 <th className="py-3 text-body fs-13 fw-semibold">
                   <button
                     type="button"
                     className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
                     onClick={() => setSortHitsDesc((d) => !d)}
-                    aria-label={sortHitsDesc ? "Sorted descending. Click to sort ascending." : "Sorted ascending. Click to sort descending."}
+                    aria-label={
+                      sortHitsDesc
+                        ? "Sorted descending. Click to sort ascending."
+                        : "Sorted ascending. Click to sort descending."
+                    }
                   >
                     Hits across all domains and modules
-                    <i className={`isax ms-1 text-muted ${sortHitsDesc ? "isax-arrow-down" : "isax-arrow-up-1"}`} aria-hidden="true" />
+                    <i
+                      className={`isax ms-1 text-muted ${sortHitsDesc ? "isax-arrow-down" : "isax-arrow-up-1"}`}
+                      aria-hidden="true"
+                    />
                   </button>
                 </th>
-                
               </tr>
             </thead>
             <tbody>
@@ -180,17 +261,35 @@ const GlobalPoliciesView = ({
                         style={{ width: 32, height: 32 }}
                       >
                         {row.status === "hits" ? (
-                          <i className="isax isax-search-normal-1 text-secondary fs-16" aria-hidden="true" />
+                          <i
+                            className="isax isax-search-normal-1 text-secondary fs-16"
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-tick-circle text-success fs-16" aria-hidden="true" />
+                          <i
+                            className="isax isax-tick-circle text-success fs-16"
+                            aria-hidden="true"
+                          />
                         )}
                       </span>
                       <div className="min-w-0">
-                        <span className="fw-semibold text-body d-block fs-13">{row.title}</span>
-                        <span className="text-muted fs-12 d-block">Search in: {row.searchScope}</span>
+                        <span className="fw-semibold text-body d-block fs-13">
+                          {row.title}
+                        </span>
+                        <span className="text-muted fs-12 d-block">
+                          Search in: {row.searchScope}
+                        </span>
                         <div className="d-flex align-items-center gap-2 mt-1">
-                          <i className="isax isax-information text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
-                          <i className="isax isax-information text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
+                          <i
+                            className="isax isax-information text-muted"
+                            style={{ fontSize: "0.7rem" }}
+                            aria-hidden="true"
+                          />
+                          <i
+                            className="isax isax-information text-muted"
+                            style={{ fontSize: "0.7rem" }}
+                            aria-hidden="true"
+                          />
                         </div>
                       </div>
                     </div>
@@ -203,21 +302,30 @@ const GlobalPoliciesView = ({
                         onClick={() => setHitsDrawerPolicy(row)}
                         aria-label={`${row.policyHits} hits – view policy hits per domain`}
                       >
-                        <div className="progress rounded-pill flex-grow-1" style={{ height: 24, minWidth: 80, maxWidth: 120 }}>
+                        <div
+                          className="progress rounded-pill flex-grow-1"
+                          style={{ height: 24, minWidth: 80, maxWidth: 120 }}
+                        >
                           <div
                             className="progress-bar bg-primary d-flex align-items-center justify-content-center rounded-pill"
                             role="progressbar"
-                            style={{ width: `${Math.min(100, ((row.policyHits || 0) / 500) * 100)}%` }}
+                            style={{
+                              width: `${Math.min(100, ((row.policyHits || 0) / 500) * 100)}%`,
+                            }}
                             aria-valuenow={row.policyHits}
                             aria-valuemin="0"
                             aria-valuemax="500"
                           >
-                            <span className="text-white fs-13 fw-medium">{row.policyHits}</span>
+                            <span className="text-white fs-13 fw-medium">
+                              {row.policyHits}
+                            </span>
                           </div>
                         </div>
                       </button>
                     ) : (
-                      <span className="text-muted fs-13">{row.policyHits || 0}</span>
+                      <span className="text-muted fs-13">
+                        {row.policyHits || 0}
+                      </span>
                     )}
                   </td>
                   <td className="py-3 pe-4">
@@ -233,23 +341,43 @@ const GlobalPoliciesView = ({
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
-                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 text-primary" onClick={() => setRunPolicyAgainPolicy(row)}>
-                            <i className="isax isax-play" aria-hidden="true" /> Run policy again
+                          <button
+                            type="button"
+                            className="dropdown-item d-flex align-items-center gap-2 text-primary"
+                            onClick={() => setRunPolicyAgainPolicy(row)}
+                          >
+                            <i className="isax isax-play" aria-hidden="true" />{" "}
+                            Run policy again
                           </button>
                         </li>
                         <li>
-                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 text-primary">
-                            <i className="isax isax-edit-2" aria-hidden="true" /> Edit
+                          <button
+                            type="button"
+                            className="dropdown-item d-flex align-items-center gap-2 text-primary"
+                          >
+                            <i
+                              className="isax isax-edit-2"
+                              aria-hidden="true"
+                            />{" "}
+                            Edit
                           </button>
                         </li>
                         <li>
-                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 text-primary">
-                            <i className="isax isax-box" aria-hidden="true" /> Archive
+                          <button
+                            type="button"
+                            className="dropdown-item d-flex align-items-center gap-2 text-primary"
+                          >
+                            <i className="isax isax-box" aria-hidden="true" />{" "}
+                            Archive
                           </button>
                         </li>
                         <li>
-                          <button type="button" className="dropdown-item d-flex align-items-center gap-2 text-danger">
-                            <i className="isax isax-trash" aria-hidden="true" /> Delete
+                          <button
+                            type="button"
+                            className="dropdown-item d-flex align-items-center gap-2 text-danger"
+                          >
+                            <i className="isax isax-trash" aria-hidden="true" />{" "}
+                            Delete
                           </button>
                         </li>
                       </ul>
@@ -286,7 +414,12 @@ const GlobalPoliciesView = ({
             aria-labelledby="run-policy-again-global-confirm-title"
             style={{ backgroundColor: "transparent", zIndex: 1105 }}
           >
-            <div className="modal-dialog modal-dialog-centered" role="document" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "420px" }}>
+            <div
+              className="modal-dialog modal-dialog-centered"
+              role="document"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: "420px" }}
+            >
               <div className="modal-content border-0 rounded-3 shadow-lg overflow-hidden position-relative">
                 <button
                   type="button"
@@ -295,11 +428,19 @@ const GlobalPoliciesView = ({
                   aria-label="Close"
                   onClick={() => setRunPolicyAgainPolicy(null)}
                 >
-                  <i className="isax isax-close-circle fs-20 text-muted" aria-hidden="true" />
+                  <i
+                    className="isax isax-close-circle fs-20 text-muted"
+                    aria-hidden="true"
+                  />
                 </button>
                 <div className="modal-header border-0 pt-4 px-4 pb-0 pe-5">
-                  <p className="modal-title mb-0 text-body fw-medium lh-base text-nowrap" id="run-policy-again-global-confirm-title" style={{ lineHeight: "1.5", fontSize: "1.125rem" }}>
-                    Are you sure you want to run "{runPolicyAgainPolicy.title}" again?
+                  <p
+                    className="modal-title mb-0 text-body fw-medium lh-base text-nowrap"
+                    id="run-policy-again-global-confirm-title"
+                    style={{ lineHeight: "1.5", fontSize: "1.125rem" }}
+                  >
+                    Are you sure you want to run "{runPolicyAgainPolicy.title}"
+                    again?
                   </p>
                 </div>
                 <hr className="mx-4 mt-3 mb-0 text-muted opacity-25" />

@@ -26,16 +26,22 @@ export const deletePolicyApi = async (id) => {
 };
 
 export const getPolicyStatsApi = async (query = {}) => {
-  const response = await axiosInstance.get("/policies/stats", { params: query });
+  const response = await axiosInstance.get("/policies/stats", {
+    params: query,
+  });
   return response.data;
 };
 
 export const getPolicyReportsApi = async (id, query = {}) => {
-  const response = await axiosInstance.get(`/policies/${id}/reports`, { params: query });
+  const response = await axiosInstance.get(`/policies/${id}/reports`, {
+    params: query,
+  });
   return response.data;
 };
 
 export const getPolicyContentMatchesApi = async (query = {}) => {
-  const response = await axiosInstance.get("/policies/content-matches", { params: query });
+  const response = await axiosInstance.get("/policies/content-matches", {
+    params: query,
+  });
   return response.data;
 };

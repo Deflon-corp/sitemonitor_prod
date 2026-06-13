@@ -42,21 +42,37 @@ const DictionaryDetailDrawer = ({
 
   const resolvedPagesWithEntry = useMemo(() => {
     if (pagesWithEntry && pagesWithEntry.length > 0) return pagesWithEntry;
-    if (page) return [{ title: page.title || "Untitled Page", url: page.url, priority: "Medium", views: 0 }];
+    if (page)
+      return [
+        {
+          title: page.title || "Untitled Page",
+          url: page.url,
+          priority: "Medium",
+          views: 0,
+        },
+      ];
     return [];
   }, [pagesWithEntry, page]);
 
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return resolvedPagesWithEntry;
     const q = searchQuery.toLowerCase();
-    return resolvedPagesWithEntry.filter((p) => p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+    return resolvedPagesWithEntry.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) || p.url.toLowerCase().includes(q),
+    );
   }, [resolvedPagesWithEntry, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
       if (sortBy === "pages") return dir * (a.pages - b.pages);
       return dir * (a.views - b.views);
     });
@@ -78,7 +94,10 @@ const DictionaryDetailDrawer = ({
   };
 
   const handleCopyUrl = () => {
-    const url = issue && resolvedPagesWithEntry.length > 0 ? resolvedPagesWithEntry[0].url : window.location.href;
+    const url =
+      issue && resolvedPagesWithEntry.length > 0
+        ? resolvedPagesWithEntry[0].url
+        : window.location.href;
     void navigator.clipboard.writeText(url);
   };
 
@@ -112,7 +131,11 @@ const DictionaryDetailDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow overflow-auto d-flex flex-column"
-        style={{ zIndex: panelZIndex, width: "min(100%, 960px)", maxWidth: "960px" }}
+        style={{
+          zIndex: panelZIndex,
+          width: "min(100%, 960px)",
+          maxWidth: "960px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dictionary-detail-drawer-title"
@@ -120,16 +143,32 @@ const DictionaryDetailDrawer = ({
         <div className="border-bottom px-4 py-3 flex-shrink-0">
           <div className="d-flex align-items-flex-start justify-content-between gap-3">
             <div className="d-flex align-items-center gap-2">
-              <button type="button" className="btn btn-icon btn-sm btn-light" onClick={onClose} title="Close" aria-label="Close">
+              <button
+                type="button"
+                className="btn btn-icon btn-sm btn-light"
+                onClick={onClose}
+                title="Close"
+                aria-label="Close"
+              >
                 <i className="isax isax-arrow-left" aria-hidden="true" />
               </button>
               <div>
-                <h6 className="mb-0 fw-semibold" id="dictionary-detail-drawer-title">Dictionary: {issue.word}</h6>
+                <h6
+                  className="mb-0 fw-semibold"
+                  id="dictionary-detail-drawer-title"
+                >
+                  Dictionary: {issue.word}
+                </h6>
                 <p className="text-muted fs-13 mb-0">ID: {issue.id}</p>
               </div>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <button type="button" className="btn btn-icon btn-sm btn-light" title="Search" aria-label="Search">
+              <button
+                type="button"
+                className="btn btn-icon btn-sm btn-light"
+                title="Search"
+                aria-label="Search"
+              >
                 <i className="isax isax-search-normal-1" aria-hidden="true" />
               </button>
               <a
@@ -143,14 +182,33 @@ const DictionaryDetailDrawer = ({
                 <span className="fw-bold">G</span>
               </a>
               <div className="dropdown">
-                <button type="button" className="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                  Action <i className="isax isax-arrow-down-1 ms-1 fs-12" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="btn btn-sm btn-light dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  Action{" "}
+                  <i
+                    className="isax isax-arrow-down-1 ms-1 fs-12"
+                    aria-hidden="true"
+                  />
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
-                  <li><button type="button" className="dropdown-item">Remove from dictionary</button></li>
+                  <li>
+                    <button type="button" className="dropdown-item">
+                      Remove from dictionary
+                    </button>
+                  </li>
                 </ul>
               </div>
-              <button type="button" className="btn btn-sm btn-light" onClick={handleCopyUrl}>Copy URL</button>
+              <button
+                type="button"
+                className="btn btn-sm btn-light"
+                onClick={handleCopyUrl}
+              >
+                Copy URL
+              </button>
             </div>
           </div>
         </div>
@@ -165,11 +223,15 @@ const DictionaryDetailDrawer = ({
                 <dt className="col-4 text-muted">Language</dt>
                 <dd className="col-8 mb-2">{issue.language}</dd>
                 <dt className="col-4 text-muted">Date added</dt>
-                <dd className="col-8 mb-2">{formatDateAdded(issue.dateAdded)}</dd>
+                <dd className="col-8 mb-2">
+                  {formatDateAdded(issue.dateAdded)}
+                </dd>
                 <dt className="col-4 text-muted">Found on page</dt>
                 <dd className="col-8 mb-0">
                   <div className="d-flex flex-column">
-                    <span className="fw-medium">{firstPage?.title ?? "(No title found)"}</span>
+                    <span className="fw-medium">
+                      {firstPage?.title ?? "(No title found)"}
+                    </span>
                     {firstPage?.url ? (
                       <a
                         href={firstPage.url}
@@ -177,7 +239,9 @@ const DictionaryDetailDrawer = ({
                         rel="noopener noreferrer"
                         className="text-muted text-decoration-none fs-13 d-inline-flex align-items-center gap-1 mt-1"
                       >
-                        <span className="text-primary"><ExternalLinkIcon size={12} /></span>
+                        <span className="text-primary">
+                          <ExternalLinkIcon size={12} />
+                        </span>
                         {firstPage.url}
                       </a>
                     ) : null}
@@ -190,15 +254,27 @@ const DictionaryDetailDrawer = ({
           <div className="card border-0 shadow-sm">
             <div className="card-body p-0">
               <div className="d-flex flex-nowrap align-items-center justify-content-between gap-3 px-4 pt-3 pb-2">
-                <h6 className="fw-semibold mb-0 text-body">All pages with this Dictionary entry</h6>
-                <div className="position-relative flex-shrink-0" style={{ width: 220 }}>
-                  <i className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3" style={{ fontSize: "1rem" }} aria-hidden="true" />
+                <h6 className="fw-semibold mb-0 text-body">
+                  All pages with this Dictionary entry
+                </h6>
+                <div
+                  className="position-relative flex-shrink-0"
+                  style={{ width: 220 }}
+                >
+                  <i
+                    className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+                    style={{ fontSize: "1rem" }}
+                    aria-hidden="true"
+                  />
                   <input
                     type="search"
                     className="form-control form-control-sm"
                     placeholder="Search..."
                     value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     aria-label="Search"
                     style={{ paddingLeft: "2rem" }}
                   />
@@ -208,8 +284,10 @@ const DictionaryDetailDrawer = ({
                 <table className="table table-hover table-striped table-borderless align-middle mb-0">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap">Title</th>
-                      
+                      <th className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap">
+                        Title
+                      </th>
+
                       <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
                         <button
                           type="button"
@@ -218,9 +296,15 @@ const DictionaryDetailDrawer = ({
                         >
                           Pages
                           {sortBy === "pages" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
@@ -232,19 +316,31 @@ const DictionaryDetailDrawer = ({
                         >
                           Views
                           {sortBy === "views" ? (
-                            <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                            <i
+                              className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                            <i
+                              className="isax isax-sort fs-12 opacity-50"
+                              aria-hidden="true"
+                            />
                           )}
                         </button>
                       </th>
-                      <th className="py-3 pe-4 text-nowrap" style={{ width: 100 }} aria-label="Actions" />
+                      <th
+                        className="py-3 pe-4 text-nowrap"
+                        style={{ width: 100 }}
+                        aria-label="Actions"
+                      />
                     </tr>
                   </thead>
                   <tbody>
                     {resolvedPagesWithEntry.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-5 text-center text-muted">No pages found</td>
+                        <td colSpan={4} className="py-5 text-center text-muted">
+                          No pages found
+                        </td>
                       </tr>
                     )}
                     {paginatedPages.map((p, idx) => (
@@ -280,7 +376,10 @@ const DictionaryDetailDrawer = ({
                             }}
                             aria-label={`Open page details for ${p.title}`}
                           >
-                            <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                            <i
+                              className="isax isax-document-text fs-14"
+                              aria-hidden="true"
+                            />
                           </button>
                         </td>
                       </tr>
@@ -295,42 +394,122 @@ const DictionaryDetailDrawer = ({
                     className="form-select form-select-sm"
                     style={{ width: "auto", minWidth: 60 }}
                     value={rowsPerPage}
-                    onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
                   >
-                    {ROWS_PER_PAGE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                    {ROWS_PER_PAGE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
                   </select>
                   <span className="text-muted small">
-                    {resolvedPagesWithEntry.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, resolvedPagesWithEntry.length)} of {resolvedPagesWithEntry.length}
+                    {resolvedPagesWithEntry.length === 0
+                      ? 0
+                      : (currentPage - 1) * rowsPerPage + 1}
+                    -
+                    {Math.min(
+                      currentPage * rowsPerPage,
+                      resolvedPagesWithEntry.length,
+                    )}{" "}
+                    of {resolvedPagesWithEntry.length}
                   </span>
                 </div>
                 <nav aria-label="Pagination">
                   <ul className="pagination pagination-sm mb-0">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                      <button type="button" className="page-link" onClick={() => setCurrentPage(1)} disabled={currentPage <= 1} aria-label="First">«</button>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage <= 1}
+                        aria-label="First"
+                      >
+                        «
+                      </button>
                     </li>
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                      <button type="button" className="page-link" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1} aria-label="Previous">‹</button>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={currentPage <= 1}
+                        aria-label="Previous"
+                      >
+                        ‹
+                      </button>
                     </li>
                     {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
                       let p;
                       if (totalPages <= 7) p = i + 1;
                       else if (currentPage <= 4) p = i + 1;
-                      else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                      else if (currentPage >= totalPages - 3)
+                        p = totalPages - 6 + i;
                       else p = currentPage - 3 + i;
                       if (p < 1 || p > totalPages) return null;
                       return (
                         <li key={p} className="page-item">
-                          <button type="button" className={`page-link ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                          <button
+                            type="button"
+                            className={`page-link ${currentPage === p ? "active" : ""}`}
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </button>
                         </li>
                       );
                     })}
-                    {totalPages > 7 && currentPage < totalPages - 3 && <li className="page-item disabled"><span className="page-link">…</span></li>}
-                    {totalPages > 7 && <li className="page-item"><button type="button" className="page-link" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button></li>}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                      <button type="button" className="page-link" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages} aria-label="Next">›</button>
+                    {totalPages > 7 && currentPage < totalPages - 3 && (
+                      <li className="page-item disabled">
+                        <span className="page-link">…</span>
+                      </li>
+                    )}
+                    {totalPages > 7 && (
+                      <li className="page-item">
+                        <button
+                          type="button"
+                          className="page-link"
+                          onClick={() => setCurrentPage(totalPages)}
+                        >
+                          {totalPages}
+                        </button>
+                      </li>
+                    )}
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage >= totalPages}
+                        aria-label="Next"
+                      >
+                        ›
+                      </button>
                     </li>
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                      <button type="button" className="page-link" onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages} aria-label="Last">»</button>
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage >= totalPages}
+                        aria-label="Last"
+                      >
+                        »
+                      </button>
                     </li>
                   </ul>
                 </nav>
@@ -344,14 +523,23 @@ const DictionaryDetailDrawer = ({
         <DictionaryPageDetailsDrawer
           open={selectedPageForDetails != null}
           onClose={() => setSelectedPageForDetails(null)}
-          page={selectedPageForDetails ? { title: selectedPageForDetails.title, url: selectedPageForDetails.url } : null}
+          page={
+            selectedPageForDetails
+              ? {
+                  title: selectedPageForDetails.title,
+                  url: selectedPageForDetails.url,
+                }
+              : null
+          }
           defaultQaSubView="dictionary"
         />
       )}
     </>
   );
 
-  return typeof document !== "undefined" ? createPortal(drawerContent, document.body) : null;
+  return typeof document !== "undefined"
+    ? createPortal(drawerContent, document.body)
+    : null;
 };
 
 export default DictionaryDetailDrawer;

@@ -1,7 +1,13 @@
-function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
+function _nullishCoalesce(lhs, rhsFn) {
+  if (lhs != null) {
+    return lhs;
+  } else {
+    return rhsFn();
+  }
+}
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
-import PageDetailsMisspellingsDrawer, { } from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
+import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
 import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 import { getDomainByIdApi, getDomainSeoPagesApi } from "../../api/domainApi";
@@ -25,27 +31,30 @@ const PagesWithOpportunitiesView = () => {
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
-  const fetchPages = useCallback(async (showLoading = true) => {
-    if (!domainId) return;
-    if (showLoading) setIsLoading(true);
-    try {
-      const [pagesRes, domRes] = await Promise.all([
-        getDomainSeoPagesApi(domainId, currentPage, rowsPerPage, searchQuery),
-        getDomainByIdApi(domainId)
-      ]);
-      if (pagesRes.success) {
-        setPages(pagesRes.data.pages);
-        setTotalCount(pagesRes.data.pagination.total);
+  const fetchPages = useCallback(
+    async (showLoading = true) => {
+      if (!domainId) return;
+      if (showLoading) setIsLoading(true);
+      try {
+        const [pagesRes, domRes] = await Promise.all([
+          getDomainSeoPagesApi(domainId, currentPage, rowsPerPage, searchQuery),
+          getDomainByIdApi(domainId),
+        ]);
+        if (pagesRes.success) {
+          setPages(pagesRes.data.pages);
+          setTotalCount(pagesRes.data.pagination.total);
+        }
+        if (domRes.success) {
+          setDomain(domRes.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch SEO pages:", error);
+      } finally {
+        if (showLoading) setIsLoading(false);
       }
-      if (domRes.success) {
-        setDomain(domRes.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch SEO pages:", error);
-    } finally {
-      if (showLoading) setIsLoading(false);
-    }
-  }, [domainId, currentPage, rowsPerPage, searchQuery]);
+    },
+    [domainId, currentPage, rowsPerPage, searchQuery],
+  );
 
   useEffect(() => {
     fetchPages();
@@ -53,7 +62,11 @@ const PagesWithOpportunitiesView = () => {
 
   useEffect(() => {
     let interval;
-    if (domain && (domain.dm_seo_status === 'pending' || domain.dm_seo_status === 'scanning')) {
+    if (
+      domain &&
+      (domain.dm_seo_status === "pending" ||
+        domain.dm_seo_status === "scanning")
+    ) {
       interval = setInterval(() => {
         fetchPages(false);
       }, 5000);
@@ -72,11 +85,20 @@ const PagesWithOpportunitiesView = () => {
     if (!sortBy) return pages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...pages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
       if (sortBy === "issues") return dir * (a.notifications - b.notifications);
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
-        return dir * ((_nullishCoalesce(order[a.priority], () => (0))) - (_nullishCoalesce(order[b.priority], () => (0))));
+        return (
+          dir *
+          (_nullishCoalesce(order[a.priority], () => 0) -
+            _nullishCoalesce(order[b.priority], () => 0))
+        );
       }
       return 0;
     });
@@ -104,7 +126,7 @@ const PagesWithOpportunitiesView = () => {
           `"${p.url.replace(/"/g, '""')}"`,
           p.notifications,
           `"${p.priority}"`,
-        ].join(",")
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -141,7 +163,12 @@ const PagesWithOpportunitiesView = () => {
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 70 }, 2: { cellWidth: 30 }, 3: { cellWidth: 30 } },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 30 },
+      },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
@@ -151,14 +178,24 @@ const PagesWithOpportunitiesView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <div>
           <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
-            <i className="isax isax-document-copy text-primary fs-22" aria-hidden="true" />
+            <i
+              className="isax isax-document-copy text-primary fs-22"
+              aria-hidden="true"
+            />
             Pages Needing Attention
           </h5>
           <p className="text-muted fs-13 mb-0 d-flex align-items-center gap-2">
-            We've identified {totalCount} pages that could rank higher with some SEO improvements.
-            {domain?.dm_seo_status === 'scanning' || domain?.dm_seo_status === 'pending' ? (
+            We've identified {totalCount} pages that could rank higher with some
+            SEO improvements.
+            {domain?.dm_seo_status === "scanning" ||
+            domain?.dm_seo_status === "pending" ? (
               <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-1 px-2">
-                <span className="spinner-border spinner-border-sm" style={{ width: 10, height: 10 }} role="status" aria-hidden="true"></span>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  style={{ width: 10, height: 10 }}
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 <span style={{ fontSize: 10 }}>Scanning for updates...</span>
               </span>
             ) : null}
@@ -176,8 +213,15 @@ const PagesWithOpportunitiesView = () => {
             className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
             style={{ width: 220 }}
           >
-            <span className="d-flex align-items-center ps-3 flex-shrink-0 text-muted" aria-hidden="true">
-              <i className="isax isax-search-normal-1" style={{ fontSize: "1rem" }} aria-hidden="true" />
+            <span
+              className="d-flex align-items-center ps-3 flex-shrink-0 text-muted"
+              aria-hidden="true"
+            >
+              <i
+                className="isax isax-search-normal-1"
+                style={{ fontSize: "1rem" }}
+                aria-hidden="true"
+              />
             </span>
             <input
               type="search"
@@ -204,10 +248,16 @@ const PagesWithOpportunitiesView = () => {
                   <span className="visually-hidden">Loading...</span>
                 </div>
               </div>
-            ) : (domain?.dm_seo_status === 'pending' || domain?.dm_seo_status === 'scanning') && pages.length === 0 ? (
+            ) : (domain?.dm_seo_status === "pending" ||
+                domain?.dm_seo_status === "scanning") &&
+              pages.length === 0 ? (
               <div className="text-center p-5">
                 <div className="mb-4">
-                  <div className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }} role="status">
+                  <div
+                    className="spinner-border text-primary"
+                    style={{ width: "3rem", height: "3rem" }}
+                    role="status"
+                  >
                     <span className="visually-hidden">Scanning...</span>
                   </div>
                 </div>
@@ -226,9 +276,15 @@ const PagesWithOpportunitiesView = () => {
                       >
                         Page Title & URL
                         {sortBy === "title" ? (
-                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                          <i
+                            className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                          <i
+                            className="isax isax-sort fs-12 opacity-50"
+                            aria-hidden="true"
+                          />
                         )}
                       </button>
                     </th>
@@ -240,9 +296,15 @@ const PagesWithOpportunitiesView = () => {
                       >
                         Issues
                         {sortBy === "issues" ? (
-                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                          <i
+                            className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                          <i
+                            className="isax isax-sort fs-12 opacity-50"
+                            aria-hidden="true"
+                          />
                         )}
                       </button>
                     </th>
@@ -253,17 +315,34 @@ const PagesWithOpportunitiesView = () => {
                         onClick={() => handleSort("priority")}
                       >
                         Priority
-                        <span className="ms-1 d-inline-flex" title="Priority level" aria-label="Info">
-                          <i className="isax isax-information text-muted fs-12" aria-hidden="true" />
+                        <span
+                          className="ms-1 d-inline-flex"
+                          title="Priority level"
+                          aria-label="Info"
+                        >
+                          <i
+                            className="isax isax-information text-muted fs-12"
+                            aria-hidden="true"
+                          />
                         </span>
                         {sortBy === "priority" ? (
-                          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                          <i
+                            className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                          <i
+                            className="isax isax-sort fs-12 opacity-50"
+                            aria-hidden="true"
+                          />
                         )}
                       </button>
                     </th>
-                    <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions"></th>
+                    <th
+                      className="py-3 pe-4 text-body fs-13 fw-semibold"
+                      style={{ width: 120 }}
+                      aria-label="Actions"
+                    ></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -285,15 +364,18 @@ const PagesWithOpportunitiesView = () => {
                           </a>
                         </div>
                       </td>
-                      <td className="py-3 fs-13 text-body">{p.notifications}</td>
+                      <td className="py-3 fs-13 text-body">
+                        {p.notifications}
+                      </td>
                       <td className="py-3">
                         <span
-                          className={`badge rounded-pill ${p.priority === "High"
+                          className={`badge rounded-pill ${
+                            p.priority === "High"
                               ? "bg-danger bg-opacity-10 text-danger"
                               : p.priority === "Medium"
                                 ? "bg-warning bg-opacity-10 text-warning"
                                 : "bg-secondary bg-opacity-10 text-secondary"
-                            }`}
+                          }`}
                         >
                           {p.priority}
                         </span>
@@ -307,7 +389,10 @@ const PagesWithOpportunitiesView = () => {
                             aria-label="Open page details"
                             onClick={() => openPageDetails(p, idx)}
                           >
-                            <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                            <i
+                              className="isax isax-document-text fs-14"
+                              aria-hidden="true"
+                            />
                           </button>
                         </div>
                       </td>
@@ -322,8 +407,7 @@ const PagesWithOpportunitiesView = () => {
                   )}
                 </tbody>
               </table>
-            )
-}
+            )}
           </div>
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top border-secondary border-opacity-25">
             <div className="d-flex align-items-center gap-2">
@@ -352,7 +436,9 @@ const PagesWithOpportunitiesView = () => {
             </div>
             <nav aria-label="Pagination">
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
@@ -367,7 +453,8 @@ const PagesWithOpportunitiesView = () => {
                   let p;
                   if (totalPages <= 7) p = i + 1;
                   else if (currentPage <= 4) p = i + 1;
-                  else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                  else if (currentPage >= totalPages - 3)
+                    p = totalPages - 6 + i;
                   else p = currentPage - 3 + i;
                   if (p < 1 || p > totalPages) return null;
                   return (
@@ -398,11 +485,15 @@ const PagesWithOpportunitiesView = () => {
                     </button>
                   </li>
                 )}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                     aria-label="Next"
                   >

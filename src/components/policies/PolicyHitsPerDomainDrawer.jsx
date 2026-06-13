@@ -52,7 +52,11 @@ const PolicyHitsPerDomainDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow d-flex flex-column overflow-hidden"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 640px)", maxWidth: "640px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 640px)",
+          maxWidth: "640px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="policy-hits-drawer-title"
@@ -67,9 +71,17 @@ const PolicyHitsPerDomainDrawer = ({
               title="Close"
               aria-label="Close"
             >
-              <i className="isax isax-close-circle fs-22 text-body" aria-hidden="true" />
+              <i
+                className="isax isax-close-circle fs-22 text-body"
+                aria-hidden="true"
+              />
             </button>
-            <h2 id="policy-hits-drawer-title" className="mb-0 fw-semibold text-body fs-5 flex-grow-1 text-center">Policy hits per domain</h2>
+            <h2
+              id="policy-hits-drawer-title"
+              className="mb-0 fw-semibold text-body fs-5 flex-grow-1 text-center"
+            >
+              Policy hits per domain
+            </h2>
             <button
               type="button"
               className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2 flex-shrink-0"
@@ -77,7 +89,10 @@ const PolicyHitsPerDomainDrawer = ({
               title="Download"
               aria-label="Download"
             >
-              <i className="isax isax-document-download fs-20 text-body" aria-hidden="true" />
+              <i
+                className="isax isax-document-download fs-20 text-body"
+                aria-hidden="true"
+              />
             </button>
           </div>
         </div>
@@ -90,28 +105,39 @@ const PolicyHitsPerDomainDrawer = ({
                 <table className="table table-hover align-middle mb-0">
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="py-3 ps-4 text-body fs-13 fw-semibold">Domain</th>
-                      <th className="py-3 pe-4 text-body fs-13 fw-semibold">Hits on domain</th>
+                      <th className="py-3 ps-4 text-body fs-13 fw-semibold">
+                        Domain
+                      </th>
+                      <th className="py-3 pe-4 text-body fs-13 fw-semibold">
+                        Hits on domain
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {domainHits.length === 0 ? (
                       <tr>
-                        <td colSpan={2} className="py-4 text-center text-muted">No domain hits for this policy.</td>
+                        <td colSpan={2} className="py-4 text-center text-muted">
+                          No domain hits for this policy.
+                        </td>
                       </tr>
                     ) : (
                       domainHits.map((d) => (
                         <tr key={d.domainId}>
                           <td className="py-3 ps-4">
                             <div className="d-flex flex-column gap-1">
-                              <span className="fw-medium text-primary">{d.domainName}</span>
+                              <span className="fw-medium text-primary">
+                                {d.domainName}
+                              </span>
                               <a
                                 href={d.domainUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-primary small text-decoration-none d-inline-flex align-items-center gap-1"
                               >
-                                <ExternalLinkIcon size={12} className="flex-shrink-0 text-primary" />
+                                <ExternalLinkIcon
+                                  size={12}
+                                  className="flex-shrink-0 text-primary"
+                                />
                                 {d.domainUrl}
                               </a>
                             </div>
@@ -148,7 +174,7 @@ const PolicyHitsPerDomainDrawer = ({
         domainUrl={contentMatchesDomain?.domainUrl}
         pagesToFix={contentMatchesDomain?.hits}
       />
-    </>
+    </>,
   );
 };
 

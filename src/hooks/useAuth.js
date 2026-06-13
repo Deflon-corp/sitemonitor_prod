@@ -1,4 +1,4 @@
-import { useAuthContext } from '../context/AuthContext';
+import { useAuthContext } from "../context/AuthContext";
 
 /**
  * Custom Hook: useAuth
@@ -6,7 +6,7 @@ import { useAuthContext } from '../context/AuthContext';
  */
 const useAuth = () => {
   const auth = useAuthContext();
-  
+
   // You can add more logic here, like checking for specific roles or permissions
   const isAuthenticated = !!auth.token;
 

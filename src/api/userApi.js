@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from "./axiosInstance";
 
 /**
  * User API Service Layer
@@ -7,7 +7,7 @@ import axiosInstance from './axiosInstance';
 // POST /users
 export const createUserApi = async (userData) => {
   try {
-    const response = await axiosInstance.post('/users', userData);
+    const response = await axiosInstance.post("/users", userData);
     return response.data;
   } catch (error) {
     throw error;
@@ -37,7 +37,7 @@ export const updateUserApi = async (userId, userData) => {
 // GET /users
 export const getUsersApi = async (params) => {
   try {
-    const response = await axiosInstance.get('/users', { params });
+    const response = await axiosInstance.get("/users", { params });
     return response.data;
   } catch (error) {
     throw error;

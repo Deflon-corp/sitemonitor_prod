@@ -4,15 +4,6 @@ import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/Page
 const BACKDROP_Z = 1080;
 const PANEL_Z = 1085;
 
- 
-
-
-
-
-
-
-
-
 /**
  * Page Details drawer opened from Ignored spelling issue drawer (e.g. when user clicks Open page details).
  * Uses defaultQaSubView "ignored-misspellings".

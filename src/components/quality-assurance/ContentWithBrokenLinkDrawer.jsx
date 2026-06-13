@@ -39,7 +39,7 @@ export default function ContentWithBrokenLinkDrawer({
             url: p.url,
             priority: p.priority || "Medium",
             views: p.views || 0,
-          }))
+          })),
         );
       }
     });
@@ -48,15 +48,22 @@ export default function ContentWithBrokenLinkDrawer({
   const filteredRows = useMemo(() => {
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    return rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+    return rows.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
+    );
   }, [search, rows]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredRows].sort((a, b) => {
-      if (sortBy === "title") return dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url));
-      if (sortBy === "priority") return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+      if (sortBy === "title")
+        return (
+          dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url))
+        );
+      if (sortBy === "priority")
+        return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
       return dir * (a.views - b.views);
     });
   }, [filteredRows, sortBy, sortDir]);
@@ -79,39 +86,62 @@ export default function ContentWithBrokenLinkDrawer({
   const reportName = "Content-with-Broken-Link-Report";
   const baseName = safeFilename(reportName);
 
-  const exportCSV = useCallback(function() {
-    const header = "Title,URL,Priority\n";
-    const body = sortedRows
-      .map((r) => `"${r.title.replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.priority}",${r.views}`)
-      .join("\n");
-    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
-    downloadBlob(blob, `${baseName}.csv`);
-  }, [sortedRows, baseName]);
+  const exportCSV = useCallback(
+    function () {
+      const header = "Title,URL,Priority\n";
+      const body = sortedRows
+        .map(
+          (r) =>
+            `"${r.title.replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.priority}",${r.views}`,
+        )
+        .join("\n");
+      const blob = new Blob([header + body], {
+        type: "text/csv;charset=utf-8;",
+      });
+      downloadBlob(blob, `${baseName}.csv`);
+    },
+    [sortedRows, baseName],
+  );
 
-  const exportExcel = useCallback(async function() {
-    const XLSX = await import("xlsx");
-    const rows = sortedRows.map((r) => ({ Title: r.title, URL: r.url, Priority: r.priority }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Content");
-    XLSX.writeFile(wb, `${baseName}.xlsx`);
-  }, [sortedRows, baseName]);
+  const exportExcel = useCallback(
+    async function () {
+      const XLSX = await import("xlsx");
+      const rows = sortedRows.map((r) => ({
+        Title: r.title,
+        URL: r.url,
+        Priority: r.priority,
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Content");
+      XLSX.writeFile(wb, `${baseName}.xlsx`);
+    },
+    [sortedRows, baseName],
+  );
 
-  const exportPDF = useCallback(async function() {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-    const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Priority"]];
-    const body = sortedRows.map((r) => [r.title, r.url, r.priority]);
-    autoTable(doc, {
-      head,
-      body,
-      startY: 10,
-      styles: { fontSize: 8 },
-      columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: "wrap" }, 2: { cellWidth: 22 }, 3: { cellWidth: 18 } },
-    });
-    doc.save(`${baseName}.pdf`);
-  }, [sortedRows, baseName]);
+  const exportPDF = useCallback(
+    async function () {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+      const doc = new jsPDF({ orientation: "landscape" });
+      const head = [["Title", "URL", "Priority"]];
+      const body = sortedRows.map((r) => [r.title, r.url, r.priority]);
+      autoTable(doc, {
+        head,
+        body,
+        startY: 10,
+        styles: { fontSize: 8 },
+        columnStyles: {
+          0: { cellWidth: "wrap" },
+          1: { cellWidth: "wrap" },
+          2: { cellWidth: 22 },
+          3: { cellWidth: 18 },
+        },
+      });
+      doc.save(`${baseName}.pdf`);
+    },
+    [sortedRows, baseName],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -162,10 +192,16 @@ export default function ContentWithBrokenLinkDrawer({
                 onClick={onClose}
                 aria-label="Close drawer"
               >
-                <i className="isax isax-close-square fs-20" aria-hidden="true"></i>
+                <i
+                  className="isax isax-close-square fs-20"
+                  aria-hidden="true"
+                ></i>
               </button>
               <div className="min-w-0">
-                <h5 id="content-with-broken-link-drawer-title" className="mb-1 fw-semibold text-body">
+                <h5
+                  id="content-with-broken-link-drawer-title"
+                  className="mb-1 fw-semibold text-body"
+                >
                   {drawerTitle}
                 </h5>
                 <a
@@ -175,12 +211,43 @@ export default function ContentWithBrokenLinkDrawer({
                   className="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 text-break"
                   title="Open in new tab"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary flex-shrink-0" aria-hidden="true">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15 3h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-primary flex-shrink-0"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M15 3h6v6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M10 14L21 3"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
-                  <span className="text-truncate d-inline-block" style={{ maxWidth: "100%" }}>{displayUrl}</span>
+                  <span
+                    className="text-truncate d-inline-block"
+                    style={{ maxWidth: "100%" }}
+                  >
+                    {displayUrl}
+                  </span>
                 </a>
               </div>
             </div>
@@ -193,28 +260,60 @@ export default function ContentWithBrokenLinkDrawer({
                   aria-expanded="false"
                   title="Download Report"
                 >
-                  <i className="isax isax-document-download text-primary fs-18" aria-hidden="true"></i>Download Report
+                  <i
+                    className="isax isax-document-download text-primary fs-18"
+                    aria-hidden="true"
+                  ></i>
+                  Download Report
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportCSV}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true"></i>CSV
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportCSV}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      ></i>
+                      CSV
                     </button>
                   </li>
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportPDF}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true"></i>PDF
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportPDF}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      ></i>
+                      PDF
                     </button>
                   </li>
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportExcel}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true"></i>Excel
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportExcel}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      ></i>
+                      Excel
                     </button>
                   </li>
                 </ul>
               </div>
               <div className="position-relative" style={{ width: 200 }}>
-                <i className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3" style={{ fontSize: "0.875rem" }} aria-hidden="true"></i>
+                <i
+                  className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+                  style={{ fontSize: "0.875rem" }}
+                  aria-hidden="true"
+                ></i>
                 <input
                   type="search"
                   className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2"
@@ -241,16 +340,27 @@ export default function ContentWithBrokenLinkDrawer({
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-3 ps-4">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("title")}
+                        >
                           Title and URL <SortIcon column="title" />
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("priority")}
+                        >
                           Priority <SortIcon column="priority" />
                         </button>
                       </th>
-                      <th className="fw-semibold text-body py-3 pe-4" style={{ width: 100 }}></th>
+                      <th
+                        className="fw-semibold text-body py-3 pe-4"
+                        style={{ width: 100 }}
+                      ></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -258,7 +368,9 @@ export default function ContentWithBrokenLinkDrawer({
                       <tr key={row.id}>
                         <td className="py-3 ps-4">
                           <div className="d-flex flex-column">
-                            <span className="fw-semibold text-body">{row.title}</span>
+                            <span className="fw-semibold text-body">
+                              {row.title}
+                            </span>
                             <a
                               href={row.url}
                               target="_blank"
@@ -266,11 +378,38 @@ export default function ContentWithBrokenLinkDrawer({
                               className="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mt-1"
                               title="Open in new tab"
                             >
-                              <span className="d-inline-flex text-primary" aria-hidden="true">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M15 3h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <span
+                                className="d-inline-flex text-primary"
+                                aria-hidden="true"
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M15 3h6v6"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M10 14L21 3"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
                                 </svg>
                               </span>
                               {row.url}
@@ -278,24 +417,40 @@ export default function ContentWithBrokenLinkDrawer({
                           </div>
                         </td>
                         <td className="py-3">
-                          <span className={`badge rounded-pill ${
-                            row.priority === "High"
-                              ? "bg-danger bg-opacity-10 text-danger"
-                              : row.priority === "Medium"
-                                ? "bg-warning bg-opacity-25 text-dark"
-                                : "bg-primary bg-opacity-10 text-primary"
-                          }`}>
+                          <span
+                            className={`badge rounded-pill ${
+                              row.priority === "High"
+                                ? "bg-danger bg-opacity-10 text-danger"
+                                : row.priority === "Medium"
+                                  ? "bg-warning bg-opacity-25 text-dark"
+                                  : "bg-primary bg-opacity-10 text-primary"
+                            }`}
+                          >
                             {row.priority}
                           </span>
                         </td>
 
                         <td className="py-3 pe-4">
                           <div className="d-flex align-items-center gap-1">
-                            <button type="button" className="btn btn-icon btn-sm btn-light" title="Open page details">
-                              <i className="isax isax-document-text text-primary" aria-hidden="true"></i>
+                            <button
+                              type="button"
+                              className="btn btn-icon btn-sm btn-light"
+                              title="Open page details"
+                            >
+                              <i
+                                className="isax isax-document-text text-primary"
+                                aria-hidden="true"
+                              ></i>
                             </button>
-                            <button type="button" className="btn btn-icon btn-sm btn-light" title="Search">
-                              <i className="isax isax-search-normal-1 text-primary" aria-hidden="true"></i>
+                            <button
+                              type="button"
+                              className="btn btn-icon btn-sm btn-light"
+                              title="Search"
+                            >
+                              <i
+                                className="isax isax-search-normal-1 text-primary"
+                                aria-hidden="true"
+                              ></i>
                             </button>
                           </div>
                         </td>
@@ -317,31 +472,65 @@ export default function ContentWithBrokenLinkDrawer({
                     }}
                   >
                     {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                      <option key={n} value={n}>{n}</option>
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
                     ))}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                    {(currentPage - 1) * rowsPerPage + 1}–
+                    {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+                    {sortedRows.length}
                   </span>
                 </div>
                 <nav aria-label="Content with broken link pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                      <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1} aria-label="Previous">
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={currentPage <= 1}
+                        aria-label="Previous"
+                      >
                         Previous
                       </button>
                     </li>
-                    {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                      const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
-                      if (p > totalPages) return null;
-                      return (
-                        <li key={p} className="page-item">
-                          <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
-                        </li>
-                      );
-                    })}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                      <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages} aria-label="Next">
+                    {Array.from(
+                      { length: Math.min(totalPages, 10) },
+                      (_, i) => {
+                        const p =
+                          currentPage <= 5 ? i + 1 : currentPage - 5 + i;
+                        if (p > totalPages) return null;
+                        return (
+                          <li key={p} className="page-item">
+                            <button
+                              type="button"
+                              className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                              onClick={() => setCurrentPage(p)}
+                            >
+                              {p}
+                            </button>
+                          </li>
+                        );
+                      },
+                    )}
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link rounded-2"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage >= totalPages}
+                        aria-label="Next"
+                      >
                         Next
                       </button>
                     </li>

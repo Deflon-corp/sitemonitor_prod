@@ -16,11 +16,14 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("KB");
 
-
   useEffect(() => {
     if (open && initialData) {
-      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
-      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
+      setRuleName(
+        initialData?.ruleName !== undefined ? initialData.ruleName : "",
+      );
+      setComparison(
+        initialData?.comparison !== undefined ? initialData.comparison : "",
+      );
       setValue(initialData?.value !== undefined ? initialData.value : "");
       setUnit(initialData?.unit !== undefined ? initialData.unit : "");
     } else if (open && !initialData) {
@@ -78,8 +81,15 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
             <div>
-              <h5 id="new-rule-image-size-title" className="mb-0 fw-semibold text-body">New rule - Image size</h5>
-              <p className="text-muted fs-13 mb-0 mt-1">Search for images across selected domains</p>
+              <h5
+                id="new-rule-image-size-title"
+                className="mb-0 fw-semibold text-body"
+              >
+                New rule - Image size
+              </h5>
+              <p className="text-muted fs-13 mb-0 mt-1">
+                Search for images across selected domains
+              </p>
             </div>
           </div>
         </div>
@@ -99,7 +109,9 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
           </div>
 
           <div className="mb-4">
-            <label className="form-label text-body fs-13">Search for image size that is:</label>
+            <label className="form-label text-body fs-13">
+              Search for image size that is:
+            </label>
             <div className="d-flex gap-2 align-items-center flex-wrap">
               <select
                 className="form-select flex-shrink-0"
@@ -108,7 +120,9 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
                 onChange={(e) => setComparison(e.target.value)}
               >
                 {COMPARISON_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
               </select>
               <input
@@ -127,7 +141,9 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
                 onChange={(e) => setUnit(e.target.value)}
               >
                 {SIZE_UNITS.map((u) => (
-                  <option key={u} value={u}>{u}</option>
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
                 ))}
               </select>
             </div>
@@ -136,7 +152,13 @@ const NewRuleImageSizeDrawer = ({ open, onClose, onSave, initialData }) => {
 
         <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-primary" onClick={handleSave}>Save</button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

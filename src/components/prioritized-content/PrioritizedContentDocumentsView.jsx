@@ -16,11 +16,19 @@ const PrioritizedContentDocumentsView = ({
   const sortedRows = useMemo(() => {
     const list = [...rows];
     list.sort((a, b) => {
-      if (sortKey === "title") return sortAsc ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
-      if (sortKey === "notifications") return sortAsc ? a.notifications - b.notifications : b.notifications - a.notifications;
+      if (sortKey === "title")
+        return sortAsc
+          ? a.title.localeCompare(b.title)
+          : b.title.localeCompare(a.title);
+      if (sortKey === "notifications")
+        return sortAsc
+          ? a.notifications - b.notifications
+          : b.notifications - a.notifications;
       if (sortKey === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
-        return sortAsc ? order[a.priority] - order[b.priority] : order[b.priority] - order[a.priority];
+        return sortAsc
+          ? order[a.priority] - order[b.priority]
+          : order[b.priority] - order[a.priority];
       }
       return sortAsc ? a.views - b.views : b.views - a.views;
     });
@@ -96,7 +104,10 @@ const PrioritizedContentDocumentsView = ({
                   <span className="d-inline-flex align-items-center fw-semibold">
                     Priority
                     <span className="ms-1" title="Priority level">
-                      <i className="isax isax-info-circle fs-14 text-muted" aria-hidden="true" />
+                      <i
+                        className="isax isax-info-circle fs-14 text-muted"
+                        aria-hidden="true"
+                      />
                     </span>
                     <button
                       type="button"
@@ -111,7 +122,10 @@ const PrioritizedContentDocumentsView = ({
                   <span className="d-inline-flex align-items-center fw-semibold">
                     Views
                     <span className="ms-1" title="View count">
-                      <i className="isax isax-info-circle fs-14 text-muted" aria-hidden="true" />
+                      <i
+                        className="isax isax-info-circle fs-14 text-muted"
+                        aria-hidden="true"
+                      />
                     </span>
                     <button
                       type="button"
@@ -127,10 +141,15 @@ const PrioritizedContentDocumentsView = ({
             </thead>
             <tbody>
               {paginatedRows.map((row) => (
-                <tr key={row.id} className="border-bottom border-secondary border-opacity-25">
+                <tr
+                  key={row.id}
+                  className="border-bottom border-secondary border-opacity-25"
+                >
                   <td className="px-4 py-3">
                     <div className="d-flex flex-column gap-1">
-                      <span className="fw-medium text-body">{row.title.trim() || "(No title found)"}</span>
+                      <span className="fw-medium text-body">
+                        {row.title.trim() || "(No title found)"}
+                      </span>
                       <a
                         href={row.url}
                         target="_blank"
@@ -174,10 +193,16 @@ const PrioritizedContentDocumentsView = ({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">{row.notifications}</span>
+                    <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                      {row.notifications}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`badge rounded-pill ${priorityBadgeClass(row.priority)}`}>{row.priority}</span>
+                    <span
+                      className={`badge rounded-pill ${priorityBadgeClass(row.priority)}`}
+                    >
+                      {row.priority}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-body">{row.views}</td>
                   <td className="px-4 py-3 text-end">
@@ -188,7 +213,10 @@ const PrioritizedContentDocumentsView = ({
                         title="Options"
                         onClick={() => onOpenPageDetails?.(row)}
                       >
-                        <i className="isax isax-more-square text-primary" aria-hidden="true" />
+                        <i
+                          className="isax isax-more-square text-primary"
+                          aria-hidden="true"
+                        />
                       </button>
                       <button
                         type="button"
@@ -196,7 +224,10 @@ const PrioritizedContentDocumentsView = ({
                         title="View page"
                         onClick={() => onOpenPageDetails?.(row)}
                       >
-                        <i className="isax isax-search-normal-1 text-primary" aria-hidden="true" />
+                        <i
+                          className="isax isax-search-normal-1 text-primary"
+                          aria-hidden="true"
+                        />
                       </button>
                     </div>
                   </td>
@@ -225,7 +256,8 @@ const PrioritizedContentDocumentsView = ({
               ))}
             </select>
             <span className="text-muted small">
-              {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+              {(currentPage - 1) * rowsPerPage + 1}-
+              {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
               {sortedRows.length}
             </span>
           </div>
@@ -243,17 +275,28 @@ const PrioritizedContentDocumentsView = ({
                 </button>
               </li>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <li key={p} className={`page-item ${currentPage === p ? "active" : ""}`}>
-                  <button type="button" className="page-link" onClick={() => setCurrentPage(p)}>
+                <li
+                  key={p}
+                  className={`page-item ${currentPage === p ? "active" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="page-link"
+                    onClick={() => setCurrentPage(p)}
+                  >
                     {p}
                   </button>
                 </li>
               ))}
-              <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+              <li
+                className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+              >
                 <button
                   type="button"
                   className="page-link"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage >= totalPages}
                   aria-label="Next"
                 >

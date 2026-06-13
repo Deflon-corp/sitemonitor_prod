@@ -20,8 +20,20 @@ const ComplianceRing = ({ percent, size = 48 }) => {
   else color = "#ef4444";
 
   return (
-    <svg width={size} height={size} className="flex-shrink-0" aria-hidden="true">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e9ecef" strokeWidth="4" />
+    <svg
+      width={size}
+      height={size}
+      className="flex-shrink-0"
+      aria-hidden="true"
+    >
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="#e9ecef"
+        strokeWidth="4"
+      />
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -43,26 +55,53 @@ const ImpactDots = ({ impact }) => {
   if (imp === "high") {
     return (
       <div className="d-flex align-items-center gap-1">
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
-        <span className="rounded-circle bg-danger" style={{ width: 6, height: 6 }} />
+        <span
+          className="rounded-circle bg-danger"
+          style={{ width: 6, height: 6 }}
+        />
+        <span
+          className="rounded-circle bg-danger"
+          style={{ width: 6, height: 6 }}
+        />
+        <span
+          className="rounded-circle bg-danger"
+          style={{ width: 6, height: 6 }}
+        />
       </div>
     );
   }
   if (imp === "medium") {
     return (
       <div className="d-flex align-items-center gap-1">
-        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
-        <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
-        <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
+        <span
+          className="rounded-circle bg-primary"
+          style={{ width: 6, height: 6 }}
+        />
+        <span
+          className="rounded-circle bg-primary"
+          style={{ width: 6, height: 6 }}
+        />
+        <span
+          className="rounded-circle bg-light border"
+          style={{ width: 6, height: 6 }}
+        />
       </div>
     );
   }
   return (
     <div className="d-flex align-items-center gap-1">
-      <span className="rounded-circle bg-primary" style={{ width: 6, height: 6 }} />
-      <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
-      <span className="rounded-circle bg-light border" style={{ width: 6, height: 6 }} />
+      <span
+        className="rounded-circle bg-primary"
+        style={{ width: 6, height: 6 }}
+      />
+      <span
+        className="rounded-circle bg-light border"
+        style={{ width: 6, height: 6 }}
+      />
+      <span
+        className="rounded-circle bg-light border"
+        style={{ width: 6, height: 6 }}
+      />
     </div>
   );
 };
@@ -73,30 +112,36 @@ const SeoSection = ({ issues = [], score = 0 }) => {
 
   const formattedIssues = useMemo(() => {
     if (!Array.isArray(issues)) return [];
-    return issues.map((issue, idx) => {
-      if (!issue) return null;
-      const getDesc = (iss) => {
-        if (typeof iss.description === "string" && iss.description) return iss.description;
-        if (typeof iss.message === "string" && iss.message) return iss.message;
-        if (typeof iss.title === "string" && iss.title) return iss.title;
-        if (typeof iss.details === "string" && iss.details) return iss.details;
-        return "";
-      };
-      
-      const getLabel = (iss) => {
-        if (typeof iss.message === "string" && iss.message) return iss.message;
-        if (typeof iss.title === "string" && iss.title) return iss.title;
-        if (typeof iss.type === "string" && iss.type) return iss.type;
-        return "Unnamed issue";
-      };
+    return issues
+      .map((issue, idx) => {
+        if (!issue) return null;
+        const getDesc = (iss) => {
+          if (typeof iss.description === "string" && iss.description)
+            return iss.description;
+          if (typeof iss.message === "string" && iss.message)
+            return iss.message;
+          if (typeof iss.title === "string" && iss.title) return iss.title;
+          if (typeof iss.details === "string" && iss.details)
+            return iss.details;
+          return "";
+        };
 
-      return {
-        id: `seo-issue-${idx}`,
-        label: getLabel(issue),
-        impact: String(issue.priority || "low").toLowerCase(),
-        description: getDesc(issue),
-      };
-    }).filter(Boolean);
+        const getLabel = (iss) => {
+          if (typeof iss.message === "string" && iss.message)
+            return iss.message;
+          if (typeof iss.title === "string" && iss.title) return iss.title;
+          if (typeof iss.type === "string" && iss.type) return iss.type;
+          return "Unnamed issue";
+        };
+
+        return {
+          id: `seo-issue-${idx}`,
+          label: getLabel(issue),
+          impact: String(issue.priority || "low").toLowerCase(),
+          description: getDesc(issue),
+        };
+      })
+      .filter(Boolean);
   }, [issues]);
 
   const filteredIssues = useMemo(() => {
@@ -107,7 +152,9 @@ const SeoSection = ({ issues = [], score = 0 }) => {
   // Derive selection: if manual is in current filtered list, use it. Otherwise use first of filtered.
   const selectedIssue = useMemo(() => {
     if (filteredIssues.length === 0) return null;
-    const manual = manualSelectedId ? filteredIssues.find(i => i.id === manualSelectedId) : null;
+    const manual = manualSelectedId
+      ? filteredIssues.find((i) => i.id === manualSelectedId)
+      : null;
     return manual || filteredIssues[0];
   }, [filteredIssues, manualSelectedId]);
 
@@ -123,14 +170,18 @@ const SeoSection = ({ issues = [], score = 0 }) => {
             </div>
             <div>
               <h6 className="mb-0">SEO Audit Score</h6>
-              <p className="text-muted small mb-0">Live scan results for this page</p>
+              <p className="text-muted small mb-0">
+                Live scan results for this page
+              </p>
             </div>
           </div>
           <div className="d-flex align-items-center gap-2">
             <ComplianceRing percent={score} size={44} />
             <div className="text-end">
               <div className="fw-bold fs-5">{score || 0}%</div>
-              <div className="text-muted" style={{ fontSize: '10px' }}>COMPLIANCE</div>
+              <div className="text-muted" style={{ fontSize: "10px" }}>
+                COMPLIANCE
+              </div>
             </div>
           </div>
         </div>
@@ -156,12 +207,11 @@ const SeoSection = ({ issues = [], score = 0 }) => {
         </div>
       </div>
 
-
       <div className="row g-3">
         <div className="col-lg-6">
           <div className="card border shadow-sm h-100">
             <div className="card-body p-0">
-              <div className="table-responsive" style={{ maxHeight: '400px' }}>
+              <div className="table-responsive" style={{ maxHeight: "400px" }}>
                 <table className="table table-hover align-middle mb-0">
                   <thead className="bg-light">
                     <tr>
@@ -173,8 +223,10 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                     {filteredIssues.map((row) => (
                       <tr
                         key={row.id}
-                        className={selectedIssueId === row.id ? "table-primary" : ""}
-                        style={{ cursor: 'pointer' }}
+                        className={
+                          selectedIssueId === row.id ? "table-primary" : ""
+                        }
+                        style={{ cursor: "pointer" }}
                         onClick={() => setManualSelectedId(row.id)}
                       >
                         <td className="ps-4 py-3">
@@ -190,7 +242,9 @@ const SeoSection = ({ issues = [], score = 0 }) => {
                     ))}
                     {filteredIssues.length === 0 && (
                       <tr>
-                        <td colSpan="2" className="text-center py-5 text-muted">No issues found.</td>
+                        <td colSpan="2" className="text-center py-5 text-muted">
+                          No issues found.
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -206,17 +260,25 @@ const SeoSection = ({ issues = [], score = 0 }) => {
               {selectedIssue ? (
                 <>
                   <h6 className="mb-3 d-flex align-items-center gap-2">
-                    <i className="isax isax-info-circle text-primary" /> Issue Details
+                    <i className="isax isax-info-circle text-primary" /> Issue
+                    Details
                   </h6>
                   <div className="d-flex flex-column gap-3">
                     <div className="d-flex align-items-center gap-2 px-3 py-2 bg-light rounded-3 border border-secondary border-opacity-10">
-                      <span className="fw-semibold text-body" style={{ fontSize: "0.85rem" }}>Priority:</span>
-                      <span 
+                      <span
+                        className="fw-semibold text-body"
+                        style={{ fontSize: "0.85rem" }}
+                      >
+                        Priority:
+                      </span>
+                      <span
                         className={`badge text-capitalize border ${
-                          selectedIssue.impact === 'high' ? 'bg-danger bg-opacity-10 text-danger border-danger border-opacity-25' :
-                          selectedIssue.impact === 'medium' ? 'bg-warning bg-opacity-10 text-warning border-warning border-opacity-25' :
-                          'bg-primary bg-opacity-10 text-primary border-primary border-opacity-25'
-                        }`} 
+                          selectedIssue.impact === "high"
+                            ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25"
+                            : selectedIssue.impact === "medium"
+                              ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25"
+                              : "bg-primary bg-opacity-10 text-primary border-primary border-opacity-25"
+                        }`}
                         style={{ fontSize: "0.75rem" }}
                       >
                         {selectedIssue.impact}
@@ -225,9 +287,19 @@ const SeoSection = ({ issues = [], score = 0 }) => {
 
                     <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm">
                       <div className="card-body py-3">
-                        <h6 className="fw-semibold text-body mb-2" style={{ fontSize: "0.9rem" }}>Issue Description</h6>
-                        <p className="text-muted mb-0" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
-                          {selectedIssue.description || selectedIssue.label || "No description provided."}
+                        <h6
+                          className="fw-semibold text-body mb-2"
+                          style={{ fontSize: "0.9rem" }}
+                        >
+                          Issue Description
+                        </h6>
+                        <p
+                          className="text-muted mb-0"
+                          style={{ fontSize: "0.85rem", lineHeight: 1.6 }}
+                        >
+                          {selectedIssue.description ||
+                            selectedIssue.label ||
+                            "No description provided."}
                         </p>
                       </div>
                     </div>

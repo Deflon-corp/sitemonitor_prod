@@ -1,13 +1,19 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from "./axiosInstance";
 
 /**
  * Domain API Service Layer
  */
 
 // GET /domains?page=1&limit=10&is_archived=false
-export const getDomainsApi = async (page = 1, limit = 10, isArchived = false) => {
+export const getDomainsApi = async (
+  page = 1,
+  limit = 10,
+  isArchived = false,
+) => {
   try {
-    const response = await axiosInstance.get(`/domains?page=${page}&limit=${limit}&is_archived=${isArchived}`);
+    const response = await axiosInstance.get(
+      `/domains?page=${page}&limit=${limit}&is_archived=${isArchived}`,
+    );
     return response.data;
   } catch (error) {
     // Error is already handled/toasted in axiosInstance interceptor
@@ -96,9 +102,17 @@ export const triggerDomainScanApi = async (id) => {
 };
 
 // GET /domains/:id/seo-pages
-export const getDomainSeoPagesApi = async (id, page = 1, limit = 10, search = '', issue = '') => {
+export const getDomainSeoPagesApi = async (
+  id,
+  page = 1,
+  limit = 10,
+  search = "",
+  issue = "",
+) => {
   try {
-    const response = await axiosInstance.get(`/domains/${id}/seo-pages?page=${page}&limit=${limit}&search=${search}&issue=${encodeURIComponent(issue)}`);
+    const response = await axiosInstance.get(
+      `/domains/${id}/seo-pages?page=${page}&limit=${limit}&search=${search}&issue=${encodeURIComponent(issue)}`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -184,8 +198,8 @@ export const getHeartbeatDataApi = async (domainId, startDate, endDate) => {
   try {
     let url = `/heartbeat/${domainId}`;
     const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
     if (params.toString()) {
       url += `?${params.toString()}`;
     }

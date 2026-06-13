@@ -29,9 +29,11 @@ export function useQaDictionary() {
             id: String(i + 1),
             word,
             language: "English",
-            dateAdded: scanDate ? new Date(scanDate).toISOString().slice(0, 10) : "—",
+            dateAdded: scanDate
+              ? new Date(scanDate).toISOString().slice(0, 10)
+              : "—",
             pages: 0,
-          }))
+          })),
         );
       } else {
         setItems([]);

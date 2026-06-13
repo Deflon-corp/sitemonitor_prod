@@ -19,14 +19,11 @@ export default function InventoryFormsView({ items = [], variant }) {
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
     return items.filter((r) =>
-      (r.url || "").toLowerCase().includes(search.trim().toLowerCase())
+      (r.url || "").toLowerCase().includes(search.trim().toLowerCase()),
     );
   }, [items, search]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredItems.length / rowsPerPage)
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / rowsPerPage));
   const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredItems.slice(start, start + rowsPerPage);
@@ -38,12 +35,15 @@ export default function InventoryFormsView({ items = [], variant }) {
     const body = filteredItems
       .map((r) => `"${(r.url || "").replace(/"/g, '""')}",${r.pageCount ?? ""}`)
       .join("\n");
-    downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${formsReportBase}.csv`);
+    downloadBlob(
+      new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
+      `${formsReportBase}.csv`,
+    );
   }, [filteredItems, formsReportBase]);
   const exportFormsExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
-      filteredItems.map((r) => ({ URL: r.url || "", PAGE: r.pageCount ?? "" }))
+      filteredItems.map((r) => ({ URL: r.url || "", PAGE: r.pageCount ?? "" })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Forms");
@@ -67,9 +67,12 @@ export default function InventoryFormsView({ items = [], variant }) {
     const detailsFiltered = !search.trim()
       ? items
       : items.filter((r) =>
-          (r.link || "").toLowerCase().includes(search.trim().toLowerCase())
+          (r.link || "").toLowerCase().includes(search.trim().toLowerCase()),
         );
-    const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
+    const detailsTotalPages = Math.max(
+      1,
+      Math.ceil(detailsFiltered.length / rowsPerPage),
+    );
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);
 
@@ -84,10 +87,15 @@ export default function InventoryFormsView({ items = [], variant }) {
                 </span>
                 <div>
                   <h6 className="mb-0 fw-semibold">Forms</h6>
-                  <p className="text-muted fs-13 mb-0">{detailsFiltered.length} found</p>
+                  <p className="text-muted fs-13 mb-0">
+                    {detailsFiltered.length} found
+                  </p>
                 </div>
               </div>
-              <div className="flex-grow-1 flex-md-grow-0" style={{ minWidth: 200, maxWidth: 320 }}>
+              <div
+                className="flex-grow-1 flex-md-grow-0"
+                style={{ minWidth: 200, maxWidth: 320 }}
+              >
                 <input
                   type="search"
                   className="form-control form-control-sm"
@@ -109,9 +117,15 @@ export default function InventoryFormsView({ items = [], variant }) {
               <table className="table table-hover table-striped table-borderless align-middle mb-0">
                 <thead>
                   <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Link</th>
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Type</th>
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Response code</th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Link
+                    </th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Type
+                    </th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Response code
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,9 +142,13 @@ export default function InventoryFormsView({ items = [], variant }) {
                         </a>
                       </td>
                       <td className="px-4 py-2">
-                        <span className="badge bg-secondary bg-opacity-25 text-body">{row.type}</span>
+                        <span className="badge bg-secondary bg-opacity-25 text-body">
+                          {row.type}
+                        </span>
                       </td>
-                      <td className="px-4 py-2 text-body">{row.responseCode}</td>
+                      <td className="px-4 py-2 text-body">
+                        {row.responseCode}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -149,16 +167,22 @@ export default function InventoryFormsView({ items = [], variant }) {
                   }}
                 >
                   {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, detailsFiltered.length)} of {detailsFiltered.length}
+                  {(currentPage - 1) * rowsPerPage + 1}-
+                  {Math.min(currentPage * rowsPerPage, detailsFiltered.length)}{" "}
+                  of {detailsFiltered.length}
                 </span>
               </div>
               <nav aria-label="Forms pagination">
                 <ul className="pagination pagination-sm mb-0">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link"
@@ -169,18 +193,34 @@ export default function InventoryFormsView({ items = [], variant }) {
                       Previous
                     </button>
                   </li>
-                  {Array.from({ length: detailsTotalPages }, (_, i) => i + 1).map((p) => (
-                    <li key={p} className={`page-item ${currentPage === p ? "active" : ""}`}>
-                      <button type="button" className="page-link" onClick={() => setCurrentPage(p)}>
+                  {Array.from(
+                    { length: detailsTotalPages },
+                    (_, i) => i + 1,
+                  ).map((p) => (
+                    <li
+                      key={p}
+                      className={`page-item ${currentPage === p ? "active" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="page-link"
+                        onClick={() => setCurrentPage(p)}
+                      >
                         {p}
                       </button>
                     </li>
                   ))}
-                  <li className={`page-item ${currentPage >= detailsTotalPages ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage >= detailsTotalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link"
-                      onClick={() => setCurrentPage((p) => Math.min(detailsTotalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) =>
+                          Math.min(detailsTotalPages, p + 1),
+                        )
+                      }
                       disabled={currentPage >= detailsTotalPages}
                       aria-label="Next"
                     >
@@ -209,9 +249,7 @@ export default function InventoryFormsView({ items = [], variant }) {
           </span>
           <h5 className="mb-0 fw-bold text-body">Forms</h5>
         </div>
-        <p className="text-muted small mb-0">
-          {filteredItems.length} results
-        </p>
+        <p className="text-muted small mb-0">{filteredItems.length} results</p>
       </div>
 
       {/* Tabs + Download + Search row */}
@@ -225,7 +263,10 @@ export default function InventoryFormsView({ items = [], variant }) {
             buttonLabel="Download Report"
             className="btn btn-sm btn-outline-primary rounded-2"
           />
-          <div className="position-relative" style={{ minWidth: 200, maxWidth: 280 }}>
+          <div
+            className="position-relative"
+            style={{ minWidth: 200, maxWidth: 280 }}
+          >
             <input
               type="search"
               className="form-control form-control-sm ps-3 pe-4"
@@ -257,7 +298,10 @@ export default function InventoryFormsView({ items = [], variant }) {
                   <th className="border-0 ps-4 py-3 fw-semibold text-body text-uppercase small">
                     URL
                   </th>
-                  <th className="border-0 pe-4 py-3 text-end fw-semibold text-body text-uppercase small" style={{ width: 80 }}>
+                  <th
+                    className="border-0 pe-4 py-3 text-end fw-semibold text-body text-uppercase small"
+                    style={{ width: 80 }}
+                  >
                     PAGE
                   </th>
                 </tr>
@@ -285,10 +329,16 @@ export default function InventoryFormsView({ items = [], variant }) {
                         }}
                         aria-label={`View pages with this form (${row.pageCount} page${row.pageCount !== 1 ? "s" : ""})`}
                       >
-                        <span className="fw-semibold text-primary" style={{ fontSize: "1.125rem" }}>
+                        <span
+                          className="fw-semibold text-primary"
+                          style={{ fontSize: "1.125rem" }}
+                        >
                           {row.pageCount}
                         </span>
-                        <span className="text-muted text-uppercase small" style={{ fontSize: "0.7rem" }}>
+                        <span
+                          className="text-muted text-uppercase small"
+                          style={{ fontSize: "0.7rem" }}
+                        >
                           PAGE
                         </span>
                       </button>
@@ -334,7 +384,10 @@ export default function InventoryFormsView({ items = [], variant }) {
         }}
         formUrl={selectedFormUrl}
         onOpenPageDetails={(row) => {
-          setSelectedPageForDetails({ title: row.title || "(No title found)", url: row.url });
+          setSelectedPageForDetails({
+            title: row.title || "(No title found)",
+            url: row.url,
+          });
           setPageDetailsOpen(true);
         }}
       />

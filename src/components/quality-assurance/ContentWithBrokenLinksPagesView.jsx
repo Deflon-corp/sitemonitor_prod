@@ -6,21 +6,126 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
 const SAMPLE_ROWS = [
-  { id: "bl-p1", title: "Search", url: "https://example.com/search", notifications: 12, priority: "High", views: 0 },
-  { id: "bl-p2", title: "(No title found)", url: "https://example.com/page/2", notifications: 10, priority: "High", views: 24 },
-  { id: "bl-p3", title: "Laptops", url: "https://example.com/bmall/laptops", notifications: 8, priority: "Medium", views: 156 },
-  { id: "bl-p4", title: "Personal Loan", url: "https://example.com/loans/personal-loan", notifications: 6, priority: "Medium", views: 89 },
-  { id: "bl-p5", title: "(No title found)", url: "https://example.com/about", notifications: 5, priority: "Low", views: 42 },
-  { id: "bl-p6", title: "Contact Us", url: "https://example.com/contact", notifications: 4, priority: "Low", views: 31 },
-  { id: "bl-p7", title: "Home", url: "https://example.com/", notifications: 3, priority: "High", views: 1200 },
-  { id: "bl-p8", title: "Insurance", url: "https://example.com/insurance", notifications: 9, priority: "Medium", views: 67 },
-  { id: "bl-p9", title: "(No title found)", url: "https://example.com/faq", notifications: 7, priority: "Low", views: 18 },
-  { id: "bl-p10", title: "Careers", url: "https://example.com/careers", notifications: 2, priority: "Low", views: 12 },
-  { id: "bl-p11", title: "Terms and Conditions", url: "https://example.com/terms", notifications: 11, priority: "High", views: 5 },
-  { id: "bl-p12", title: "Privacy Policy", url: "https://example.com/privacy", notifications: 6, priority: "Medium", views: 8 },
-  { id: "bl-p13", title: "Products", url: "https://example.com/products", notifications: 5, priority: "Medium", views: 234 },
-  { id: "bl-p14", title: "(No title found)", url: "https://example.com/offers", notifications: 4, priority: "Low", views: 56 },
-  { id: "bl-p15", title: "Customer Support", url: "https://example.com/support", notifications: 8, priority: "High", views: 112 },
+  {
+    id: "bl-p1",
+    title: "Search",
+    url: "https://example.com/search",
+    notifications: 12,
+    priority: "High",
+    views: 0,
+  },
+  {
+    id: "bl-p2",
+    title: "(No title found)",
+    url: "https://example.com/page/2",
+    notifications: 10,
+    priority: "High",
+    views: 24,
+  },
+  {
+    id: "bl-p3",
+    title: "Laptops",
+    url: "https://example.com/bmall/laptops",
+    notifications: 8,
+    priority: "Medium",
+    views: 156,
+  },
+  {
+    id: "bl-p4",
+    title: "Personal Loan",
+    url: "https://example.com/loans/personal-loan",
+    notifications: 6,
+    priority: "Medium",
+    views: 89,
+  },
+  {
+    id: "bl-p5",
+    title: "(No title found)",
+    url: "https://example.com/about",
+    notifications: 5,
+    priority: "Low",
+    views: 42,
+  },
+  {
+    id: "bl-p6",
+    title: "Contact Us",
+    url: "https://example.com/contact",
+    notifications: 4,
+    priority: "Low",
+    views: 31,
+  },
+  {
+    id: "bl-p7",
+    title: "Home",
+    url: "https://example.com/",
+    notifications: 3,
+    priority: "High",
+    views: 1200,
+  },
+  {
+    id: "bl-p8",
+    title: "Insurance",
+    url: "https://example.com/insurance",
+    notifications: 9,
+    priority: "Medium",
+    views: 67,
+  },
+  {
+    id: "bl-p9",
+    title: "(No title found)",
+    url: "https://example.com/faq",
+    notifications: 7,
+    priority: "Low",
+    views: 18,
+  },
+  {
+    id: "bl-p10",
+    title: "Careers",
+    url: "https://example.com/careers",
+    notifications: 2,
+    priority: "Low",
+    views: 12,
+  },
+  {
+    id: "bl-p11",
+    title: "Terms and Conditions",
+    url: "https://example.com/terms",
+    notifications: 11,
+    priority: "High",
+    views: 5,
+  },
+  {
+    id: "bl-p12",
+    title: "Privacy Policy",
+    url: "https://example.com/privacy",
+    notifications: 6,
+    priority: "Medium",
+    views: 8,
+  },
+  {
+    id: "bl-p13",
+    title: "Products",
+    url: "https://example.com/products",
+    notifications: 5,
+    priority: "Medium",
+    views: 234,
+  },
+  {
+    id: "bl-p14",
+    title: "(No title found)",
+    url: "https://example.com/offers",
+    notifications: 4,
+    priority: "Low",
+    views: 56,
+  },
+  {
+    id: "bl-p15",
+    title: "Customer Support",
+    url: "https://example.com/support",
+    notifications: 8,
+    priority: "High",
+    views: 112,
+  },
 ];
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
@@ -67,16 +172,24 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
   const filteredRows = useMemo(() => {
     if (!search.trim()) return SAMPLE_ROWS;
     const q = search.toLowerCase();
-    return SAMPLE_ROWS.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+    return SAMPLE_ROWS.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
+    );
   }, [search]);
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredRows].sort((a, b) => {
-      if (sortBy === "title") return dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url));
-      if (sortBy === "notifications") return dir * (a.notifications - b.notifications);
-      if (sortBy === "priority") return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+      if (sortBy === "title")
+        return (
+          dir * (a.title.localeCompare(b.title) || a.url.localeCompare(b.url))
+        );
+      if (sortBy === "notifications")
+        return dir * (a.notifications - b.notifications);
+      if (sortBy === "priority")
+        return dir * (PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
       return dir * (a.views - b.views);
     });
   }, [filteredRows, sortBy, sortDir]);
@@ -100,34 +213,52 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
     <div className="d-flex flex-column h-100">
       <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
         <div className="table-responsive flex-grow-1">
-                <table className="table table-hover table-striped table-borderless align-middle mb-0">
-                  <thead>
-                    <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                      <th className="fw-semibold text-body">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
-                          Title and URL
-                          <SortIcon column="title" />
-                        </button>
-                      </th>
-                      <th className="fw-semibold text-body">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("notifications")}>
-                          Issues Found
-                          <SortIcon column="notifications" />
-                        </button>
-                      </th>
-                      <th className="fw-semibold text-body">
-                        <span className="d-inline-flex align-items-center">
-                          Priority
-                          <span className="ms-1 opacity-75" title="Priority level">
-                            <i className="isax isax-info-circle fs-14" aria-hidden="true"></i>
-                          </span>
-                          <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
-                            <SortIcon column="priority" />
-                          </button>
-                        </span>
-                      </th>
-                      <th className="fw-semibold text-body text-end" style={{ width: "100px" }}></th>
-                    </tr>
+          <table className="table table-hover table-striped table-borderless align-middle mb-0">
+            <thead>
+              <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
+                <th className="fw-semibold text-body">
+                  <button
+                    type="button"
+                    className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                    onClick={() => handleSort("title")}
+                  >
+                    Title and URL
+                    <SortIcon column="title" />
+                  </button>
+                </th>
+                <th className="fw-semibold text-body">
+                  <button
+                    type="button"
+                    className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                    onClick={() => handleSort("notifications")}
+                  >
+                    Issues Found
+                    <SortIcon column="notifications" />
+                  </button>
+                </th>
+                <th className="fw-semibold text-body">
+                  <span className="d-inline-flex align-items-center">
+                    Priority
+                    <span className="ms-1 opacity-75" title="Priority level">
+                      <i
+                        className="isax isax-info-circle fs-14"
+                        aria-hidden="true"
+                      ></i>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 border-0 text-body text-decoration-none ms-1 d-inline-flex align-items-center"
+                      onClick={() => handleSort("priority")}
+                    >
+                      <SortIcon column="priority" />
+                    </button>
+                  </span>
+                </th>
+                <th
+                  className="fw-semibold text-body text-end"
+                  style={{ width: "100px" }}
+                ></th>
+              </tr>
             </thead>
             <tbody>
               {paginatedRows.map((row) => (
@@ -135,7 +266,12 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
                   <td className="py-3 ps-4">
                     <div className="d-flex flex-column">
                       <span className="text-body fs-13">{row.title}</span>
-                      <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1">
+                      <a
+                        href={row.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1"
+                      >
                         <span className="flex-shrink-0 d-inline-flex text-primary">
                           <ExternalLinkIcon size={12} />
                         </span>
@@ -144,14 +280,18 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className="badge rounded-pill bg-primary bg-opacity-15 text-primary fs-13">{row.notifications}</span>
+                    <span className="badge rounded-pill bg-primary bg-opacity-15 text-primary fs-13">
+                      {row.notifications}
+                    </span>
                   </td>
                   <td className="py-2">
-                    <span className={`badge rounded-pill ${row.priority === "High" ? "bg-danger" : row.priority === "Medium" ? "bg-warning text-dark" : "bg-secondary"}`}>
+                    <span
+                      className={`badge rounded-pill ${row.priority === "High" ? "bg-danger" : row.priority === "Medium" ? "bg-warning text-dark" : "bg-secondary"}`}
+                    >
                       {row.priority}
                     </span>
                   </td>
-                  
+
                   <td className="py-3 pe-4">
                     <div className="d-flex align-items-center gap-1">
                       <button
@@ -163,10 +303,20 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
                           setPageDetailsOpen(true);
                         }}
                       >
-                        <i className="isax isax-document-text text-primary" aria-hidden="true"></i>
+                        <i
+                          className="isax isax-document-text text-primary"
+                          aria-hidden="true"
+                        ></i>
                       </button>
-                      <button type="button" className="btn btn-icon btn-sm btn-light" title="Search">
-                        <i className="isax isax-search-normal-1 text-primary" aria-hidden="true"></i>
+                      <button
+                        type="button"
+                        className="btn btn-icon btn-sm btn-light"
+                        title="Search"
+                      >
+                        <i
+                          className="isax isax-search-normal-1 text-primary"
+                          aria-hidden="true"
+                        ></i>
                       </button>
                     </div>
                   </td>
@@ -188,17 +338,26 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
               }}
             >
               {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
             <span className="text-muted small">
-              {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+              {(currentPage - 1) * rowsPerPage + 1}–
+              {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+              {sortedRows.length}
             </span>
           </div>
           <nav aria-label="Pages pagination">
             <ul className="pagination pagination-sm mb-0 gap-1">
               <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                >
                   Previous
                 </button>
               </li>
@@ -207,12 +366,27 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
                 if (p > totalPages) return null;
                 return (
                   <li key={p} className="page-item">
-                    <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                    <button
+                      type="button"
+                      className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                      onClick={() => setCurrentPage(p)}
+                    >
+                      {p}
+                    </button>
                   </li>
                 );
               })}
-              <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+              <li
+                className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage >= totalPages}
+                >
                   Next
                 </button>
               </li>
@@ -220,8 +394,12 @@ export default function ContentWithBrokenLinksPagesView(props = {}) {
           </nav>
         </div>
       </div>
-      <PageDetailsDrawer open={pageDetailsOpen} onClose={() => setPageDetailsOpen(false)} page={selectedPage ? toPageDetailsPage(selectedPage) : null} defaultTab="qa" />
+      <PageDetailsDrawer
+        open={pageDetailsOpen}
+        onClose={() => setPageDetailsOpen(false)}
+        page={selectedPage ? toPageDetailsPage(selectedPage) : null}
+        defaultTab="qa"
+      />
     </div>
   );
 }
-

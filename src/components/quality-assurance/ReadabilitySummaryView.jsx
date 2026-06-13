@@ -30,16 +30,19 @@ const DEFAULT_READABILITY_BY_SCORE = [
 
 /** Tooltip for each readability level (shown when hovering the info icon). */
 const READABILITY_LEVEL_TOOLTIPS = {
-  "6th grade": "Pages that are easy to read. Conversational English for consumers",
+  "6th grade":
+    "Pages that are easy to read. Conversational English for consumers",
   "7th grade": "Plain English. Easy for most readers.",
   "8th to 9th grade": "Standard reading level. Suitable for general audiences.",
   "10th to 12th grade": "More complex language. High school level.",
-  "College": "Academic or professional reading level.",
+  College: "Academic or professional reading level.",
   "College graduate": "Specialized or technical content.",
   "Below 5th grade": "Very easy to read.",
   "5th grade": "Easy to read.",
-  "Score could not be generated": "Readability score could not be calculated for this content.",
-  "Language not supported": "Language is not supported for readability scoring.",
+  "Score could not be generated":
+    "Readability score could not be calculated for this content.",
+  "Language not supported":
+    "Language is not supported for readability scoring.",
 };
 
 function getPagesForLevel(level, byScore) {
@@ -54,10 +57,12 @@ function ReadabilityBarChart({ byScore }) {
   const barHeight = 28;
   const gap = 6;
   const padding = { left: 200, right: 24, top: 24, bottom: 48 };
-  const chartHeight = 10 * (barHeight + gap) - gap + padding.top + padding.bottom;
+  const chartHeight =
+    10 * (barHeight + gap) - gap + padding.top + padding.bottom;
   const barAreaWidth = chartWidth - padding.left - padding.right - 40;
   const barColor = "#3b82f6";
-  const xAxisCenterX = padding.left + (chartWidth - padding.left - padding.right) / 2;
+  const xAxisCenterX =
+    padding.left + (chartWidth - padding.left - padding.right) / 2;
   const tickLabelY = chartHeight - 28;
   const pagesLabelY = chartHeight - 10;
 
@@ -71,18 +76,41 @@ function ReadabilityBarChart({ byScore }) {
       >
         {/* X-axis tick labels (above the "Pages" label to avoid overlap) */}
         {[0, 50, 100, 150, 200, 250, 300, 350].map((tick) => {
-          const x = padding.left + (tick / 350) * (chartWidth - padding.left - padding.right - 40);
+          const x =
+            padding.left +
+            (tick / 350) * (chartWidth - padding.left - padding.right - 40);
           return (
             <g key={tick}>
-              <line x1={x} y1={padding.top} x2={x} y2={chartHeight - padding.bottom} stroke="#e2e8f0" strokeWidth="1" />
-              <text x={x} y={tickLabelY} textAnchor="middle" className="text-muted" fill="currentColor" style={{ fontSize: 14 }}>
+              <line
+                x1={x}
+                y1={padding.top}
+                x2={x}
+                y2={chartHeight - padding.bottom}
+                stroke="#e2e8f0"
+                strokeWidth="1"
+              />
+              <text
+                x={x}
+                y={tickLabelY}
+                textAnchor="middle"
+                className="text-muted"
+                fill="currentColor"
+                style={{ fontSize: 14 }}
+              >
                 {tick}
               </text>
             </g>
           );
         })}
         {/* X-axis "Pages" label - below tick numbers with clear gap */}
-        <text x={xAxisCenterX} y={pagesLabelY} textAnchor="middle" className="text-muted" fill="currentColor" style={{ fontSize: 14 }}>
+        <text
+          x={xAxisCenterX}
+          y={pagesLabelY}
+          textAnchor="middle"
+          className="text-muted"
+          fill="currentColor"
+          style={{ fontSize: 14 }}
+        >
           Pages
         </text>
         {/* Y-axis levels and bars */}
@@ -131,16 +159,35 @@ function ReadabilityDonutChart({ mostLevel, mostPercent, totalPages }) {
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center">
-      <p className="text-center mb-1 fs-13 text-muted">Most of your pages have the readability level</p>
-      <p className="text-center mb-3 mb-md-4 fw-bold text-body" style={{ fontSize: "1.1rem" }}>
+      <p className="text-center mb-1 fs-13 text-muted">
+        Most of your pages have the readability level
+      </p>
+      <p
+        className="text-center mb-3 mb-md-4 fw-bold text-body"
+        style={{ fontSize: "1.1rem" }}
+      >
         {mostLevel}
       </p>
       <div
         className="position-relative d-inline-flex align-items-center justify-content-center"
-        style={{ width: radius * 2 + stroke * 2, height: radius * 2 + stroke * 2 }}
+        style={{
+          width: radius * 2 + stroke * 2,
+          height: radius * 2 + stroke * 2,
+        }}
       >
-        <svg width={radius * 2 + stroke * 2} height={radius * radius + stroke * 2} style={{ transform: "rotate(-90deg)" }}>
-          <circle cx={radius + stroke} cy={radius + stroke} r={radius} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
+        <svg
+          width={radius * 2 + stroke * 2}
+          height={radius * radius + stroke * 2}
+          style={{ transform: "rotate(-90deg)" }}
+        >
+          <circle
+            cx={radius + stroke}
+            cy={radius + stroke}
+            r={radius}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth={stroke}
+          />
           <circle
             cx={radius + stroke}
             cy={radius + stroke}
@@ -152,8 +199,14 @@ function ReadabilityDonutChart({ mostLevel, mostPercent, totalPages }) {
             strokeDasharray={`${filled} ${gap}`}
           />
         </svg>
-        <div className="position-absolute text-center px-2" style={{ maxWidth: 90, lineHeight: 1.2 }}>
-          <span className="d-block fw-bold text-body" style={{ fontSize: "1.5rem" }}>
+        <div
+          className="position-absolute text-center px-2"
+          style={{ maxWidth: 90, lineHeight: 1.2 }}
+        >
+          <span
+            className="d-block fw-bold text-body"
+            style={{ fontSize: "1.5rem" }}
+          >
             {percent} %
           </span>
           <span className="d-block text-muted" style={{ fontSize: "0.7rem" }}>
@@ -201,23 +254,34 @@ export default function ReadabilitySummaryView() {
   const MOST_LEVEL = readabilityData?.mostCommonLevel || "—";
   const MOST_PAGES = readabilityData?.pagesAtMostCommon || 0;
   const MOST_PERCENT =
-    TOTAL_PAGES_APPROX > 0 ? Math.round((MOST_PAGES / TOTAL_PAGES_APPROX) * 1000) / 10 : 0;
+    TOTAL_PAGES_APPROX > 0
+      ? Math.round((MOST_PAGES / TOTAL_PAGES_APPROX) * 1000) / 10
+      : 0;
 
   const exportRows = useMemo(
-    () => BAR_CHART_LEVELS.map((level) => ({ level, pages: getPagesForLevel(level, READABILITY_BY_SCORE) })),
-    [READABILITY_BY_SCORE]
+    () =>
+      BAR_CHART_LEVELS.map((level) => ({
+        level,
+        pages: getPagesForLevel(level, READABILITY_BY_SCORE),
+      })),
+    [READABILITY_BY_SCORE],
   );
 
   const exportCSV = useCallback(() => {
     const header = "Readability level,Pages\n";
-    const body = exportRows.map((r) => `"${r.level.replace(/"/g, '""')}",${r.pages}`).join("\n");
+    const body = exportRows
+      .map((r) => `"${r.level.replace(/"/g, '""')}",${r.pages}`)
+      .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
   }, [baseName, exportRows]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = exportRows.map((r) => ({ "Readability level": r.level, Pages: r.pages }));
+    const rows = exportRows.map((r) => ({
+      "Readability level": r.level,
+      Pages: r.pages,
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Readability Summary");
@@ -245,7 +309,10 @@ export default function ReadabilitySummaryView() {
       {/* Top header: title + filter, download report, user icons */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div className="d-flex align-items-center gap-2">
-          <span className="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary" style={{ width: 40, height: 40 }}>
+          <span
+            className="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary"
+            style={{ width: 40, height: 40 }}
+          >
             <i className="isax isax-home-2 fs-20" aria-hidden="true" />
           </span>
           <h5 className="mb-0 fw-semibold text-body">Readability Summary</h5>
@@ -259,25 +326,49 @@ export default function ReadabilitySummaryView() {
               aria-expanded="false"
               title="Download Report"
             >
-              <i className="isax isax-document-download text-primary fs-18" aria-hidden="true" />
+              <i
+                className="isax isax-document-download text-primary fs-18"
+                aria-hidden="true"
+              />
               Download Report
             </button>
             <ul className="dropdown-menu dropdown-menu-end">
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportCSV}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportCSV}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  />
                   CSV
                 </button>
               </li>
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportPDF}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportPDF}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  />
                   PDF
                 </button>
               </li>
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportExcel}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportExcel}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  />
                   Excel
                 </button>
               </li>
@@ -290,7 +381,9 @@ export default function ReadabilitySummaryView() {
       <div className="card border-0 shadow-sm rounded-3 mb-4">
         <div className="card-body p-4">
           <h6 className="fw-semibold text-body mb-1">Readability Summary</h6>
-          <p className="fs-13 text-muted mb-4">Readability scores across all web pages (based on Flesch Kincaid)</p>
+          <p className="fs-13 text-muted mb-4">
+            Readability scores across all web pages (based on Flesch Kincaid)
+          </p>
           <div className="row align-items-start g-4">
             <div className="col-lg-8">
               <ReadabilityBarChart byScore={READABILITY_BY_SCORE} />
@@ -314,7 +407,10 @@ export default function ReadabilitySummaryView() {
             <table className="table table-borderless align-middle mb-0">
               <tbody>
                 {READABILITY_BY_SCORE.map((row) => (
-                  <tr key={row.level} className="border-bottom border-secondary border-opacity-25">
+                  <tr
+                    key={row.level}
+                    className="border-bottom border-secondary border-opacity-25"
+                  >
                     <td className="py-3 ps-0">
                       <span className="d-inline-flex align-items-center gap-2 text-body">
                         {row.level}
@@ -324,11 +420,18 @@ export default function ReadabilitySummaryView() {
                           style={{ minWidth: 20 }}
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
-                          data-bs-title={READABILITY_LEVEL_TOOLTIPS[row.level] ?? ""}
-                          title={READABILITY_LEVEL_TOOLTIPS[row.level] ?? undefined}
+                          data-bs-title={
+                            READABILITY_LEVEL_TOOLTIPS[row.level] ?? ""
+                          }
+                          title={
+                            READABILITY_LEVEL_TOOLTIPS[row.level] ?? undefined
+                          }
                           aria-label={`Info for ${row.level}`}
                         >
-                          <i className="isax isax-info-circle fs-16" aria-hidden="true" />
+                          <i
+                            className="isax isax-info-circle fs-16"
+                            aria-hidden="true"
+                          />
                         </button>
                         {row.isMost && (
                           <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill fs-12 fw-normal">
@@ -360,7 +463,12 @@ export default function ReadabilitySummaryView() {
         open={selectedScoreLevel != null}
         onClose={() => setSelectedScoreLevel(null)}
         scoreLevel={selectedScoreLevel}
-        totalCount={selectedScoreLevel != null ? READABILITY_BY_SCORE.find((r) => r.level === selectedScoreLevel)?.pages : undefined}
+        totalCount={
+          selectedScoreLevel != null
+            ? READABILITY_BY_SCORE.find((r) => r.level === selectedScoreLevel)
+                ?.pages
+            : undefined
+        }
         pages={[]}
         domainId={domainId}
         onOpenPageDetails={(page) => {

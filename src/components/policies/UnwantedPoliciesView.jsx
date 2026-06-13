@@ -3,10 +3,34 @@ import { Link } from "react-router-dom";
 
 const FILTER_TABS = [
   { key: "all", label: "All", href: "/policies?view=global-list" },
-  { key: "unwanted", label: "Unwanted", icon: "isax-close-circle", iconClass: "text-danger", href: "/policies?view=unwanted" },
-  { key: "required", label: "Required", icon: "isax-danger", iconClass: "text-primary", href: "/policies?view=required" },
-  { key: "matches", label: "Matches", icon: "isax-search-normal-1", iconClass: "text-primary", href: "/policies?view=global-list" },
-  { key: "archived", label: "Archived", icon: "isax-trash", iconClass: "text-muted", href: "/policies?view=archived" },
+  {
+    key: "unwanted",
+    label: "Unwanted",
+    icon: "isax-close-circle",
+    iconClass: "text-danger",
+    href: "/policies?view=unwanted",
+  },
+  {
+    key: "required",
+    label: "Required",
+    icon: "isax-danger",
+    iconClass: "text-primary",
+    href: "/policies?view=required",
+  },
+  {
+    key: "matches",
+    label: "Matches",
+    icon: "isax-search-normal-1",
+    iconClass: "text-primary",
+    href: "/policies?view=global-list",
+  },
+  {
+    key: "archived",
+    label: "Archived",
+    icon: "isax-trash",
+    iconClass: "text-muted",
+    href: "/policies?view=archived",
+  },
 ];
 
 const UnwantedPoliciesView = () => {
@@ -37,7 +61,10 @@ const UnwantedPoliciesView = () => {
             );
           })}
         </ul>
-        <div className="position-relative flex-shrink-0" style={{ maxWidth: 280 }}>
+        <div
+          className="position-relative flex-shrink-0"
+          style={{ maxWidth: 280 }}
+        >
           <i
             className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
             style={{ fontSize: "1rem" }}

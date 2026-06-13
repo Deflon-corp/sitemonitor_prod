@@ -49,13 +49,20 @@ const PrioritizedContentImagesView = ({
 
   const exportCSV = useCallback(() => {
     const header = "URL,Pages\n";
-    const body = filteredRows.map((r) => `"${(r.url || "").replace(/"/g, '""')}",${r.pageCount || 0}`).join("\n");
-    downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${reportBase}.csv`);
+    const body = filteredRows
+      .map((r) => `"${(r.url || "").replace(/"/g, '""')}",${r.pageCount || 0}`)
+      .join("\n");
+    downloadBlob(
+      new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
+      `${reportBase}.csv`,
+    );
   }, [filteredRows, reportBase]);
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const ws = XLSX.utils.json_to_sheet(filteredRows.map((r) => ({ URL: r.url || "", Pages: r.pageCount || 0 })));
+    const ws = XLSX.utils.json_to_sheet(
+      filteredRows.map((r) => ({ URL: r.url || "", Pages: r.pageCount || 0 })),
+    );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, titleProp);
     XLSX.writeFile(wb, `${reportBase}.xlsx`);
@@ -76,11 +83,18 @@ const PrioritizedContentImagesView = ({
   }, [filteredRows, reportBase]);
 
   if (variant === "details") {
-    const detailsFiltered = !search.trim() ? items : items.filter((r) => (r.url || "").toLowerCase().includes(search.trim().toLowerCase()));
-    const detailsTotalPages = Math.max(1, Math.ceil(detailsFiltered.length / rowsPerPage));
+    const detailsFiltered = !search.trim()
+      ? items
+      : items.filter((r) =>
+          (r.url || "").toLowerCase().includes(search.trim().toLowerCase()),
+        );
+    const detailsTotalPages = Math.max(
+      1,
+      Math.ceil(detailsFiltered.length / rowsPerPage),
+    );
     const start = (currentPage - 1) * rowsPerPage;
     const detailsPaginated = detailsFiltered.slice(start, start + rowsPerPage);
-    
+
     return (
       <>
         <div className="card border-0 shadow-sm mb-3">
@@ -92,10 +106,15 @@ const PrioritizedContentImagesView = ({
                 </span>
                 <div>
                   <h6 className="mb-0 fw-semibold">{titleProp}</h6>
-                  <p className="text-muted fs-13 mb-0">{detailsFiltered.length} found</p>
+                  <p className="text-muted fs-13 mb-0">
+                    {detailsFiltered.length} found
+                  </p>
                 </div>
               </div>
-              <div className="flex-grow-1 flex-md-grow-0" style={{ minWidth: 200, maxWidth: 320 }}>
+              <div
+                className="flex-grow-1 flex-md-grow-0"
+                style={{ minWidth: 200, maxWidth: 320 }}
+              >
                 <input
                   type="search"
                   className="form-control form-control-sm"
@@ -117,23 +136,38 @@ const PrioritizedContentImagesView = ({
               <table className="table table-hover table-striped table-borderless align-middle mb-0">
                 <thead>
                   <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Link</th>
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Type</th>
-                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">Response code</th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Link
+                    </th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Type
+                    </th>
+                    <th className="text-uppercase fs-12 fw-semibold text-body border-0 py-3 px-4">
+                      Response code
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {detailsPaginated.map((row) => (
                     <tr key={row.id}>
                       <td className="px-4 py-2">
-                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none text-break">
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary text-decoration-none text-break"
+                        >
                           {row.url}
                         </a>
                       </td>
                       <td className="px-4 py-2">
-                        <span className="badge bg-secondary bg-opacity-25 text-body">Image</span>
+                        <span className="badge bg-secondary bg-opacity-25 text-body">
+                          Image
+                        </span>
                       </td>
-                      <td className="px-4 py-2 text-body">{row.statusCode || 200}</td>
+                      <td className="px-4 py-2 text-body">
+                        {row.statusCode || 200}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,12 +192,16 @@ const PrioritizedContentImagesView = ({
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, detailsFiltered.length)} of {detailsFiltered.length}
+                  {(currentPage - 1) * rowsPerPage + 1}–
+                  {Math.min(currentPage * rowsPerPage, detailsFiltered.length)}{" "}
+                  of {detailsFiltered.length}
                 </span>
               </div>
               <nav aria-label={`${titleProp} pagination`}>
                 <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
@@ -174,26 +212,35 @@ const PrioritizedContentImagesView = ({
                       Previous
                     </button>
                   </li>
-                  {Array.from({ length: Math.min(detailsTotalPages, 10) }, (_, i) => {
-                    const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
-                    if (p > detailsTotalPages) return null;
-                    return (
-                      <li key={p} className="page-item">
-                        <button
-                          type="button"
-                          className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
-                          onClick={() => setCurrentPage(p)}
-                        >
-                          {p}
-                        </button>
-                      </li>
-                    );
-                  })}
-                  <li className={`page-item ${currentPage >= detailsTotalPages ? "disabled" : ""}`}>
+                  {Array.from(
+                    { length: Math.min(detailsTotalPages, 10) },
+                    (_, i) => {
+                      const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
+                      if (p > detailsTotalPages) return null;
+                      return (
+                        <li key={p} className="page-item">
+                          <button
+                            type="button"
+                            className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </button>
+                        </li>
+                      );
+                    },
+                  )}
+                  <li
+                    className={`page-item ${currentPage >= detailsTotalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.min(detailsTotalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) =>
+                          Math.min(detailsTotalPages, p + 1),
+                        )
+                      }
                       disabled={currentPage >= detailsTotalPages}
                       aria-label="Next"
                     >
@@ -220,7 +267,9 @@ const PrioritizedContentImagesView = ({
             </span>
             <div>
               <h6 className="mb-0 fw-semibold text-body">{titleProp}</h6>
-              <p className="text-muted fs-13 mb-0">{filteredRows.length} results</p>
+              <p className="text-muted fs-13 mb-0">
+                {filteredRows.length} results
+              </p>
             </div>
           </div>
         </div>
@@ -238,12 +287,26 @@ const PrioritizedContentImagesView = ({
                 onExportPDF={exportPDF}
                 variant="icon"
               />
-              <button type="button" className="btn btn-icon btn-sm btn-light" title="Filter" aria-label="Filter">
-                <i className="isax isax-filter text-primary" aria-hidden="true" />
+              <button
+                type="button"
+                className="btn btn-icon btn-sm btn-light"
+                title="Filter"
+                aria-label="Filter"
+              >
+                <i
+                  className="isax isax-filter text-primary"
+                  aria-hidden="true"
+                />
               </button>
-              <div className="input-group input-group-sm" style={{ minWidth: 200, maxWidth: 280 }}>
+              <div
+                className="input-group input-group-sm"
+                style={{ minWidth: 200, maxWidth: 280 }}
+              >
                 <span className="input-group-text bg-transparent border-end-0">
-                  <i className="isax isax-search-normal-1 text-muted" aria-hidden="true" />
+                  <i
+                    className="isax isax-search-normal-1 text-muted"
+                    aria-hidden="true"
+                  />
                 </span>
                 <input
                   type="search"
@@ -269,7 +332,9 @@ const PrioritizedContentImagesView = ({
               <thead>
                 <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                   <th className="py-3 ps-4 fw-semibold text-body fs-13">URL</th>
-                  <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end">PAGES</th>
+                  <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end">
+                    PAGES
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -291,7 +356,9 @@ const PrioritizedContentImagesView = ({
                         className="btn btn-link p-0 border-0 text-decoration-none"
                         onClick={() => openPagesDrawer(row)}
                       >
-                        <span className="text-primary fw-semibold me-1">{row.pageCount}</span>
+                        <span className="text-primary fw-semibold me-1">
+                          {row.pageCount}
+                        </span>
                         <span className="text-muted"> PAGES</span>
                       </button>
                     </td>
@@ -320,12 +387,15 @@ const PrioritizedContentImagesView = ({
               </select>
               <span className="text-muted small">
                 {(currentPage - 1) * rowsPerPage + 1}–
-                {Math.min(currentPage * rowsPerPage, filteredRows.length)} of {filteredRows.length}
+                {Math.min(currentPage * rowsPerPage, filteredRows.length)} of{" "}
+                {filteredRows.length}
               </span>
             </div>
             <nav aria-label={`${titleProp} pagination`}>
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
@@ -351,11 +421,15 @@ const PrioritizedContentImagesView = ({
                     </li>
                   );
                 })}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                     aria-label="Next"
                   >

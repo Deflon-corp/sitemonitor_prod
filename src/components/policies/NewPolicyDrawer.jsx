@@ -6,26 +6,37 @@ import CreatePolicyDocumentsView from "./CreatePolicyDocumentsView";
 
 import PREDEFINED_POLICIES from "../../data/defaultRules.json";
 
-const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, readOnly = false }) => {
+const NewPolicyDrawer = ({
+  open,
+  onClose,
+  variant = "drawer",
+  policyId = null,
+  readOnly = false,
+}) => {
   const isPage = variant === "page";
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [drawerView, setDrawerView] = useState("grid");
-  const [selectedPredefinedPolicy, setSelectedPredefinedPolicy] = useState(null);
+  const [selectedPredefinedPolicy, setSelectedPredefinedPolicy] =
+    useState(null);
 
   const getInitialRule = (policy) => {
     if (policy.ruleConfig) {
       return {
         ...policy.ruleConfig,
-        id: Date.now()
+        id: Date.now(),
       };
     }
 
     let type = "text";
     if (policy?.icon?.includes("image")) type = "image-size";
     else if (policy?.icon?.includes("link")) type = "link";
-    else if (policy?.icon?.includes("document-text") || policy?.icon?.includes("text")) type = "text";
-    
+    else if (
+      policy?.icon?.includes("document-text") ||
+      policy?.icon?.includes("text")
+    )
+      type = "text";
+
     const baseRule = {
       id: Date.now(),
       type: type,
@@ -37,14 +48,14 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
         ...baseRule,
         comparison: "Greater than",
         value: "",
-        unit: "KB"
+        unit: "KB",
       };
     } else if (type === "link") {
       return {
         ...baseRule,
         searchType: "Starts with",
         searchValue: "",
-        containing: "containing"
+        containing: "containing",
       };
     } else {
       return {
@@ -52,13 +63,13 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
         searchType: "Contains Words",
         searchValue: "",
         containing: "containing",
-        selectors: []
+        selectors: [],
       };
     }
   };
 
   const filteredPolicies = PREDEFINED_POLICIES.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
+    p.title.toLowerCase().includes(search.toLowerCase()),
   );
 
   useEffect(() => {
@@ -66,7 +77,12 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
     const handleEscape = (e) => {
       if (e.key === "Escape") {
         if (policyId) onClose();
-        else if (drawerView === "all-assets" || drawerView === "html-pages" || drawerView === "documents") setDrawerView("create");
+        else if (
+          drawerView === "all-assets" ||
+          drawerView === "html-pages" ||
+          drawerView === "documents"
+        )
+          setDrawerView("create");
         else if (drawerView === "create") setDrawerView("grid");
         else onClose();
       }
@@ -95,19 +111,25 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
   const panel = (
     <div
       key="new-policy-panel"
-      className={isPage
-        ? "bg-white d-flex flex-column overflow-hidden rounded-3 border border-secondary border-opacity-25 shadow-sm w-100"
-        : "bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column overflow-hidden"}
-      style={isPage
-        ? { minHeight: "min(85vh, 920px)" }
-        : { zIndex: 1065, width: "min(100%, 1200px)" }}
+      className={
+        isPage
+          ? "bg-white d-flex flex-column overflow-hidden rounded-3 border border-secondary border-opacity-25 shadow-sm w-100"
+          : "bg-white position-fixed top-0 end-0 bottom-0 shadow d-flex flex-column overflow-hidden"
+      }
+      style={
+        isPage
+          ? { minHeight: "min(85vh, 920px)" }
+          : { zIndex: 1065, width: "min(100%, 1200px)" }
+      }
       role={isPage ? "region" : "dialog"}
       aria-modal={isPage ? undefined : "true"}
       aria-labelledby="new-policy-drawer-title"
     >
       {/* Header */}
       <div className="border-bottom border-secondary border-opacity-25 px-4 py-3 flex-shrink-0">
-        <div className={`d-flex align-items-center justify-content-between gap-3 ${drawerView === "grid" ? "mb-3" : ""}`}>
+        <div
+          className={`d-flex align-items-center justify-content-between gap-3 ${drawerView === "grid" ? "mb-3" : ""}`}
+        >
           <div className="d-flex align-items-center gap-2">
             <button
               type="button"
@@ -117,16 +139,33 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
             >
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
-            <h5 id="new-policy-drawer-title" className="mb-0 fw-semibold text-body">New Policy</h5>
+            <h5
+              id="new-policy-drawer-title"
+              className="mb-0 fw-semibold text-body"
+            >
+              New Policy
+            </h5>
           </div>
           {drawerView === "grid" && (
             <div className="d-flex align-items-center gap-2">
-              <span className="text-muted fs-13 d-none d-sm-inline">Filter</span>
-              <button type="button" className="btn btn-sm btn-light" aria-label="Filter">
+              <span className="text-muted fs-13 d-none d-sm-inline">
+                Filter
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm btn-light"
+                aria-label="Filter"
+              >
                 <i className="isax isax-filter fs-18" aria-hidden="true" />
               </button>
-              <span className="text-muted fs-13 d-none d-sm-inline ms-2">View</span>
-              <div className="btn-group btn-group-sm" role="group" aria-label="View mode">
+              <span className="text-muted fs-13 d-none d-sm-inline ms-2">
+                View
+              </span>
+              <div
+                className="btn-group btn-group-sm"
+                role="group"
+                aria-label="View mode"
+              >
                 <button
                   type="button"
                   className={`btn ${viewMode === "grid" ? "btn-primary" : "btn-light"}`}
@@ -163,20 +202,37 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
 
       {/* Body */}
       {drawerView === "all-assets" ? (
-        <CreatePolicyAllAssetsView 
-          onBack={policyId ? onClose : () => {
-            setDrawerView("create");
-            setSelectedPredefinedPolicy(null);
-          }} 
+        <CreatePolicyAllAssetsView
+          onBack={
+            policyId
+              ? onClose
+              : () => {
+                  setDrawerView("create");
+                  setSelectedPredefinedPolicy(null);
+                }
+          }
           onSuccess={onClose}
-          policyId={policyId} 
+          policyId={policyId}
           readOnly={readOnly}
-          initialData={selectedPredefinedPolicy ? { title: selectedPredefinedPolicy.title, rules: [getInitialRule(selectedPredefinedPolicy)] } : null}
+          initialData={
+            selectedPredefinedPolicy
+              ? {
+                  title: selectedPredefinedPolicy.title,
+                  rules: [getInitialRule(selectedPredefinedPolicy)],
+                }
+              : null
+          }
         />
       ) : drawerView === "html-pages" ? (
-        <CreatePolicyHtmlPagesView onBack={() => setDrawerView("create")} onSuccess={onClose} />
+        <CreatePolicyHtmlPagesView
+          onBack={() => setDrawerView("create")}
+          onSuccess={onClose}
+        />
       ) : drawerView === "documents" ? (
-        <CreatePolicyDocumentsView onBack={() => setDrawerView("create")} onSuccess={onClose} />
+        <CreatePolicyDocumentsView
+          onBack={() => setDrawerView("create")}
+          onSuccess={onClose}
+        />
       ) : drawerView === "create" ? (
         <CreatePolicyContentTypeView
           onBack={() => setDrawerView("grid")}
@@ -184,37 +240,62 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
         />
       ) : (
         <div className="flex-grow-1 overflow-auto p-4">
-          <div className={viewMode === "grid" ? "row g-3" : "d-flex flex-column gap-2"}>
+          <div
+            className={
+              viewMode === "grid" ? "row g-3" : "d-flex flex-column gap-2"
+            }
+          >
             {/* Create your own policy card */}
-            <div className={viewMode === "grid" ? "col-12 col-sm-6 col-lg-4" : ""}>
+            <div
+              className={viewMode === "grid" ? "col-12 col-sm-6 col-lg-4" : ""}
+            >
               <div
                 className="card h-100 border-2 border-primary border-opacity-25 border-dashed bg-transparent"
-                style={{ minHeight: viewMode === "grid" ? 140 : "auto", cursor: "pointer" }}
+                style={{
+                  minHeight: viewMode === "grid" ? 140 : "auto",
+                  cursor: "pointer",
+                }}
                 role="button"
                 tabIndex={0}
                 onClick={() => setDrawerView("create")}
                 onKeyDown={(e) => e.key === "Enter" && setDrawerView("create")}
               >
                 <div className="card-body d-flex flex-column justify-content-center align-items-center text-center py-4">
-                  <span className="text-primary fw-semibold fs-13">Create your own policy</span>
-                  <span className="text-muted fs-12 mt-1">Build it from scratch</span>
+                  <span className="text-primary fw-semibold fs-13">
+                    Create your own policy
+                  </span>
+                  <span className="text-muted fs-12 mt-1">
+                    Build it from scratch
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Predefined policy cards */}
             {filteredPolicies.map((policy) => (
-              <div key={policy.id} className={viewMode === "grid" ? "col-12 col-sm-6 col-lg-4 col-xl-3" : ""}>
+              <div
+                key={policy.id}
+                className={
+                  viewMode === "grid" ? "col-12 col-sm-6 col-lg-4 col-xl-3" : ""
+                }
+              >
                 <div className="card border border-secondary border-opacity-25 shadow-sm h-100 position-relative">
                   {policy.isNew && (
-                    <span className="position-absolute top-0 end-0 badge bg-danger rounded-0 rounded-start px-2 py-1 fs-11 text-white">New</span>
+                    <span className="position-absolute top-0 end-0 badge bg-danger rounded-0 rounded-start px-2 py-1 fs-11 text-white">
+                      New
+                    </span>
                   )}
                   <div className="card-body d-flex flex-column">
                     <div className="d-flex align-items-start gap-2 mb-2">
                       <span className="avatar avatar-32 avatar-rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0">
-                        <i className={`isax ${policy.icon} fs-16`} aria-hidden="true" />
+                        <i
+                          className={`isax ${policy.icon} fs-16`}
+                          aria-hidden="true"
+                        />
                       </span>
-                      <p className="text-body fs-13 mb-0 flex-grow-1">{policy.title}</p>
+                      <p className="text-body fs-13 mb-0 flex-grow-1">
+                        {policy.title}
+                      </p>
                     </div>
                     <div className="mt-auto pt-2">
                       <button
@@ -236,7 +317,9 @@ const NewPolicyDrawer = ({ open, onClose, variant = "drawer", policyId = null, r
             ))}
           </div>
           {filteredPolicies.length === 0 && (
-            <p className="text-muted text-center py-4 mb-0">No policies match your search.</p>
+            <p className="text-muted text-center py-4 mb-0">
+              No policies match your search.
+            </p>
           )}
         </div>
       )}

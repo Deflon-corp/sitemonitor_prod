@@ -27,7 +27,10 @@ function QaErrorsEmptyState({ title, message }) {
   return (
     <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm">
       <div className="card-body text-center py-5 text-muted">
-        <i className={`isax ${title === "PDF Documents" ? "isax-document-text" : "isax-document-copy"} fs-32 mb-3 d-block opacity-50`} aria-hidden="true" />
+        <i
+          className={`isax ${title === "PDF Documents" ? "isax-document-text" : "isax-document-copy"} fs-32 mb-3 d-block opacity-50`}
+          aria-hidden="true"
+        />
         <h6 className="text-body fw-semibold mb-2">{title}</h6>
         <p className="fs-13 mb-0 mx-auto" style={{ maxWidth: 420 }}>
           {message}
@@ -70,7 +73,13 @@ export default function ContentWithQAErrorsView() {
           ? "readability"
           : "url";
 
-  const { rows: apiRows, pagination, loading, error, domainId } = useQaPagesList({
+  const {
+    rows: apiRows,
+    pagination,
+    loading,
+    error,
+    domainId,
+  } = useQaPagesList({
     filter: "qa-errors",
     page: currentPage,
     limit: rowsPerPage,
@@ -118,7 +127,9 @@ export default function ContentWithQAErrorsView() {
   }
 
   const totalPages = useLiveTable ? pagination.pages || 1 : 1;
-  const totalCount = useLiveTable ? pagination.total ?? displayRows.length : 0;
+  const totalCount = useLiveTable
+    ? (pagination.total ?? displayRows.length)
+    : 0;
 
   const tabLabels = {
     all: "content items",
@@ -131,7 +142,10 @@ export default function ContentWithQAErrorsView() {
     <div className="d-flex flex-column min-h-0">
       <div className="mb-3">
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
-          <i className="isax isax-document-copy fs-20 text-primary" aria-hidden="true" />
+          <i
+            className="isax isax-document-copy fs-20 text-primary"
+            aria-hidden="true"
+          />
           Content with QA Errors
         </h5>
         <p className="text-muted fs-13 mb-0">
@@ -142,7 +156,10 @@ export default function ContentWithQAErrorsView() {
                 ? "Loading…"
                 : `${totalCount} ${tabLabels[activeTab] || "pages"}`
               : `0 ${tabLabels[activeTab] || "items"}`}
-          {!domainId && !loading && !isScanning && " — select a domain to load scan data"}
+          {!domainId &&
+            !loading &&
+            !isScanning &&
+            " — select a domain to load scan data"}
           {error && ` (${error})`}
         </p>
         {scanMessage && useLiveTable && (
@@ -150,7 +167,10 @@ export default function ContentWithQAErrorsView() {
         )}
       </div>
 
-      <nav className="prioritized-content-filters mb-4" aria-label="Content type filter">
+      <nav
+        className="prioritized-content-filters mb-4"
+        aria-label="Content type filter"
+      >
         <div className="d-flex flex-wrap gap-1 gap-md-4 align-items-center">
           {TABS.map(({ key, label, icon }) => {
             const isActive = activeTab === key;
@@ -244,7 +264,10 @@ export default function ContentWithQAErrorsView() {
                           </button>
                         </span>
                       </th>
-                      <th className="py-3 pe-4 fw-semibold text-body fs-13 text-end" style={{ width: 100 }} />
+                      <th
+                        className="py-3 pe-4 fw-semibold text-body fs-13 text-end"
+                        style={{ width: 100 }}
+                      />
                     </tr>
                   </thead>
                   <tbody>
@@ -258,14 +281,16 @@ export default function ContentWithQAErrorsView() {
                     {!loading && !domainId && (
                       <tr>
                         <td colSpan={4} className="text-center py-5 text-muted">
-                          Select a domain from the sidebar to view QA scan results.
+                          Select a domain from the sidebar to view QA scan
+                          results.
                         </td>
                       </tr>
                     )}
                     {!loading && domainId && displayRows.length === 0 && (
                       <tr>
                         <td colSpan={4} className="text-center py-5 text-muted">
-                          No pages with QA errors found. Click <strong>Run QA scan</strong> above to crawl and
+                          No pages with QA errors found. Click{" "}
+                          <strong>Run QA scan</strong> above to crawl and
                           analyze your site.
                         </td>
                       </tr>
@@ -275,7 +300,9 @@ export default function ContentWithQAErrorsView() {
                         <tr key={row.id || row.url}>
                           <td className="py-3 ps-4">
                             <div className="d-flex flex-column">
-                              <span className="fw-semibold text-primary">{row.title || row.url}</span>
+                              <span className="fw-semibold text-primary">
+                                {row.title || row.url}
+                              </span>
                               <a
                                 href={row.url}
                                 target="_blank"
@@ -318,7 +345,10 @@ export default function ContentWithQAErrorsView() {
                               title="Open page details"
                               onClick={() => openPageDetails(row)}
                             >
-                              <i className="isax isax-document-text text-primary" aria-hidden="true" />
+                              <i
+                                className="isax isax-document-text text-primary"
+                                aria-hidden="true"
+                              />
                             </button>
                           </td>
                         </tr>
@@ -353,7 +383,9 @@ export default function ContentWithQAErrorsView() {
               </div>
               <nav aria-label="Content with QA errors pagination">
                 <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
@@ -378,11 +410,15 @@ export default function ContentWithQAErrorsView() {
                       </li>
                     );
                   })}
-                  <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage >= totalPages}
                     >
                       Next

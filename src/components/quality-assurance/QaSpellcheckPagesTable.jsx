@@ -52,7 +52,10 @@ export default function QaSpellcheckPagesTable({
       if (!el || typeof window === "undefined") return;
       const bootstrap = window.bootstrap;
       if (!bootstrap?.Tooltip) return;
-      const t = new bootstrap.Tooltip(el, { placement: "top", customClass: "tooltip-views" });
+      const t = new bootstrap.Tooltip(el, {
+        placement: "top",
+        customClass: "tooltip-views",
+      });
       return () => t.dispose();
     }
     init(viewsTooltipRef.current);
@@ -76,10 +79,21 @@ export default function QaSpellcheckPagesTable({
     if (!sortBy) return rows;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...rows].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || (a.url || "").localeCompare(b.url || ""));
-      if (sortBy === "language") return dir * (a.language || "").localeCompare(b.language || "");
-      if (sortBy === "misspellings") return dir * ((a.misspellings || 0) - (b.misspellings || 0));
-      if (sortBy === "potentialMisspellings") return dir * ((a.potentialMisspellings || 0) - (b.potentialMisspellings || 0));
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            (a.url || "").localeCompare(b.url || ""))
+        );
+      if (sortBy === "language")
+        return dir * (a.language || "").localeCompare(b.language || "");
+      if (sortBy === "misspellings")
+        return dir * ((a.misspellings || 0) - (b.misspellings || 0));
+      if (sortBy === "potentialMisspellings")
+        return (
+          dir *
+          ((a.potentialMisspellings || 0) - (b.potentialMisspellings || 0))
+        );
       return dir * ((a.views || 0) - (b.views || 0));
     });
   }, [rows, sortBy, sortDir]);
@@ -96,12 +110,20 @@ export default function QaSpellcheckPagesTable({
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                 <th className="py-3 ps-4 text-body fw-semibold fs-13">
-                  <button type="button" className="btn btn-link p-0 border-0 text-body fw-semibold text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                  <button
+                    type="button"
+                    className="btn btn-link p-0 border-0 text-body fw-semibold text-decoration-none d-inline-flex align-items-center"
+                    onClick={() => handleSort("title")}
+                  >
                     {QA_TABLE.pageTitleUrl}
                   </button>
                 </th>
-                <th className="py-3 text-body fs-13 fw-semibold text-center">{QA_TABLE.misspellingCount}</th>
-                <th className="py-3 text-body fs-13 fw-semibold text-center">{QA_TABLE.potentialCount}</th>
+                <th className="py-3 text-body fs-13 fw-semibold text-center">
+                  {QA_TABLE.misspellingCount}
+                </th>
+                <th className="py-3 text-body fs-13 fw-semibold text-center">
+                  {QA_TABLE.potentialCount}
+                </th>
                 <th className="py-3 pe-4 text-end" style={{ width: 100 }} />
               </tr>
             </thead>
@@ -120,18 +142,37 @@ export default function QaSpellcheckPagesTable({
                     <td className="py-3 ps-4">
                       <div className="d-flex flex-column gap-1">
                         <span className="text-body fs-13">{row.title}</span>
-                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break">
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
+                        >
                           <ExternalLinkIcon size={12} />
-                          <span className="text-truncate" style={{ maxWidth: 320 }}>{row.url}</span>
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: 320 }}
+                          >
+                            {row.url}
+                          </span>
                         </a>
                       </div>
                     </td>
-                    
-                    <td className="py-3 text-center fs-13">{row.misspellings}</td>
-                    <td className="py-3 text-center fs-13">{row.potentialMisspellings}</td>
-                    
+
+                    <td className="py-3 text-center fs-13">
+                      {row.misspellings}
+                    </td>
+                    <td className="py-3 text-center fs-13">
+                      {row.potentialMisspellings}
+                    </td>
+
                     <td className="py-3 pe-4 text-end">
-                      <button type="button" className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2" title="View page details" onClick={() => openPageDetails(row)}>
+                      <button
+                        type="button"
+                        className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2"
+                        title="View page details"
+                        onClick={() => openPageDetails(row)}
+                      >
                         <PageIssuesIcon size={16} />
                       </button>
                     </td>
@@ -153,7 +194,9 @@ export default function QaSpellcheckPagesTable({
               }}
             >
               {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
             <span className="text-muted small">
@@ -165,12 +208,26 @@ export default function QaSpellcheckPagesTable({
           <nav aria-label="Pagination">
             <ul className="pagination pagination-sm mb-0 gap-1">
               <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
                   Previous
                 </button>
               </li>
-              <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+              <li
+                className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  disabled={currentPage >= totalPages}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
                   Next
                 </button>
               </li>
@@ -182,7 +239,11 @@ export default function QaSpellcheckPagesTable({
         open={pageDetailsOpen}
         onClose={() => setPageDetailsOpen(false)}
         page={selectedPage ? toDrawerPage(selectedPage) : null}
-        defaultQaSubView={filter === "potential-misspellings" ? "potential-misspellings" : "misspellings"}
+        defaultQaSubView={
+          filter === "potential-misspellings"
+            ? "potential-misspellings"
+            : "misspellings"
+        }
       />
     </>
   );

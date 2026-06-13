@@ -7,12 +7,7 @@ import toast from "react-hot-toast";
 const DRAWER_Z_BACKDROP = 1100;
 const DRAWER_Z_PANEL = 1105;
 
-const PolicyReportHitsDrawer = ({
-  open,
-  onClose,
-  policyId,
-  policyTitle,
-}) => {
+const PolicyReportHitsDrawer = ({ open, onClose, policyId, policyTitle }) => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -51,9 +46,10 @@ const PolicyReportHitsDrawer = ({
   const filteredReports = useMemo(() => {
     if (!search.trim()) return reports;
     const q = search.toLowerCase();
-    return reports.filter(r => 
-      r.url.toLowerCase().includes(q) || 
-      r.domainName.toLowerCase().includes(q)
+    return reports.filter(
+      (r) =>
+        r.url.toLowerCase().includes(q) ||
+        r.domainName.toLowerCase().includes(q),
     );
   }, [reports, search]);
 
@@ -69,7 +65,11 @@ const PolicyReportHitsDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow d-flex flex-column overflow-hidden"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 800px)", maxWidth: "800px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 800px)",
+          maxWidth: "800px",
+        }}
         role="dialog"
         aria-modal="true"
       >
@@ -81,11 +81,18 @@ const PolicyReportHitsDrawer = ({
               className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
               onClick={onClose}
             >
-              <i className="isax isax-close-circle fs-22 text-body" aria-hidden="true" />
+              <i
+                className="isax isax-close-circle fs-22 text-body"
+                aria-hidden="true"
+              />
             </button>
             <div className="flex-grow-1 text-center">
-              <h2 className="mb-0 fw-semibold text-body fs-5">{policyTitle} - Hits</h2>
-              <p className="text-muted small mb-0">{reports.length} total hits found</p>
+              <h2 className="mb-0 fw-semibold text-body fs-5">
+                {policyTitle} - Hits
+              </h2>
+              <p className="text-muted small mb-0">
+                {reports.length} total hits found
+              </p>
             </div>
             <div style={{ width: 40 }} /> {/* balance */}
           </div>
@@ -124,7 +131,9 @@ const PolicyReportHitsDrawer = ({
                 <thead className="table-light">
                   <tr>
                     <th className="fs-12 fw-semibold">URL</th>
-                    <th className="fs-12 fw-semibold text-center">Match Count</th>
+                    <th className="fs-12 fw-semibold text-center">
+                      Match Count
+                    </th>
                     <th className="fs-12 fw-semibold">Scan Date</th>
                   </tr>
                 </thead>
@@ -133,7 +142,9 @@ const PolicyReportHitsDrawer = ({
                     <tr key={report._id}>
                       <td className="py-3">
                         <div className="d-flex flex-column">
-                          <span className="text-muted small mb-1">{report.domainName}</span>
+                          <span className="text-muted small mb-1">
+                            {report.domainName}
+                          </span>
                           <a
                             href={report.url}
                             target="_blank"
@@ -161,8 +172,8 @@ const PolicyReportHitsDrawer = ({
           )}
         </div>
       </div>
-    </>
-    , document.body
+    </>,
+    document.body,
   );
 };
 

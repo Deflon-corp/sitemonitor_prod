@@ -5,17 +5,36 @@ import PolicyListEmptyState from "./PolicyListEmptyState";
 import UnwantedPoliciesEmptyView from "./UnwantedPoliciesEmptyView";
 import RequiredPolicyListRow from "./RequiredPolicyListRow";
 import MatchedPolicyListRow from "./MatchedPolicyListRow";
-import { getPoliciesApi, createPolicyApi, deletePolicyApi, getPolicyByIdApi } from "@/api/policyApi";
+import {
+  getPoliciesApi,
+  createPolicyApi,
+  deletePolicyApi,
+  getPolicyByIdApi,
+} from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import toast from "react-hot-toast";
 import PolicyReportHitsDrawer from "./PolicyReportHitsDrawer";
 
-
 const FILTER_TABS = [
   { key: "all", label: "All" },
-  { key: "unwanted", label: "Unwanted", icon: "isax-close-circle", iconClass: "text-danger" },
-  { key: "required", label: "Required", icon: "isax-danger", iconClass: "text-primary" },
-  { key: "matches", label: "Matches", icon: "isax-search-normal-1", iconClass: "text-primary" },
+  {
+    key: "unwanted",
+    label: "Unwanted",
+    icon: "isax-close-circle",
+    iconClass: "text-danger",
+  },
+  {
+    key: "required",
+    label: "Required",
+    icon: "isax-danger",
+    iconClass: "text-primary",
+  },
+  {
+    key: "matches",
+    label: "Matches",
+    icon: "isax-search-normal-1",
+    iconClass: "text-primary",
+  },
 ];
 
 /** Sample data – replaced with API */
@@ -32,8 +51,14 @@ const FILTER_TABS = [
 //   ...
 // ];
 
-
-const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobalButton = false, refreshTrigger, isLanding = false }) => {
+const PolicyListView = ({
+  onAddNewPolicy,
+  onEditPolicy,
+  onViewPolicy,
+  hideGlobalButton = false,
+  refreshTrigger,
+  isLanding = false,
+}) => {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
@@ -59,7 +84,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
       const res = await getPoliciesApi(query);
       if (res.success && res.data) {
         // Normalize data: ensure fields exist and map _id to id
-        const normalized = res.data.map(p => ({
+        const normalized = res.data.map((p) => ({
           ...p,
           id: p._id || p.id,
           title: p.title || "Untitled Policy",
@@ -67,20 +92,20 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
           compliancePercent: p.compliancePercent || 0,
           status: p.status || "compliant",
           category: p.category || "matches",
-          addDate: p.createdAt ? (() => {
-            const d = new Date(p.createdAt);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}-${month}-${year}`;
-          })() : "N/A"
+          addDate: p.createdAt
+            ? (() => {
+                const d = new Date(p.createdAt);
+                const day = String(d.getDate()).padStart(2, "0");
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const year = d.getFullYear();
+                return `${day}-${month}-${year}`;
+              })()
+            : "N/A",
         }));
         setPolicies(normalized);
       } else {
         setPolicies([]);
       }
-
-
     } catch (err) {
       console.error("Failed to fetch policies:", err);
       toast.error("Failed to load policies");
@@ -96,16 +121,15 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
   const filteredBySearch = useMemo(() => {
     let rows = policies || [];
     if (search.trim()) {
-
       const q = search.toLowerCase();
       rows = rows.filter(
         (r) =>
-          r.title.toLowerCase().includes(q) || (r.searchScope || "").toLowerCase().includes(q)
+          r.title.toLowerCase().includes(q) ||
+          (r.searchScope || "").toLowerCase().includes(q),
       );
     }
     return rows;
   }, [search, policies]);
-
 
   const filteredRows = useMemo(() => {
     if (activeTab === "all") return filteredBySearch;
@@ -126,7 +150,8 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
     });
   }, [filteredRows, sortBy, sortDir]);
 
-  const totalPages = rowsPerPage === -1 ? 1 : Math.ceil(sortedRows.length / rowsPerPage);
+  const totalPages =
+    rowsPerPage === -1 ? 1 : Math.ceil(sortedRows.length / rowsPerPage);
   const paginatedRows = useMemo(() => {
     if (rowsPerPage === -1) return sortedRows;
     const start = (currentPage - 1) * rowsPerPage;
@@ -154,7 +179,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
           `"${(r.searchScope || "").replace(/"/g, '""')}"`,
           r.compliancePercent,
           r.policyHits ?? "",
-        ].join(",")
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -185,16 +210,16 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
         ...policy,
         title: `${policy.title} (Copy)`,
       };
-      
+
       // Clean up fields
       delete newPolicy._id;
       delete newPolicy.id;
       delete newPolicy.createdAt;
       delete newPolicy.updatedAt;
-      
+
       // Clean up rules IDs
       if (newPolicy.rules) {
-        newPolicy.rules = newPolicy.rules.map(r => {
+        newPolicy.rules = newPolicy.rules.map((r) => {
           const newRule = { ...r };
           delete newRule._id;
           delete newRule.id;
@@ -205,7 +230,7 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
         });
       }
 
-      const createRes = await createPolicyApi(newPolicy); 
+      const createRes = await createPolicyApi(newPolicy);
       if (createRes.success) {
         toast.success("Policy duplicated successfully");
         fetchPolicies();
@@ -234,10 +259,15 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
         <div>
           <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
-            <i className="isax isax-hammer fs-20 text-primary" aria-hidden="true" />
+            <i
+              className="isax isax-hammer fs-20 text-primary"
+              aria-hidden="true"
+            />
             Policy List
           </h5>
-          <p className="text-muted fs-13 mb-0">{sortedRows.length} policies found</p>
+          <p className="text-muted fs-13 mb-0">
+            {sortedRows.length} policies found
+          </p>
         </div>
         <div className="d-flex align-items-center gap-2">
           {!hideGlobalButton && (
@@ -273,7 +303,10 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
               }}
             >
               {tab.icon && (
-                <i className={`isax ${tab.icon} fs-16 ${tab.iconClass ?? ""}`} aria-hidden="true" />
+                <i
+                  className={`isax ${tab.icon} fs-16 ${tab.iconClass ?? ""}`}
+                  aria-hidden="true"
+                />
               )}
               {tab.label}
             </button>
@@ -345,18 +378,31 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
             <table className="table table-hover align-middle mb-0">
               <thead className="table-light">
                 <tr>
-                  <th className="py-3 ps-4 text-body fs-13 fw-semibold" style={{ minWidth: 280 }}>
+                  <th
+                    className="py-3 ps-4 text-body fs-13 fw-semibold"
+                    style={{ minWidth: 280 }}
+                  >
                     <button
                       type="button"
                       className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
                       onClick={() => handleSort("title")}
-                      aria-label={sortBy === "title" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Title"}
+                      aria-label={
+                        sortBy === "title"
+                          ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
+                          : "Sort by Title"
+                      }
                     >
                       Title
                       {sortBy === "title" ? (
-                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                        <i
+                          className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-arrow-down ms-1 text-muted opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
@@ -368,43 +414,79 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                     >
                       Add Date
                       {sortBy === "date" ? (
-                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                        <i
+                          className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-arrow-down ms-1 text-muted opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold" style={{ minWidth: 140 }}>
+                  <th
+                    className="py-3 text-body fs-13 fw-semibold"
+                    style={{ minWidth: 140 }}
+                  >
                     <button
                       type="button"
                       className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
                       onClick={() => handleSort("compliance")}
-                      aria-label={sortBy === "compliance" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Compliance"}
+                      aria-label={
+                        sortBy === "compliance"
+                          ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
+                          : "Sort by Compliance"
+                      }
                     >
                       Compliance
                       {sortBy === "compliance" ? (
-                        <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                        <i
+                          className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-arrow-down ms-1 text-muted opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">Policy Hits</th>
-                  
+                  <th className="py-3 text-body fs-13 fw-semibold">
+                    Policy Hits
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedRows.map((row) =>
                   activeTab === "required" ? (
-                    <RequiredPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} onViewHits={(r) => {
-                      setSelectedPolicyForHits(r);
-                      setHitsDrawerOpen(true);
-                    }} />
+                    <RequiredPolicyListRow
+                      key={row.id}
+                      row={row}
+                      onDuplicate={handleDuplicate}
+                      onDelete={handleDelete}
+                      onEdit={onEditPolicy}
+                      onView={onViewPolicy}
+                      onViewHits={(r) => {
+                        setSelectedPolicyForHits(r);
+                        setHitsDrawerOpen(true);
+                      }}
+                    />
                   ) : activeTab === "matches" ? (
-                    <MatchedPolicyListRow key={row.id} row={row} onDuplicate={handleDuplicate} onDelete={handleDelete} onEdit={onEditPolicy} onView={onViewPolicy} onViewHits={(r) => {
-                      setSelectedPolicyForHits(r);
-                      setHitsDrawerOpen(true);
-                    }} />
+                    <MatchedPolicyListRow
+                      key={row.id}
+                      row={row}
+                      onDuplicate={handleDuplicate}
+                      onDelete={handleDelete}
+                      onEdit={onEditPolicy}
+                      onView={onViewPolicy}
+                      onViewHits={(r) => {
+                        setSelectedPolicyForHits(r);
+                        setHitsDrawerOpen(true);
+                      }}
+                    />
                   ) : (
                     <tr key={row.id}>
                       <td className="py-3 ps-4">
@@ -414,27 +496,61 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                             style={{ width: 32, height: 32 }}
                           >
                             {row.status === "hits" ? (
-                              <i className="isax isax-search-normal-1 text-secondary fs-16" aria-hidden="true" />
+                              <i
+                                className="isax isax-search-normal-1 text-secondary fs-16"
+                                aria-hidden="true"
+                              />
                             ) : (
-                              <i className="isax isax-tick-circle text-success fs-16" aria-hidden="true" />
+                              <i
+                                className="isax isax-tick-circle text-success fs-16"
+                                aria-hidden="true"
+                              />
                             )}
                           </span>
                           <div className="min-w-0">
-                            <span className="fw-semibold text-body d-block fs-13">{row.title}</span>
+                            <span className="fw-semibold text-body d-block fs-13">
+                              {row.title}
+                            </span>
                             <span className="text-muted fs-12 d-block">
                               Search in: {row.searchScope}
                               {row.isGlobal ? (
-                                <span className="ms-2 badge bg-success bg-opacity-10 text-success fw-normal" style={{ fontSize: '10px' }}>Global</span>
+                                <span
+                                  className="ms-2 badge bg-success bg-opacity-10 text-success fw-normal"
+                                  style={{ fontSize: "10px" }}
+                                >
+                                  Global
+                                </span>
                               ) : row.domainIds?.length > 0 ? (
-                                <span className="ms-2 text-primary" style={{ fontSize: '11px' }} title={row.domainIds.map(d => d.dm_title || d.dm_url).join(', ')}>
-                                  Applied to {row.domainIds.length} {row.domainIds.length === 1 ? 'domain' : 'domains'}
+                                <span
+                                  className="ms-2 text-primary"
+                                  style={{ fontSize: "11px" }}
+                                  title={row.domainIds
+                                    .map((d) => d.dm_title || d.dm_url)
+                                    .join(", ")}
+                                >
+                                  Applied to {row.domainIds.length}{" "}
+                                  {row.domainIds.length === 1
+                                    ? "domain"
+                                    : "domains"}
                                 </span>
                               ) : null}
                             </span>
                             <div className="d-flex align-items-center gap-2 mt-1">
-                              <i className="isax isax-information text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
-                              <i className="isax isax-timer-1 text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
-                              <i className="isax isax-refresh-2 text-muted" style={{ fontSize: "0.7rem" }} aria-hidden="true" />
+                              <i
+                                className="isax isax-information text-muted"
+                                style={{ fontSize: "0.7rem" }}
+                                aria-hidden="true"
+                              />
+                              <i
+                                className="isax isax-timer-1 text-muted"
+                                style={{ fontSize: "0.7rem" }}
+                                aria-hidden="true"
+                              />
+                              <i
+                                className="isax isax-refresh-2 text-muted"
+                                style={{ fontSize: "0.7rem" }}
+                                aria-hidden="true"
+                              />
                             </div>
                           </div>
                         </div>
@@ -447,9 +563,13 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                       </td>
                       <td className="py-3">
                         {row.policyHits != null ? (
-                          <span className="text-primary fw-medium fs-13">{row.policyHits} HITS</span>
+                          <span className="text-primary fw-medium fs-13">
+                            {row.policyHits} HITS
+                          </span>
                         ) : (
-                          <span className="text-success fs-13">No hits found</span>
+                          <span className="text-success fs-13">
+                            No hits found
+                          </span>
                         )}
                       </td>
                       <td className="py-3 pe-4">
@@ -464,20 +584,66 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                             <i className="isax isax-more" aria-hidden="true" />
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end">
-                            <li><button type="button" className="dropdown-item" onClick={() => onEditPolicy && onEditPolicy(row.id)}>Edit policy</button></li>
-                            <li><button type="button" className="dropdown-item" onClick={() => {
-                              setSelectedPolicyForHits(row);
-                              setHitsDrawerOpen(true);
-                            }}>View hits</button></li>
-                            <li><button type="button" className="dropdown-item" onClick={() => onViewPolicy && onViewPolicy(row.id)}>View details</button></li>
-                            <li><button type="button" className="dropdown-item" onClick={() => handleDuplicate(row.id)}>Duplicate</button></li>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><button type="button" className="dropdown-item text-danger" onClick={() => handleDelete(row.id)}>Delete</button></li>
+                            <li>
+                              <button
+                                type="button"
+                                className="dropdown-item"
+                                onClick={() =>
+                                  onEditPolicy && onEditPolicy(row.id)
+                                }
+                              >
+                                Edit policy
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                type="button"
+                                className="dropdown-item"
+                                onClick={() => {
+                                  setSelectedPolicyForHits(row);
+                                  setHitsDrawerOpen(true);
+                                }}
+                              >
+                                View hits
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                type="button"
+                                className="dropdown-item"
+                                onClick={() =>
+                                  onViewPolicy && onViewPolicy(row.id)
+                                }
+                              >
+                                View details
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                type="button"
+                                className="dropdown-item"
+                                onClick={() => handleDuplicate(row.id)}
+                              >
+                                Duplicate
+                              </button>
+                            </li>
+                            <li>
+                              <hr className="dropdown-divider" />
+                            </li>
+                            <li>
+                              <button
+                                type="button"
+                                className="dropdown-item text-danger"
+                                onClick={() => handleDelete(row.id)}
+                              >
+                                Delete
+                              </button>
+                            </li>
                           </ul>
                         </div>
                       </td>
                     </tr>
-                  )
+                  ),
                 )}
               </tbody>
             </table>
@@ -496,46 +662,60 @@ const PolicyListView = ({ onAddNewPolicy, onEditPolicy, onViewPolicy, hideGlobal
                   }}
                 >
                   {[10, 25, 50, 100].map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                   <option value={-1}>All</option>
                 </select>
                 <span className="text-muted small">
-                  {rowsPerPage === -1 
+                  {rowsPerPage === -1
                     ? `1–${sortedRows.length} of ${sortedRows.length}`
-                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`
-                  }
+                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`}
                 </span>
               </div>
               {rowsPerPage !== -1 && totalPages > 1 && (
                 <nav aria-label="Policy list pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage <= 1}
                       >
                         Previous
                       </button>
                     </li>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                      <li key={p} className={`page-item ${currentPage === p ? "active" : ""}`}>
-                        <button
-                          type="button"
-                          className="page-link rounded-2"
-                          onClick={() => setCurrentPage(p)}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (p) => (
+                        <li
+                          key={p}
+                          className={`page-item ${currentPage === p ? "active" : ""}`}
                         >
-                          {p}
-                        </button>
-                      </li>
-                    ))}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                          <button
+                            type="button"
+                            className="page-link rounded-2"
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </button>
+                        </li>
+                      ),
+                    )}
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
                         disabled={currentPage >= totalPages}
                       >
                         Next

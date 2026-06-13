@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import { downloadBlob, safeFilename } from "../../lib/download";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
 import PageDetailsDrawer from "../prioritized-content/PageDetailsDrawer";
@@ -8,7 +14,6 @@ import ContentWithPolicyMatchesOtherView from "./ContentWithPolicyMatchesOtherVi
 import { getPolicyContentMatchesApi } from "@/api/policyApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 import toast from "react-hot-toast";
-
 
 const TABS = [
   { key: "all", label: "All", icon: "isax-folder" },
@@ -31,7 +36,6 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 //   priority: i % 3 === 0 ? "High" : i % 3 === 1 ? "Medium" : "Low",
 //   views: 0,
 // }));
-
 
 const PRIORITY_ORDER = { High: 3, Medium: 2, Low: 1 };
 
@@ -60,17 +64,19 @@ const ContentWithPolicyMatchesView = () => {
       const res = await getPolicyContentMatchesApi({ domainId: selectedId });
       console.log("[ContentMatches] API Response:", res);
       if (res.success && res.data) {
-        setPolicies(res.data.map(m => ({
-          ...m,
-          id: m._id || m.id,
-          title: m.url || "Untitled",
-          url: m.url || "#",
-          unwanted: m.unwanted || 0,
-          required: m.required || 0,
-          matches: m.matches || 0,
-          priority: m.priority || "Low",
-          views: m.views || 0
-        })));
+        setPolicies(
+          res.data.map((m) => ({
+            ...m,
+            id: m._id || m.id,
+            title: m.url || "Untitled",
+            url: m.url || "#",
+            unwanted: m.unwanted || 0,
+            required: m.required || 0,
+            matches: m.matches || 0,
+            priority: m.priority || "Low",
+            views: m.views || 0,
+          })),
+        );
       }
     } catch (err) {
       console.error("Failed to fetch matches for content matches view:", err);
@@ -82,7 +88,6 @@ const ContentWithPolicyMatchesView = () => {
   useEffect(() => {
     fetchPolicies();
   }, [fetchPolicies]);
-
 
   const openPageDetails = useCallback((row) => {
     setSelectedPage(row);
@@ -101,9 +106,11 @@ const ContentWithPolicyMatchesView = () => {
   const filteredRows = useMemo(() => {
     let rows = policies || [];
     if (search.trim()) {
-
       const q = search.toLowerCase();
-      rows = rows.filter((r) => r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q));
+      rows = rows.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) || r.url.toLowerCase().includes(q),
+      );
     }
     return rows;
   }, [search, policies]);
@@ -131,7 +138,10 @@ const ContentWithPolicyMatchesView = () => {
     }
   };
 
-  const totalPages = rowsPerPage === -1 ? 1 : Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
+  const totalPages =
+    rowsPerPage === -1
+      ? 1
+      : Math.max(1, Math.ceil(sortedRows.length / rowsPerPage));
   const paginatedRows = useMemo(() => {
     if (rowsPerPage === -1) return sortedRows;
     const start = (currentPage - 1) * rowsPerPage;
@@ -145,7 +155,15 @@ const ContentWithPolicyMatchesView = () => {
     const header = "Title,URL,Unwanted,Required,Matches,Priority,Views\n";
     const body = sortedRows
       .map((r) =>
-        [`"${(r.title || "").replace(/"/g, '""')}"`, `"${(r.url || "").replace(/"/g, '""')}"`, r.unwanted, r.required, r.matches, r.priority, r.views].join(",")
+        [
+          `"${(r.title || "").replace(/"/g, '""')}"`,
+          `"${(r.url || "").replace(/"/g, '""')}"`,
+          r.unwanted,
+          r.required,
+          r.matches,
+          r.priority,
+          r.views,
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -173,7 +191,9 @@ const ContentWithPolicyMatchesView = () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Unwanted", "Required", "Matches", "Priority", "Views"]];
+    const head = [
+      ["Title", "URL", "Unwanted", "Required", "Matches", "Priority", "Views"],
+    ];
     const body = paginatedRows.map((r) => [
       (r.title || "").slice(0, 30),
       (r.url || "").slice(0, 40),
@@ -207,10 +227,15 @@ const ContentWithPolicyMatchesView = () => {
       {/* Header */}
       <div className="mb-3">
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
-          <i className="isax isax-document-copy fs-20 text-primary" aria-hidden="true" />
+          <i
+            className="isax isax-document-copy fs-20 text-primary"
+            aria-hidden="true"
+          />
           Content with Policy Matches
         </h5>
-        <p className="text-muted fs-13 mb-0">Found {filteredRows.length} pages</p>
+        <p className="text-muted fs-13 mb-0">
+          Found {filteredRows.length} pages
+        </p>
       </div>
 
       {/* Tabs */}
@@ -254,7 +279,10 @@ const ContentWithPolicyMatchesView = () => {
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportCSV}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     CSV
                   </button>
                 </li>
@@ -264,7 +292,10 @@ const ContentWithPolicyMatchesView = () => {
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportPDF}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     PDF
                   </button>
                 </li>
@@ -274,7 +305,10 @@ const ContentWithPolicyMatchesView = () => {
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportExcel}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     Excel
                   </button>
                 </li>
@@ -309,23 +343,42 @@ const ContentWithPolicyMatchesView = () => {
                   <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                     <th className="py-3 ps-4 text-body fs-13 fw-semibold">
                       Title and URL
-                      <i className="isax isax-sort ms-1 text-muted" aria-hidden="true" />
+                      <i
+                        className="isax isax-sort ms-1 text-muted"
+                        aria-hidden="true"
+                      />
                     </th>
-                    <th className="py-3 text-body fs-13 fw-semibold">Unwanted</th>
-                    <th className="py-3 text-body fs-13 fw-semibold">Required</th>
-                    <th className="py-3 text-body fs-13 fw-semibold">Matches</th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      Unwanted
+                    </th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      Required
+                    </th>
+                    <th className="py-3 text-body fs-13 fw-semibold">
+                      Matches
+                    </th>
                     <th className="py-3 text-body fs-13 fw-semibold">
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
                         onClick={() => handleSort("priority")}
-                        aria-label={sortBy === "priority" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Priority"}
+                        aria-label={
+                          sortBy === "priority"
+                            ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
+                            : "Sort by Priority"
+                        }
                       >
                         Priority
                         {sortBy === "priority" ? (
-                          <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                          <i
+                            className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-arrow-down ms-1 text-muted opacity-50" aria-hidden="true" />
+                          <i
+                            className="isax isax-arrow-down ms-1 text-muted opacity-50"
+                            aria-hidden="true"
+                          />
                         )}
                       </button>
                     </th>
@@ -334,7 +387,11 @@ const ContentWithPolicyMatchesView = () => {
                         type="button"
                         className="btn btn-link p-0 border-0 text-body fs-13 fw-semibold text-decoration-none d-inline-flex align-items-center"
                         onClick={() => handleSort("views")}
-                        aria-label={sortBy === "views" ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.` : "Sort by Views"}
+                        aria-label={
+                          sortBy === "views"
+                            ? `Sorted ${sortDir === "asc" ? "ascending" : "descending"}. Click to change.`
+                            : "Sort by Views"
+                        }
                       >
                         Views
                         <span
@@ -347,12 +404,21 @@ const ContentWithPolicyMatchesView = () => {
                           role="img"
                           aria-label="Total page views over the last 30 days"
                         >
-                          <i className="isax isax-information text-muted" aria-hidden="true" />
+                          <i
+                            className="isax isax-information text-muted"
+                            aria-hidden="true"
+                          />
                         </span>
                         {sortBy === "views" ? (
-                          <i className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`} aria-hidden="true" />
+                          <i
+                            className={`isax ms-1 text-muted ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down"}`}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-sort ms-1 text-muted opacity-50" aria-hidden="true" />
+                          <i
+                            className="isax isax-sort ms-1 text-muted opacity-50"
+                            aria-hidden="true"
+                          />
                         )}
                       </button>
                     </th>
@@ -379,19 +445,28 @@ const ContentWithPolicyMatchesView = () => {
                       </td>
                       <td className="py-3">
                         <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
-                          <i className="isax isax-close-circle text-secondary" aria-hidden="true" />
+                          <i
+                            className="isax isax-close-circle text-secondary"
+                            aria-hidden="true"
+                          />
                           {row.unwanted}
                         </span>
                       </td>
                       <td className="py-3">
                         <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
-                          <i className="isax isax-danger text-warning" aria-hidden="true" />
+                          <i
+                            className="isax isax-danger text-warning"
+                            aria-hidden="true"
+                          />
                           {row.required}
                         </span>
                       </td>
                       <td className="py-3">
                         <span className="d-inline-flex align-items-center gap-1 text-body fs-13">
-                          <i className="isax isax-search-normal-1 text-primary" aria-hidden="true" />
+                          <i
+                            className="isax isax-search-normal-1 text-primary"
+                            aria-hidden="true"
+                          />
                           {row.matches}
                         </span>
                       </td>
@@ -418,7 +493,10 @@ const ContentWithPolicyMatchesView = () => {
                             title="Open page details"
                             onClick={() => openPageDetails(row)}
                           >
-                            <i className="isax isax-document-text text-primary" aria-hidden="true" />
+                            <i
+                              className="isax isax-document-text text-primary"
+                              aria-hidden="true"
+                            />
                           </button>
                         </div>
                       </td>
@@ -442,51 +520,64 @@ const ContentWithPolicyMatchesView = () => {
                   }}
                 >
                   {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                   <option value={-1}>All</option>
                 </select>
                 <span className="text-muted small">
-                  {rowsPerPage === -1 
+                  {rowsPerPage === -1
                     ? `1–${sortedRows.length} of ${sortedRows.length}`
-                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`
-                  }
+                    : `${(currentPage - 1) * rowsPerPage + 1}–${Math.min(currentPage * rowsPerPage, sortedRows.length)} of ${sortedRows.length}`}
                 </span>
               </div>
               {rowsPerPage !== -1 && totalPages > 1 && (
                 <nav aria-label="Content with policy matches pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage <= 1}
                         aria-label="Previous"
                       >
                         Previous
                       </button>
                     </li>
-                    {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                      const p = currentPage <= 5 ? i + 1 : currentPage - 5 + i;
-                      if (p > totalPages) return null;
-                      return (
-                        <li key={p} className="page-item">
-                          <button
-                            type="button"
-                            className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
-                            onClick={() => setCurrentPage(p)}
-                          >
-                            {p}
-                          </button>
-                        </li>
-                      );
-                    })}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                    {Array.from(
+                      { length: Math.min(totalPages, 10) },
+                      (_, i) => {
+                        const p =
+                          currentPage <= 5 ? i + 1 : currentPage - 5 + i;
+                        if (p > totalPages) return null;
+                        return (
+                          <li key={p} className="page-item">
+                            <button
+                              type="button"
+                              className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                              onClick={() => setCurrentPage(p)}
+                            >
+                              {p}
+                            </button>
+                          </li>
+                        );
+                      },
+                    )}
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
                         disabled={currentPage >= totalPages}
                         aria-label="Next"
                       >
@@ -502,18 +593,26 @@ const ContentWithPolicyMatchesView = () => {
       )}
 
       {activeTab === "pages" && (
-        <ContentWithPolicyMatchesPagesView 
-          data={policies.filter(p => !p.url.toLowerCase().endsWith(".pdf") && !p.url.toLowerCase().endsWith(".docx"))} 
+        <ContentWithPolicyMatchesPagesView
+          data={policies.filter(
+            (p) =>
+              !p.url.toLowerCase().endsWith(".pdf") &&
+              !p.url.toLowerCase().endsWith(".docx"),
+          )}
         />
       )}
       {activeTab === "pdf" && (
-        <ContentWithPolicyMatchesPdfView 
-          data={policies.filter(p => p.url.toLowerCase().endsWith(".pdf"))} 
+        <ContentWithPolicyMatchesPdfView
+          data={policies.filter((p) => p.url.toLowerCase().endsWith(".pdf"))}
         />
       )}
       {activeTab === "other" && (
-        <ContentWithPolicyMatchesOtherView 
-          data={policies.filter(p => p.url.toLowerCase().endsWith(".docx") || p.url.toLowerCase().endsWith(".xlsx"))} 
+        <ContentWithPolicyMatchesOtherView
+          data={policies.filter(
+            (p) =>
+              p.url.toLowerCase().endsWith(".docx") ||
+              p.url.toLowerCase().endsWith(".xlsx"),
+          )}
         />
       )}
 

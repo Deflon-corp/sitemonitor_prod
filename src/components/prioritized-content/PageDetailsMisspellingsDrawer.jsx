@@ -36,7 +36,11 @@ export default function PageDetailsMisspellingsDrawer({
 }) {
   const domainId = useQaDomainId();
   const pageUrl = pageProp?.url || "";
-  const { page: fetchedPage, loading: pageLoading, refetch } = usePageDetails(domainId, pageUrl, open && !!pageUrl);
+  const {
+    page: fetchedPage,
+    loading: pageLoading,
+    refetch,
+  } = usePageDetails(domainId, pageUrl, open && !!pageUrl);
 
   const [activeTab, setActiveTab] = useState(defaultTab || "dashboard");
   const [policyFilterTab, setPolicyFilterTab] = useState("All");
@@ -44,8 +48,10 @@ export default function PageDetailsMisspellingsDrawer({
   const [selectedBrokenLinkId, setSelectedBrokenLinkId] = useState(null);
   const [selectedBrokenImageId, setSelectedBrokenImageId] = useState(null);
   const [selectedMisspellingId, setSelectedMisspellingId] = useState(null);
-  const [selectedPotentialMisspellingId, setSelectedPotentialMisspellingId] = useState(null);
-  const [selectedIgnoredSpellingId, setSelectedIgnoredSpellingId] = useState(null);
+  const [selectedPotentialMisspellingId, setSelectedPotentialMisspellingId] =
+    useState(null);
+  const [selectedIgnoredSpellingId, setSelectedIgnoredSpellingId] =
+    useState(null);
   const [selectedDictionaryId, setSelectedDictionaryId] = useState(null);
   const [brokenLinksPage, setBrokenLinksPage] = useState(1);
   const [brokenLinksRowsPerPage, setBrokenLinksRowsPerPage] = useState(10);
@@ -56,9 +62,16 @@ export default function PageDetailsMisspellingsDrawer({
   const brokenImagesCount = effectivePage.brokenImages?.length || 0;
   const misspellingsCount = effectivePage.misspellings?.length || 0;
   const potentialCount = effectivePage.potentialMisspellings?.length || 0;
-  const seoIssuesCount = effectivePage.seoOpportunitiesCount ?? effectivePage.seoImprovements?.length ?? 0;
-  const accessibilityScore = effectivePage.lighthouseAccessibilityScore ?? effectivePage.accessibility?.score ?? 0;
-  const seoScore = effectivePage.seoScore ?? effectivePage.lighthouseSeoScore ?? 0;
+  const seoIssuesCount =
+    effectivePage.seoOpportunitiesCount ??
+    effectivePage.seoImprovements?.length ??
+    0;
+  const accessibilityScore =
+    effectivePage.lighthouseAccessibilityScore ??
+    effectivePage.accessibility?.score ??
+    0;
+  const seoScore =
+    effectivePage.seoScore ?? effectivePage.lighthouseSeoScore ?? 0;
 
   const tabs = useMemo(
     () => [
@@ -75,23 +88,62 @@ export default function PageDetailsMisspellingsDrawer({
         icon: "isax-tick-circle",
         badge: effectivePage.qaIssueCount || undefined,
       },
-      { key: "accessibility", label: "Accessibility", icon: "isax-people5", badge: pageProp?.failingChecks || undefined },
-      { key: "seo", label: "SEO", icon: "isax-chart-215", badge: seoIssuesCount || undefined },
+      {
+        key: "accessibility",
+        label: "Accessibility",
+        icon: "isax-people5",
+        badge: pageProp?.failingChecks || undefined,
+      },
+      {
+        key: "seo",
+        label: "SEO",
+        icon: "isax-chart-215",
+        badge: seoIssuesCount || undefined,
+      },
       { key: "inventory", label: "Inventory", icon: "isax-book5" },
       { key: "performance", label: "Performance", icon: "isax-chart-215" },
     ],
-    [effectivePage.policies, effectivePage.qaIssueCount, seoIssuesCount, pageProp?.failingChecks]
+    [
+      effectivePage.policies,
+      effectivePage.qaIssueCount,
+      seoIssuesCount,
+      pageProp?.failingChecks,
+    ],
   );
 
   const qaSidebarItems = useMemo(
     () => [
-      { key: "broken-links", label: "Broken Links", icon: "isax-link-2", badge: brokenLinksCount, badgeVariant: "danger" },
-      { key: "broken-images", label: "Broken Images", icon: "isax-document-text", badge: brokenImagesCount, badgeVariant: "danger" },
-      { key: "misspellings", label: "Misspellings", icon: "isax-edit-2", badge: misspellingsCount, badgeVariant: "danger" },
-      { key: "potential-misspellings", label: "Potential Misspellings", icon: "isax-edit-2", badge: potentialCount, badgeVariant: "primary" },
+      {
+        key: "broken-links",
+        label: "Broken Links",
+        icon: "isax-link-2",
+        badge: brokenLinksCount,
+        badgeVariant: "danger",
+      },
+      {
+        key: "broken-images",
+        label: "Broken Images",
+        icon: "isax-document-text",
+        badge: brokenImagesCount,
+        badgeVariant: "danger",
+      },
+      {
+        key: "misspellings",
+        label: "Misspellings",
+        icon: "isax-edit-2",
+        badge: misspellingsCount,
+        badgeVariant: "danger",
+      },
+      {
+        key: "potential-misspellings",
+        label: "Potential Misspellings",
+        icon: "isax-edit-2",
+        badge: potentialCount,
+        badgeVariant: "primary",
+      },
       { key: "readability", label: "Readability", icon: "isax-book5" },
     ],
-    [brokenLinksCount, brokenImagesCount, misspellingsCount, potentialCount]
+    [brokenLinksCount, brokenImagesCount, misspellingsCount, potentialCount],
   );
 
   const filteredPolicies = useMemo(() => {
@@ -106,7 +158,10 @@ export default function PageDetailsMisspellingsDrawer({
   }, [onClose]);
 
   const brokenLinksList = effectivePage.brokenLinks || [];
-  const brokenLinksTotalPages = Math.max(1, Math.ceil(brokenLinksList.length / brokenLinksRowsPerPage));
+  const brokenLinksTotalPages = Math.max(
+    1,
+    Math.ceil(brokenLinksList.length / brokenLinksRowsPerPage),
+  );
   const brokenLinksPaginated = useMemo(() => {
     const start = (brokenLinksPage - 1) * brokenLinksRowsPerPage;
     return brokenLinksList.slice(start, start + brokenLinksRowsPerPage);
@@ -124,14 +179,22 @@ export default function PageDetailsMisspellingsDrawer({
         views: 0,
       },
     ];
-  }, [effectivePage.title, effectivePage.url, misspellingsCount, potentialCount]);
+  }, [
+    effectivePage.title,
+    effectivePage.url,
+    misspellingsCount,
+    potentialCount,
+  ]);
 
   const baseName = safeFilename("Broken-Links-Report");
 
   const exportBrokenLinksCSV = useCallback(() => {
     const header = "Broken link,Response code,Type\n";
     const body = brokenLinksList
-      .map((r) => `"${(r.url || "").replace(/"/g, '""')}","${r.responseCode || ""}","${r.type || ""}"`)
+      .map(
+        (r) =>
+          `"${(r.url || "").replace(/"/g, '""')}","${r.responseCode || ""}","${r.type || ""}"`,
+      )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -169,7 +232,11 @@ export default function PageDetailsMisspellingsDrawer({
       />
       <div
         className="bg-white position-fixed top-0 end-0 bottom-0 shadow overflow-hidden d-flex flex-column"
-        style={{ zIndex: panelZIndex, width: "min(100%, 1400px)", maxWidth: "1400px" }}
+        style={{
+          zIndex: panelZIndex,
+          width: "min(100%, 1400px)",
+          maxWidth: "1400px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="page-details-drawer-title"
@@ -186,7 +253,10 @@ export default function PageDetailsMisspellingsDrawer({
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
             <div className="min-w-0 flex-grow-1 text-start">
-              <h5 id="page-details-drawer-title" className="mb-1 text-truncate fw-semibold text-body">
+              <h5
+                id="page-details-drawer-title"
+                className="mb-1 text-truncate fw-semibold text-body"
+              >
                 {effectivePage.title || "(No title found)"}
               </h5>
               {effectivePage.url && (
@@ -196,7 +266,10 @@ export default function PageDetailsMisspellingsDrawer({
                   rel="noopener noreferrer"
                   className="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 text-break"
                 >
-                  <i className="isax isax-export-3 text-primary" aria-hidden="true" />
+                  <i
+                    className="isax isax-export-3 text-primary"
+                    aria-hidden="true"
+                  />
                   {effectivePage.url}
                 </a>
               )}
@@ -208,7 +281,10 @@ export default function PageDetailsMisspellingsDrawer({
               onClick={() => refetch()}
               disabled={pageLoading}
             >
-              <i className={`isax isax-refresh-25 ${pageLoading ? "spin" : ""}`} aria-hidden="true" />
+              <i
+                className={`isax isax-refresh-25 ${pageLoading ? "spin" : ""}`}
+                aria-hidden="true"
+              />
             </button>
           </div>
         </div>
@@ -222,10 +298,15 @@ export default function PageDetailsMisspellingsDrawer({
                   className={`btn btn-sm w-100 d-inline-flex align-items-center justify-content-center justify-content-md-start ${activeTab === tab.key ? "btn-primary" : "bg-transparent border border-secondary border-opacity-25 text-dark"}`}
                   onClick={() => setActiveTab(tab.key)}
                 >
-                  <i className={`isax ${tab.icon} me-1 fs-14 flex-shrink-0`} aria-hidden="true" />
+                  <i
+                    className={`isax ${tab.icon} me-1 fs-14 flex-shrink-0`}
+                    aria-hidden="true"
+                  />
                   <span className="text-truncate">{tab.label}</span>
                   {tab.badge != null && tab.badge > 0 && (
-                    <span className="badge bg-danger bg-opacity-10 text-danger ms-1">{tab.badge}</span>
+                    <span className="badge bg-danger bg-opacity-10 text-danger ms-1">
+                      {tab.badge}
+                    </span>
                   )}
                 </button>
               </div>
@@ -254,7 +335,8 @@ export default function PageDetailsMisspellingsDrawer({
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
                       <h6 className="mb-0 fw-semibold">Content policies</h6>
                       <span className="text-primary fw-semibold">
-                        {effectivePage.policyCompliancePercent ?? 100}% compliance
+                        {effectivePage.policyCompliancePercent ?? 100}%
+                        compliance
                       </span>
                     </div>
                     <div className="d-flex flex-wrap gap-2 mb-3">
@@ -283,12 +365,18 @@ export default function PageDetailsMisspellingsDrawer({
                           {filteredPolicies.map((p) => (
                             <tr key={p.id}>
                               <td>{p.name}</td>
-                              <td className="text-capitalize">{p.category || "—"}</td>
+                              <td className="text-capitalize">
+                                {p.category || "—"}
+                              </td>
                               <td>
                                 {p.isHit ? (
-                                  <span className="badge bg-danger bg-opacity-10 text-danger">Violation</span>
+                                  <span className="badge bg-danger bg-opacity-10 text-danger">
+                                    Violation
+                                  </span>
                                 ) : (
-                                  <span className="badge bg-success bg-opacity-10 text-success">Passed</span>
+                                  <span className="badge bg-success bg-opacity-10 text-success">
+                                    Passed
+                                  </span>
                                 )}
                               </td>
                               <td>{p.priority || "—"}</td>
@@ -296,7 +384,10 @@ export default function PageDetailsMisspellingsDrawer({
                           ))}
                           {filteredPolicies.length === 0 && (
                             <tr>
-                              <td colSpan={4} className="text-center py-4 text-muted">
+                              <td
+                                colSpan={4}
+                                className="text-center py-4 text-muted"
+                              >
                                 No policy results for this page.
                               </td>
                             </tr>
@@ -324,11 +415,16 @@ export default function PageDetailsMisspellingsDrawer({
                           className={`nav-link border-0 text-start d-flex align-items-center justify-content-between py-2 px-3 rounded w-100 ${qaSubView === item.key ? "bg-primary bg-opacity-10 text-primary fw-medium" : "text-body bg-transparent"}`}
                         >
                           <span className="d-flex align-items-center gap-2">
-                            <i className={`isax ${item.icon} fs-18`} aria-hidden="true" />
+                            <i
+                              className={`isax ${item.icon} fs-18`}
+                              aria-hidden="true"
+                            />
                             <span>{item.label}</span>
                           </span>
                           {item.badge !== undefined && item.badge > 0 && (
-                            <span className={`badge rounded-pill bg-${item.badgeVariant || "secondary"} bg-opacity-10 text-${item.badgeVariant || "secondary"}`}>
+                            <span
+                              className={`badge rounded-pill bg-${item.badgeVariant || "secondary"} bg-opacity-10 text-${item.badgeVariant || "secondary"}`}
+                            >
                               {item.badge}
                             </span>
                           )}
@@ -345,9 +441,15 @@ export default function PageDetailsMisspellingsDrawer({
                       <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
                         <div>
                           <h6 className="mb-1">Broken Links</h6>
-                          <p className="text-muted small mb-0">{brokenLinksList.length} issues found</p>
+                          <p className="text-muted small mb-0">
+                            {brokenLinksList.length} issues found
+                          </p>
                         </div>
-                        <button type="button" className="btn btn-sm btn-outline-secondary" onClick={exportBrokenLinksCSV}>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={exportBrokenLinksCSV}
+                        >
                           Export CSV
                         </button>
                       </div>
@@ -358,35 +460,49 @@ export default function PageDetailsMisspellingsDrawer({
                               <th className="ps-4">Broken link</th>
                               <th>Code</th>
                               <th>Type</th>
-
                             </tr>
                           </thead>
                           <tbody>
                             {brokenLinksPaginated.map((row) => (
                               <tr key={row.id}>
                                 <td className="ps-4 small text-break">
-                                  <a href={row.url} target="_blank" rel="noreferrer" className="text-primary">
+                                  <a
+                                    href={row.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary"
+                                  >
                                     {row.url}
                                   </a>
                                 </td>
                                 <td>{row.responseCode}</td>
                                 <td>
-                                  <span className="badge bg-secondary bg-opacity-10 text-secondary">{row.type}</span>
+                                  <span className="badge bg-secondary bg-opacity-10 text-secondary">
+                                    {row.type}
+                                  </span>
                                 </td>
                                 <td className="text-end pe-4">
                                   <button
                                     type="button"
                                     className="btn btn-icon btn-sm btn-light"
-                                    onClick={() => setSelectedBrokenLinkId(row.id)}
+                                    onClick={() =>
+                                      setSelectedBrokenLinkId(row.id)
+                                    }
                                   >
-                                    <i className="isax isax-info-circle" aria-hidden="true" />
+                                    <i
+                                      className="isax isax-info-circle"
+                                      aria-hidden="true"
+                                    />
                                   </button>
                                 </td>
                               </tr>
                             ))}
                             {brokenLinksList.length === 0 && (
                               <tr>
-                                <td colSpan={4} className="text-center py-4 text-muted">
+                                <td
+                                  colSpan={4}
+                                  className="text-center py-4 text-muted"
+                                >
                                   No broken links on this page.
                                 </td>
                               </tr>
@@ -396,7 +512,9 @@ export default function PageDetailsMisspellingsDrawer({
                       </div>
                       {brokenLinksTotalPages > 1 && (
                         <div className="p-3 border-top d-flex align-items-center gap-2">
-                          <span className="text-muted fs-13">Rows per page</span>
+                          <span className="text-muted fs-13">
+                            Rows per page
+                          </span>
                           <select
                             className="form-select form-select-sm w-auto"
                             value={brokenLinksRowsPerPage}
@@ -461,7 +579,8 @@ export default function PageDetailsMisspellingsDrawer({
                     <div className="card-body">
                       <h6 className="fw-semibold mb-2">Readability</h6>
                       <p className="mb-1">
-                        Level: <strong>{effectivePage.readabilityLevel || "—"}</strong>
+                        Level:{" "}
+                        <strong>{effectivePage.readabilityLevel || "—"}</strong>
                       </p>
                       <p className="mb-0 text-muted fs-13">
                         Score (grade): {effectivePage.readabilityScore ?? "—"}
@@ -474,15 +593,27 @@ export default function PageDetailsMisspellingsDrawer({
           )}
 
           {activeTab === "seo" && !pageLoading && (
-            <SeoSection issues={effectivePage.seoImprovements || []} score={seoScore} />
+            <SeoSection
+              issues={effectivePage.seoImprovements || []}
+              score={seoScore}
+            />
           )}
 
           {activeTab === "accessibility" && !pageLoading && (
-            <AccessibilitySection data={effectivePage.accessibility} score={accessibilityScore} domainId={domainId} pageUrl={pageUrl} />
+            <AccessibilitySection
+              data={effectivePage.accessibility}
+              score={accessibilityScore}
+              domainId={domainId}
+              pageUrl={pageUrl}
+            />
           )}
 
           {activeTab === "inventory" && !pageLoading && (
-            <InventorySection page={effectivePage} embeddedInDrawer domainId={domainId} />
+            <InventorySection
+              page={effectivePage}
+              embeddedInDrawer
+              domainId={domainId}
+            />
           )}
 
           {activeTab === "performance" && !pageLoading && (
@@ -500,22 +631,30 @@ export default function PageDetailsMisspellingsDrawer({
       <BrokenImageIssueDrawer
         open={selectedBrokenImageId != null}
         onClose={() => setSelectedBrokenImageId(null)}
-        image={(effectivePage.brokenImages || []).find((img) => img.id === selectedBrokenImageId)}
+        image={(effectivePage.brokenImages || []).find(
+          (img) => img.id === selectedBrokenImageId,
+        )}
       />
       <MisspellingDetailDrawer
         open={selectedMisspellingId != null}
         onClose={() => setSelectedMisspellingId(null)}
-        issue={(effectivePage.misspellings || []).find((m) => m.id === selectedMisspellingId)}
+        issue={(effectivePage.misspellings || []).find(
+          (m) => m.id === selectedMisspellingId,
+        )}
         pagesWithMisspelling={pagesWithMisspellingForDrawer}
       />
       <PotentialMisspellingIssueDrawer
         open={selectedPotentialMisspellingId != null}
         onClose={() => setSelectedPotentialMisspellingId(null)}
-        issue={(effectivePage.potentialMisspellings || []).find((m) => m.id === selectedPotentialMisspellingId)}
+        issue={(effectivePage.potentialMisspellings || []).find(
+          (m) => m.id === selectedPotentialMisspellingId,
+        )}
         pagesWithMisspelling={pagesWithMisspellingForDrawer}
       />
     </>
   );
 
-  return typeof document !== "undefined" ? createPortal(drawerContent, document.body) : null;
+  return typeof document !== "undefined"
+    ? createPortal(drawerContent, document.body)
+    : null;
 }

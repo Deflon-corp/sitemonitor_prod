@@ -9,19 +9,27 @@ import { QA_EMPTY } from "./qaConstants";
 export default function MisspellingsSectionView() {
   const [selectedMisspellingId, setSelectedMisspellingId] = useState(null);
   const domainId = useQaDomainId();
-  const { items, loading } = useQaMisspellings({ page: 1, limit: 500, potential: false });
+  const { items, loading } = useQaMisspellings({
+    page: 1,
+    limit: 500,
+    potential: false,
+  });
 
   const selectedIssue =
     selectedMisspellingId != null
-      ? items.find((r) => String(r.id) === String(selectedMisspellingId)) ?? null
+      ? (items.find((r) => String(r.id) === String(selectedMisspellingId)) ??
+        null)
       : null;
 
   const pagesWithMisspelling = useMemo(
     () =>
       selectedIssue
-        ? mapPagesForMisspellingDrawer(selectedIssue.pagesList, selectedIssue.language)
+        ? mapPagesForMisspellingDrawer(
+            selectedIssue.pagesList,
+            selectedIssue.language,
+          )
         : [],
-    [selectedIssue]
+    [selectedIssue],
   );
 
   if (!domainId) {
@@ -39,7 +47,10 @@ export default function MisspellingsSectionView() {
   if (!items.length) {
     return (
       <div className="card border border-secondary border-opacity-25 rounded-3 p-5 text-center text-muted">
-        <p className="mb-0 fs-13">No misspellings found. Run a QA scan or check the Possible misspellings tab.</p>
+        <p className="mb-0 fs-13">
+          No misspellings found. Run a QA scan or check the Possible
+          misspellings tab.
+        </p>
       </div>
     );
   }

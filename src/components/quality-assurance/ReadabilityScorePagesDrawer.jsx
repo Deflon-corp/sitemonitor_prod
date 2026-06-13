@@ -10,8 +10,6 @@ const TOTAL_PAGES_FOR_PERCENT = 500;
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-
-
 export default function ReadabilityScorePagesDrawer({
   open,
   onClose,
@@ -26,7 +24,11 @@ export default function ReadabilityScorePagesDrawer({
 
   useEffect(() => {
     if (!open || !domainId || !scoreLevel) return;
-    getQaReadabilityPagesApi(domainId, { level: scoreLevel, page: "1", limit: "500" }).then((res) => {
+    getQaReadabilityPagesApi(domainId, {
+      level: scoreLevel,
+      page: "1",
+      limit: "500",
+    }).then((res) => {
       if (res.success) {
         const mapped = (res.data?.pages || []).map((p) => ({
           title: p.title,
@@ -54,15 +56,25 @@ export default function ReadabilityScorePagesDrawer({
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return pages;
     const q = searchQuery.toLowerCase();
-    return pages.filter((p) => (p.title || "").toLowerCase().includes(q) || p.url.toLowerCase().includes(q));
+    return pages.filter(
+      (p) =>
+        (p.title || "").toLowerCase().includes(q) ||
+        p.url.toLowerCase().includes(q),
+    );
   }, [pages, searchQuery]);
 
   const sortedPages = useMemo(() => {
     if (!sortBy) return filteredPages;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredPages].sort((a, b) => {
-      if (sortBy === "title") return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
-      if (sortBy === "readabilityScore") return dir * (a.readabilityScore - b.readabilityScore);
+      if (sortBy === "title")
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
+      if (sortBy === "readabilityScore")
+        return dir * (a.readabilityScore - b.readabilityScore);
       if (sortBy === "totalWords") return dir * (a.totalWords - b.totalWords);
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
@@ -80,8 +92,14 @@ export default function ReadabilityScorePagesDrawer({
 
   const countWithScore = totalCount;
   const countOther = TOTAL_PAGES_FOR_PERCENT - countWithScore;
-  const percentWithScore = TOTAL_PAGES_FOR_PERCENT > 0 ? ((countWithScore / TOTAL_PAGES_FOR_PERCENT) * 100).toFixed(1) : "0";
-  const percentOther = TOTAL_PAGES_FOR_PERCENT > 0 ? ((countOther / TOTAL_PAGES_FOR_PERCENT) * 100).toFixed(1) : "0";
+  const percentWithScore =
+    TOTAL_PAGES_FOR_PERCENT > 0
+      ? ((countWithScore / TOTAL_PAGES_FOR_PERCENT) * 100).toFixed(1)
+      : "0";
+  const percentOther =
+    TOTAL_PAGES_FOR_PERCENT > 0
+      ? ((countOther / TOTAL_PAGES_FOR_PERCENT) * 100).toFixed(1)
+      : "0";
 
   const handleSort = (key) => {
     setCurrentPage(1);
@@ -92,11 +110,14 @@ export default function ReadabilityScorePagesDrawer({
     }
   };
 
-  const reportName = scoreLevel ? `Pages-With-Score-${scoreLevel.replace(/\s+/g, "-")}` : "Readability-Pages-Report";
+  const reportName = scoreLevel
+    ? `Pages-With-Score-${scoreLevel.replace(/\s+/g, "-")}`
+    : "Readability-Pages-Report";
   const baseName = safeFilename(reportName);
 
   const exportCSV = useCallback(() => {
-    const header = "Title,URL,Readability Score,Readability Level,Total words,Priority\n";
+    const header =
+      "Title,URL,Readability Score,Readability Level,Total words,Priority\n";
     const body = sortedPages
       .map((p) =>
         [
@@ -106,7 +127,7 @@ export default function ReadabilityScorePagesDrawer({
           `"${p.readabilityLevel.replace(/"/g, '""')}"`,
           p.totalWords,
           `"${p.priority}"`,
-        ].join(",")
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -147,7 +168,15 @@ export default function ReadabilityScorePagesDrawer({
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 45 }, 2: { cellWidth: 14 }, 3: { cellWidth: 22 }, 4: { cellWidth: 14 }, 5: { cellWidth: 18 }, 6: { cellWidth: 14 } },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 14 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 14 },
+        5: { cellWidth: 18 },
+        6: { cellWidth: 14 },
+      },
     });
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedPages]);
@@ -182,7 +211,11 @@ export default function ReadabilityScorePagesDrawer({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow overflow-auto d-flex flex-column"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 960px)", maxWidth: "960px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 960px)",
+          maxWidth: "960px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="readability-score-pages-drawer-title"
@@ -198,14 +231,21 @@ export default function ReadabilityScorePagesDrawer({
                 title="Close"
                 aria-label="Close"
               >
-                <i className="isax isax-close-circle text-body" aria-hidden="true" />
+                <i
+                  className="isax isax-close-circle text-body"
+                  aria-hidden="true"
+                />
               </button>
               <div>
-                <h6 className="mb-0 fw-semibold text-body" id="readability-score-pages-drawer-title">
+                <h6
+                  className="mb-0 fw-semibold text-body"
+                  id="readability-score-pages-drawer-title"
+                >
                   Pages with score: {scoreLevel}
                 </h6>
                 <p className="text-muted fs-13 mb-0 mt-1">
-                  {countWithScore} {countWithScore === 1 ? "page" : "pages"} found
+                  {countWithScore} {countWithScore === 1 ? "page" : "pages"}{" "}
+                  found
                 </p>
               </div>
             </div>
@@ -219,24 +259,48 @@ export default function ReadabilityScorePagesDrawer({
                   title="Download Report"
                   aria-label="Download Report"
                 >
-                  <i className="isax isax-document-download text-primary fs-18" aria-hidden="true" />
+                  <i
+                    className="isax isax-document-download text-primary fs-18"
+                    aria-hidden="true"
+                  />
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportCSV}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportCSV}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      />
                       CSV
                     </button>
                   </li>
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportPDF}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportPDF}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      />
                       PDF
                     </button>
                   </li>
                   <li>
-                    <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportExcel}>
-                      <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                      onClick={exportExcel}
+                    >
+                      <i
+                        className="isax isax-document-text me-2"
+                        aria-hidden="true"
+                      />
                       Excel
                     </button>
                   </li>
@@ -279,9 +343,14 @@ export default function ReadabilityScorePagesDrawer({
             <div className="col-lg-7">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  <h6 className="fw-semibold text-body mb-2">Pages with score: {scoreLevel}</h6>
+                  <h6 className="fw-semibold text-body mb-2">
+                    Pages with score: {scoreLevel}
+                  </h6>
                   <div className="mb-2">
-                    <div className="progress rounded-pill" style={{ height: 8 }}>
+                    <div
+                      className="progress rounded-pill"
+                      style={{ height: 8 }}
+                    >
                       <div
                         className="progress-bar bg-primary"
                         role="progressbar"
@@ -313,30 +382,66 @@ export default function ReadabilityScorePagesDrawer({
                   <thead>
                     <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                       <th className="fw-semibold text-body py-3 ps-4">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("title")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("title")}
+                        >
                           Title and URL
-                          {sortBy === "title" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
+                          {sortBy === "title" && (
+                            <i
+                              className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            />
+                          )}
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("readabilityScore")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("readabilityScore")}
+                        >
                           Score & Level
-                          {sortBy === "readabilityScore" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
+                          {sortBy === "readabilityScore" && (
+                            <i
+                              className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            />
+                          )}
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("totalWords")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("totalWords")}
+                        >
                           Words
-                          {sortBy === "totalWords" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
+                          {sortBy === "totalWords" && (
+                            <i
+                              className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            />
+                          )}
                         </button>
                       </th>
                       <th className="fw-semibold text-body py-3">
-                        <button type="button" className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center" onClick={() => handleSort("priority")}>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
+                          onClick={() => handleSort("priority")}
+                        >
                           Priority
-                          {sortBy === "priority" && <i className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} />}
+                          {sortBy === "priority" && (
+                            <i
+                              className={`isax ms-1 fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                            />
+                          )}
                         </button>
                       </th>
-                      <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }} aria-label="Actions" />
+                      <th
+                        className="py-3 pe-4 text-body fs-13 fw-semibold"
+                        style={{ width: 100 }}
+                        aria-label="Actions"
+                      />
                     </tr>
                   </thead>
                   <tbody>
@@ -359,8 +464,12 @@ export default function ReadabilityScorePagesDrawer({
                           </div>
                         </td>
                         <td className="py-3">
-                          <span className="fw-medium text-body">{p.readabilityScore}</span>
-                          <span className="text-muted fs-13 ms-1">{p.readabilityLevel}</span>
+                          <span className="fw-medium text-body">
+                            {p.readabilityScore}
+                          </span>
+                          <span className="text-muted fs-13 ms-1">
+                            {p.readabilityLevel}
+                          </span>
                         </td>
                         <td className="py-3 fs-13 text-body">{p.totalWords}</td>
                         <td className="py-3">
@@ -380,7 +489,10 @@ export default function ReadabilityScorePagesDrawer({
                               aria-label={`Open page details for ${p.title || p.url}`}
                               onClick={() => onOpenPageDetails?.(p)}
                             >
-                              <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                              <i
+                                className="isax isax-document-text fs-14"
+                                aria-hidden="true"
+                              />
                             </button>
                           </div>
                         </td>
@@ -408,12 +520,16 @@ export default function ReadabilityScorePagesDrawer({
                     ))}
                   </select>
                   <span className="text-muted small">
-                    {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+                    {(currentPage - 1) * rowsPerPage + 1}–
+                    {Math.min(currentPage * rowsPerPage, sortedPages.length)} of{" "}
+                    {sortedPages.length}
                   </span>
                 </div>
                 <nav aria-label="Pagination">
                   <ul className="pagination pagination-sm mb-0 gap-1">
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
@@ -424,11 +540,15 @@ export default function ReadabilityScorePagesDrawer({
                         «
                       </button>
                     </li>
-                    <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage <= 1}
                         aria-label="Previous"
                       >
@@ -439,7 +559,8 @@ export default function ReadabilityScorePagesDrawer({
                       let p;
                       if (totalPages <= 7) p = i + 1;
                       else if (currentPage <= 4) p = i + 1;
-                      else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                      else if (currentPage >= totalPages - 3)
+                        p = totalPages - 6 + i;
                       else p = currentPage - 3 + i;
                       if (p < 1 || p > totalPages) return null;
                       return (
@@ -461,23 +582,33 @@ export default function ReadabilityScorePagesDrawer({
                     )}
                     {totalPages > 7 && (
                       <li className="page-item">
-                        <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)}>
+                        <button
+                          type="button"
+                          className="page-link rounded-2"
+                          onClick={() => setCurrentPage(totalPages)}
+                        >
                           {totalPages}
                         </button>
                       </li>
                     )}
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
                         disabled={currentPage >= totalPages}
                         aria-label="Next"
                       >
                         ›
                       </button>
                     </li>
-                    <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                    <li
+                      className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                    >
                       <button
                         type="button"
                         className="page-link rounded-2"
@@ -498,5 +629,7 @@ export default function ReadabilityScorePagesDrawer({
     </>
   );
 
-  return typeof document !== "undefined" ? createPortal(drawerContent, document.body) : null;
+  return typeof document !== "undefined"
+    ? createPortal(drawerContent, document.body)
+    : null;
 }

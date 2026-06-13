@@ -36,22 +36,22 @@ export const RESPONSE_STATUS_CONFIG = {
     affectedCount: 812,
     rows: makeRows("/valid", 16, "v"),
   },
-  "200": {
+  200: {
     title: "200 Code",
     affectedCount: 426,
     rows: makeRows("/status/200", 15, "p"),
   },
-  "301": {
+  301: {
     title: "301 Code",
     affectedCount: 23,
     rows: makeRows("/redirect/301", 12, "r"),
   },
-  "404": {
+  404: {
     title: "404 Code",
     affectedCount: 9,
     rows: makeRows("/missing", 10, "m"),
   },
-  "500": {
+  500: {
     title: "500 Code",
     affectedCount: 12,
     rows: makeRows("/errors/500", 11, "e"),

@@ -1,21 +1,20 @@
 import React from "react";
 
 const ComingSoon = () => {
-    return (
-        <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-            <div className="text-center">
+  return (
+    <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+      <div className="text-center">
+        {/* 🔄 Rotating Gear */}
+        <i className="bi bi-gear-fill rotate-icon display-1 mb-3"></i>
 
-                {/* 🔄 Rotating Gear */}
-                <i className="bi bi-gear-fill rotate-icon display-1 mb-3"></i>
+        <h1 className="gradient-title mb-2 display-4">Coming Soon</h1>
 
-                <h1 className="gradient-title mb-2 display-4">Coming Soon</h1>
+        <p className="text-muted fw-bold small">
+          🚧 This feature is under development. Please check back soon.
+        </p>
+      </div>
 
-                <p className="text-muted fw-bold small">
-                    🚧 This feature is under development. Please check back soon.
-                </p>
-            </div>
-
-            <style>{`
+      <style>{`
         .rotate-icon {
           color: #ee0979;
           display: inline-block;
@@ -34,8 +33,8 @@ const ComingSoon = () => {
           font-weight: 700;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default ComingSoon;

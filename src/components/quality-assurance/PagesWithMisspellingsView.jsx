@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback  } from "react";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import ExternalLinkIcon from "../icons/ExternalLinkIcon";
@@ -18,18 +24,79 @@ const TABS = [
 function DocumentIcon({ className, size = 22 }) {
   const s = size;
   return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+    <svg
+      width={s}
+      height={s}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
       <g>
         {/* Subtle cyan/blue shadow offset */}
         <g transform="translate(1, 1)">
-          <rect x="2" y="2" width="14" height="18" rx="2" stroke="#22d3ee" strokeWidth="1.5" fill="none" opacity="0.4" />
-          <line x1="5" y1="7" x2="13" y2="7" stroke="#22d3ee" strokeWidth="1.2" strokeLinecap="round" opacity="0.35" />
-          <line x1="5" y1="11" x2="13" y2="11" stroke="#22d3ee" strokeWidth="1.2" strokeLinecap="round" opacity="0.35" />
+          <rect
+            x="2"
+            y="2"
+            width="14"
+            height="18"
+            rx="2"
+            stroke="#22d3ee"
+            strokeWidth="1.5"
+            fill="none"
+            opacity="0.4"
+          />
+          <line
+            x1="5"
+            y1="7"
+            x2="13"
+            y2="7"
+            stroke="#22d3ee"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.35"
+          />
+          <line
+            x1="5"
+            y1="11"
+            x2="13"
+            y2="11"
+            stroke="#22d3ee"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.35"
+          />
         </g>
         {/* Main document shape (purple via currentColor) */}
-        <rect x="2" y="2" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        <line x1="5" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        <line x1="5" y1="11" x2="13" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+        <rect
+          x="2"
+          y="2"
+          width="14"
+          height="18"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+        />
+        <line
+          x1="5"
+          y1="7"
+          x2="13"
+          y2="7"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <line
+          x1="5"
+          y1="11"
+          x2="13"
+          y2="11"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
       </g>
     </svg>
   );
@@ -66,14 +133,21 @@ export default function PagesWithMisspellingsView() {
         ? "potential-misspellings"
         : "spellcheck-pages";
 
-  const { rows: apiRows, pagination, loading } = useQaPagesList({
+  const {
+    rows: apiRows,
+    pagination,
+    loading,
+  } = useQaPagesList({
     filter: listFilter,
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
     sortBy: "issues",
     sortOrder: sortDir,
-    enabled: activeTab === "all" || activeTab === "misspellings" || activeTab === "potential",
+    enabled:
+      activeTab === "all" ||
+      activeTab === "misspellings" ||
+      activeTab === "potential",
   });
   const [pageDetailsOpen, setPageDetailsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
@@ -84,7 +158,10 @@ export default function PagesWithMisspellingsView() {
       if (!el || typeof window === "undefined") return;
       const bootstrap = window.bootstrap;
       if (!bootstrap?.Tooltip) return;
-      const t = new bootstrap.Tooltip(el, { placement: "top", customClass: "tooltip-views" });
+      const t = new bootstrap.Tooltip(el, {
+        placement: "top",
+        customClass: "tooltip-views",
+      });
       return () => t.dispose();
     }
     init(viewsTooltipRef.current);
@@ -111,7 +188,10 @@ export default function PagesWithMisspellingsView() {
   const exportCSV = useCallback(() => {
     const header = "Title,URL,Misspellings,Potential Misspellings\n";
     const body = sortedRows
-      .map((r) => `"${(r.title || "").replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}",${r.misspellings},${r.potentialMisspellings},${r.views}`)
+      .map(
+        (r) =>
+          `"${(r.title || "").replace(/"/g, '""')}","${r.url.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}",${r.misspellings},${r.potentialMisspellings},${r.views}`,
+      )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -119,7 +199,12 @@ export default function PagesWithMisspellingsView() {
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = sortedRows.map((r) => ({ Title: r.title || "", URL: r.url, Misspellings: r.misspellings, "Potential Misspellings": r.potentialMisspellings }));
+    const rows = sortedRows.map((r) => ({
+      Title: r.title || "",
+      URL: r.url,
+      Misspellings: r.misspellings,
+      "Potential Misspellings": r.potentialMisspellings,
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pages");
@@ -131,8 +216,26 @@ export default function PagesWithMisspellingsView() {
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Title", "URL", "Misspellings", "Potential"]];
-    const body = sortedRows.map((r) => [(r.title || "").slice(0, 28), r.url.slice(0, 45), String(r.misspellings), String(r.potentialMisspellings)]);
-    autoTable(doc, { head, body, startY: 10, styles: { fontSize: 7 }, columnStyles: { 0: { cellWidth: 26 }, 1: { cellWidth: 48 }, 2: { cellWidth: 24 }, 3: { cellWidth: 22 }, 4: { cellWidth: 20 }, 5: { cellWidth: 12 } } });
+    const body = sortedRows.map((r) => [
+      (r.title || "").slice(0, 28),
+      r.url.slice(0, 45),
+      String(r.misspellings),
+      String(r.potentialMisspellings),
+    ]);
+    autoTable(doc, {
+      head,
+      body,
+      startY: 10,
+      styles: { fontSize: 7 },
+      columnStyles: {
+        0: { cellWidth: 26 },
+        1: { cellWidth: 48 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 12 },
+      },
+    });
     doc.save(`${baseName}.pdf`);
   }, [baseName, sortedRows]);
 
@@ -146,12 +249,22 @@ export default function PagesWithMisspellingsView() {
 
   function SortBtn({ column, children }) {
     return (
-      <button type="button" className="btn btn-link p-0 border-0 text-body fw-semibold text-decoration-none d-inline-flex align-items-center gap-1" onClick={() => handleSort(column)}>
+      <button
+        type="button"
+        className="btn btn-link p-0 border-0 text-body fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+        onClick={() => handleSort(column)}
+      >
         {children}
         {sortBy === column ? (
-          <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true"></i>
+          <i
+            className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+            aria-hidden="true"
+          ></i>
         ) : (
-          <i className="isax isax-arrow-down-1 fs-12 opacity-50" aria-hidden="true"></i>
+          <i
+            className="isax isax-arrow-down-1 fs-12 opacity-50"
+            aria-hidden="true"
+          ></i>
         )}
       </button>
     );
@@ -163,13 +276,21 @@ export default function PagesWithMisspellingsView() {
       <div className="mb-4 pb-3 border-bottom border-secondary border-opacity-25">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div className="d-flex align-items-center gap-3">
-            <span className="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary" style={{ width: 48, height: 48 }}>
+            <span
+              className="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary"
+              style={{ width: 48, height: 48 }}
+            >
               <DocumentIcon className="text-primary" size={22} />
             </span>
             <div>
-              <h5 className="mb-0 fw-semibold text-body">Pages with Misspellings</h5>
+              <h5 className="mb-0 fw-semibold text-body">
+                Pages with Misspellings
+              </h5>
               <p className="text-muted fs-13 mb-0 mt-1">
-                <span className="fw-medium text-body">{loading ? "…" : pagination.total ?? sortedRows.length}</span> pages
+                <span className="fw-medium text-body">
+                  {loading ? "…" : (pagination.total ?? sortedRows.length)}
+                </span>{" "}
+                pages
               </p>
             </div>
           </div>
@@ -181,7 +302,11 @@ export default function PagesWithMisspellingsView() {
               onExportPDF={exportPDF}
               className="btn-outline-secondary rounded-2"
             />
-            <button type="button" className="btn btn-outline-secondary btn-sm rounded-2" title="Filter">
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm rounded-2"
+              title="Filter"
+            >
               <i className="isax isax-filter fs-18" aria-hidden="true"></i>
             </button>
           </div>
@@ -190,7 +315,10 @@ export default function PagesWithMisspellingsView() {
 
       {/* Tabs + Search in one row (All, Misspellings, Potential) */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-        <nav className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0" aria-label="Filter by type">
+        <nav
+          className="nav nav-tabs border-0 gap-2 gap-md-4 mb-0"
+          aria-label="Filter by type"
+        >
           {TABS.map(({ key, label, icon }) => {
             const isActive = activeTab === key;
             const href = `/domain/quality-assurance?view=pages-misspellings&${TAB_PARAM}=${key}`;
@@ -200,14 +328,28 @@ export default function PagesWithMisspellingsView() {
                 to={href}
                 className={`nav-link border-0 px-0 pb-2 d-inline-flex align-items-center gap-2 text-decoration-none ${isActive ? "border-bottom border-2 border-primary text-primary fw-medium" : "text-body"}`}
               >
-                {icon === "document" ? <DocumentIcon size={18} className={isActive ? "text-primary" : "text-body"} /> : <i className={`isax ${icon}`} aria-hidden="true"></i>}
+                {icon === "document" ? (
+                  <DocumentIcon
+                    size={18}
+                    className={isActive ? "text-primary" : "text-body"}
+                  />
+                ) : (
+                  <i className={`isax ${icon}`} aria-hidden="true"></i>
+                )}
                 {label}
               </Link>
             );
           })}
         </nav>
-        <div className="position-relative" style={{ width: "min(100%, 320px)" }}>
-          <i className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3" style={{ fontSize: "1rem" }} aria-hidden="true"></i>
+        <div
+          className="position-relative"
+          style={{ width: "min(100%, 320px)" }}
+        >
+          <i
+            className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+            style={{ fontSize: "1rem" }}
+            aria-hidden="true"
+          ></i>
           <input
             type="search"
             className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2 bg-white"
@@ -223,7 +365,9 @@ export default function PagesWithMisspellingsView() {
         </div>
       </div>
 
-      {(activeTab === "all" || activeTab === "misspellings" || activeTab === "potential") && (
+      {(activeTab === "all" ||
+        activeTab === "misspellings" ||
+        activeTab === "potential") && (
         <React.Fragment>
           {/* Table card */}
           <div className="card border border-secondary border-opacity-25 rounded-3 shadow-sm flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
@@ -237,59 +381,92 @@ export default function PagesWithMisspellingsView() {
                     <th className="py-3 text-body fw-semibold fs-13 text-center">
                       <SortBtn column="misspellings">
                         <span className="d-inline-flex align-items-center gap-1">
-                          <span className="rounded-circle bg-warning opacity-75" style={{ width: 8, height: 8 }} aria-hidden="true"></span> Misspellings
+                          <span
+                            className="rounded-circle bg-warning opacity-75"
+                            style={{ width: 8, height: 8 }}
+                            aria-hidden="true"
+                          ></span>{" "}
+                          Misspellings
                         </span>
                       </SortBtn>
                     </th>
                     <th className="py-3 text-body fw-semibold fs-13 text-center">
                       <SortBtn column="potentialMisspellings">
                         <span className="d-inline-flex align-items-center gap-1">
-                          <span className="rounded-circle bg-primary opacity-75" style={{ width: 8, height: 8 }} aria-hidden="true"></span> Potential
+                          <span
+                            className="rounded-circle bg-primary opacity-75"
+                            style={{ width: 8, height: 8 }}
+                            aria-hidden="true"
+                          ></span>{" "}
+                          Potential
                         </span>
                       </SortBtn>
                     </th>
-                    
                   </tr>
                 </thead>
                 <tbody>
                   {loading && (
                     <tr>
-                      <td colSpan={4} className="text-center py-5 text-muted">Loading pages…</td>
+                      <td colSpan={4} className="text-center py-5 text-muted">
+                        Loading pages…
+                      </td>
                     </tr>
                   )}
                   {!loading && paginatedRows.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="text-center py-5 text-muted">No pages found.</td>
+                      <td colSpan={4} className="text-center py-5 text-muted">
+                        No pages found.
+                      </td>
                     </tr>
                   )}
-                  {!loading && paginatedRows.map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-3 ps-4">
-                        <div className="d-flex flex-column gap-1">
-                          <span className="text-body fs-13">{row.title}</span>
-                          <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break">
-                            <ExternalLinkIcon size={12} />
-                            <span className="text-truncate" style={{ maxWidth: 320 }}>{row.url}</span>
-                          </a>
-                        </div>
-                      </td>
-                      
-                      <td className="py-3 text-center">
-                        <span className="fs-13 text-body">{row.misspellings}</span>
-                      </td>
-                      <td className="py-3 text-center">
-                        <span className="fs-13 text-body">{row.potentialMisspellings}</span>
-                      </td>
-                      
-                      <td className="py-3 pe-4 text-end">
-                        <div className="d-flex align-items-center justify-content-end gap-1">
-                          <button type="button" className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2 text-body px-2" title="Open page details" onClick={() => openPageDetails(row)}>
-                            <PageIssuesIcon size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {!loading &&
+                    paginatedRows.map((row) => (
+                      <tr key={row.id}>
+                        <td className="py-3 ps-4">
+                          <div className="d-flex flex-column gap-1">
+                            <span className="text-body fs-13">{row.title}</span>
+                            <a
+                              href={row.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary fs-12 text-decoration-none d-inline-flex align-items-center gap-1 text-break"
+                            >
+                              <ExternalLinkIcon size={12} />
+                              <span
+                                className="text-truncate"
+                                style={{ maxWidth: 320 }}
+                              >
+                                {row.url}
+                              </span>
+                            </a>
+                          </div>
+                        </td>
+
+                        <td className="py-3 text-center">
+                          <span className="fs-13 text-body">
+                            {row.misspellings}
+                          </span>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className="fs-13 text-body">
+                            {row.potentialMisspellings}
+                          </span>
+                        </td>
+
+                        <td className="py-3 pe-4 text-end">
+                          <div className="d-flex align-items-center justify-content-end gap-1">
+                            <button
+                              type="button"
+                              className="btn btn-sm bg-transparent border border-secondary border-opacity-25 rounded-2 text-body px-2"
+                              title="Open page details"
+                              onClick={() => openPageDetails(row)}
+                            >
+                              <PageIssuesIcon size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -306,17 +483,28 @@ export default function PagesWithMisspellingsView() {
                   }}
                 >
                   {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+                  {(currentPage - 1) * rowsPerPage + 1}–
+                  {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+                  {sortedRows.length}
                 </span>
               </div>
               <nav aria-label="Table pagination">
                 <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                    <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage <= 1}
+                    >
                       Previous
                     </button>
                   </li>
@@ -325,12 +513,27 @@ export default function PagesWithMisspellingsView() {
                     if (p > totalPages) return null;
                     return (
                       <li key={p} className="page-item">
-                        <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                        <button
+                          type="button"
+                          className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                          onClick={() => setCurrentPage(p)}
+                        >
+                          {p}
+                        </button>
                       </li>
                     );
                   })}
-                  <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                    <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+                  <li
+                    className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage >= totalPages}
+                    >
                       Next
                     </button>
                   </li>
@@ -341,7 +544,11 @@ export default function PagesWithMisspellingsView() {
         </React.Fragment>
       )}
 
-      <PageDetailsMisspellingsDrawer open={pageDetailsOpen} onClose={() => setPageDetailsOpen(false)} page={selectedPage ? toDrawerPage(selectedPage) : null} />
+      <PageDetailsMisspellingsDrawer
+        open={pageDetailsOpen}
+        onClose={() => setPageDetailsOpen(false)}
+        page={selectedPage ? toDrawerPage(selectedPage) : null}
+      />
     </div>
   );
 }

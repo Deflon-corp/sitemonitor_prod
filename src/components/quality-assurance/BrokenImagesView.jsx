@@ -56,65 +56,98 @@ export default function BrokenImagesView() {
 
   function handleSortUrl() {
     setCurrentPage(1);
-    setSortByUrl((prev) => (prev === "asc" ? "desc" : prev === "desc" ? null : "asc"));
+    setSortByUrl((prev) =>
+      prev === "asc" ? "desc" : prev === "desc" ? null : "asc",
+    );
   }
 
   const reportName = "Broken-Images-Report";
   const baseName = safeFilename(reportName);
 
-  const exportCSV = useCallback(function() {
-    const header = "Broken image URL,HTTP status,Type,Documents,Pages affected\n";
-    const body = sortedRows
-      .map((r) => `"${r.url.replace(/"/g, '""')}","${r.responseCode}","${r.type}",${r.documentsCount},${r.pagesCount}`)
-      .join("\n");
-    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
-    downloadBlob(blob, `${baseName}.csv`);
-  }, [sortedRows, baseName]);
+  const exportCSV = useCallback(
+    function () {
+      const header =
+        "Broken image URL,HTTP status,Type,Documents,Pages affected\n";
+      const body = sortedRows
+        .map(
+          (r) =>
+            `"${r.url.replace(/"/g, '""')}","${r.responseCode}","${r.type}",${r.documentsCount},${r.pagesCount}`,
+        )
+        .join("\n");
+      const blob = new Blob([header + body], {
+        type: "text/csv;charset=utf-8;",
+      });
+      downloadBlob(blob, `${baseName}.csv`);
+    },
+    [sortedRows, baseName],
+  );
 
-  const exportExcel = useCallback(async function() {
-    const XLSX = await import("xlsx");
-    const rows = sortedRows.map((r) => ({
-      "Broken link": r.url,
-      "Response code": r.responseCode,
-      Type: r.type,
-      Documents: r.documentsCount,
-      Pages: r.pagesCount,
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Broken Images");
-    XLSX.writeFile(wb, `${baseName}.xlsx`);
-  }, [sortedRows, baseName]);
+  const exportExcel = useCallback(
+    async function () {
+      const XLSX = await import("xlsx");
+      const rows = sortedRows.map((r) => ({
+        "Broken link": r.url,
+        "Response code": r.responseCode,
+        Type: r.type,
+        Documents: r.documentsCount,
+        Pages: r.pagesCount,
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Broken Images");
+      XLSX.writeFile(wb, `${baseName}.xlsx`);
+    },
+    [sortedRows, baseName],
+  );
 
-  const exportPDF = useCallback(async function() {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-    const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Broken link", "Response code", "Type", "Documents", "Pages"]];
-    const body = sortedRows.map((r) => [
-      r.url,
-      r.responseCode,
-      r.type,
-      String(r.documentsCount),
-      String(r.pagesCount),
-    ]);
-    autoTable(doc, {
-      head,
-      body,
-      startY: 10,
-      styles: { fontSize: 8 },
-      columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: 22 }, 2: { cellWidth: 18 }, 3: { cellWidth: 22 }, 4: { cellWidth: 18 } },
-    });
-    doc.save(`${baseName}.pdf`);
-  }, [sortedRows, baseName]);
+  const exportPDF = useCallback(
+    async function () {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+      const doc = new jsPDF({ orientation: "landscape" });
+      const head = [
+        ["Broken link", "Response code", "Type", "Documents", "Pages"],
+      ];
+      const body = sortedRows.map((r) => [
+        r.url,
+        r.responseCode,
+        r.type,
+        String(r.documentsCount),
+        String(r.pagesCount),
+      ]);
+      autoTable(doc, {
+        head,
+        body,
+        startY: 10,
+        styles: { fontSize: 8 },
+        columnStyles: {
+          0: { cellWidth: "wrap" },
+          1: { cellWidth: 22 },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 22 },
+          4: { cellWidth: 18 },
+        },
+      });
+      doc.save(`${baseName}.pdf`);
+    },
+    [sortedRows, baseName],
+  );
 
   return (
     <div className="d-flex flex-column h-100">
       <div className="mb-3">
         <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
-          <i className="isax isax-image fs-20 text-primary" aria-hidden="true"></i>Broken images
+          <i
+            className="isax isax-image fs-20 text-primary"
+            aria-hidden="true"
+          ></i>
+          Broken images
         </h5>
-        <p className="text-muted fs-13 mb-0">{loading ? "Loading…" : `${totalCount} image${totalCount !== 1 ? "s" : ""}`}</p>
+        <p className="text-muted fs-13 mb-0">
+          {loading
+            ? "Loading…"
+            : `${totalCount} image${totalCount !== 1 ? "s" : ""}`}
+        </p>
       </div>
 
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -143,22 +176,50 @@ export default function BrokenImagesView() {
               aria-expanded="false"
               title="Download Report"
             >
-              <i className="isax isax-document-download text-primary fs-18" aria-hidden="true"></i>Download Report
+              <i
+                className="isax isax-document-download text-primary fs-18"
+                aria-hidden="true"
+              ></i>
+              Download Report
             </button>
             <ul className="dropdown-menu dropdown-menu-end">
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportCSV}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true"></i>CSV
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportCSV}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  ></i>
+                  CSV
                 </button>
               </li>
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportPDF}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true"></i>PDF
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportPDF}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  ></i>
+                  PDF
                 </button>
               </li>
               <li>
-                <button type="button" className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start" onClick={exportExcel}>
-                  <i className="isax isax-document-text me-2" aria-hidden="true"></i>Excel
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
+                  onClick={exportExcel}
+                >
+                  <i
+                    className="isax isax-document-text me-2"
+                    aria-hidden="true"
+                  ></i>
+                  Excel
                 </button>
               </li>
             </ul>
@@ -169,10 +230,17 @@ export default function BrokenImagesView() {
             title="Filter"
             aria-label="Filter"
           >
-            <i className="isax isax-filter text-primary fs-18" aria-hidden="true"></i>
+            <i
+              className="isax isax-filter text-primary fs-18"
+              aria-hidden="true"
+            ></i>
           </button>
           <div className="position-relative" style={{ width: 240 }}>
-            <i className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3" style={{ fontSize: "1rem" }} aria-hidden="true"></i>
+            <i
+              className="isax isax-search-normal-1 text-muted position-absolute top-50 start-0 translate-middle-y ms-3"
+              style={{ fontSize: "1rem" }}
+              aria-hidden="true"
+            ></i>
             <input
               type="search"
               className="form-control form-control-sm border border-secondary border-opacity-25 rounded-2"
@@ -195,7 +263,11 @@ export default function BrokenImagesView() {
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                 <th className="py-3 ps-4" style={{ width: 40 }}>
-                  <input type="checkbox" className="form-check-input" aria-label="Select all" />
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    aria-label="Select all"
+                  />
                 </th>
                 <th className="fw-semibold text-body py-3">
                   <button
@@ -205,30 +277,52 @@ export default function BrokenImagesView() {
                   >
                     Broken link
                     {sortByUrl != null && (
-                      <i className={`isax fs-14 ${sortByUrl === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true"></i>
+                      <i
+                        className={`isax fs-14 ${sortByUrl === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                        aria-hidden="true"
+                      ></i>
                     )}
-                    {sortByUrl == null && <i className="isax isax-sort fs-14 opacity-50" aria-hidden="true"></i>}
+                    {sortByUrl == null && (
+                      <i
+                        className="isax isax-sort fs-14 opacity-50"
+                        aria-hidden="true"
+                      ></i>
+                    )}
                   </button>
                 </th>
                 <th className="fw-semibold text-body py-3">Response code</th>
                 <th className="fw-semibold text-body py-3">Type</th>
-                <th className="fw-semibold text-body py-3 text-center">Documents</th>
                 <th className="fw-semibold text-body py-3 text-center">
-                  <span className="d-inline-flex align-items-center">Pages
-                    <i className="isax isax-arrow-down-1 ms-1 fs-12 opacity-75" aria-hidden="true"></i>
+                  Documents
+                </th>
+                <th className="fw-semibold text-body py-3 text-center">
+                  <span className="d-inline-flex align-items-center">
+                    Pages
+                    <i
+                      className="isax isax-arrow-down-1 ms-1 fs-12 opacity-75"
+                      aria-hidden="true"
+                    ></i>
                   </span>
                 </th>
-                
               </tr>
             </thead>
             <tbody>
               {paginatedRows.map((row) => (
                 <tr key={row.id}>
                   <td className="ps-4 py-3">
-                    <input type="checkbox" className="form-check-input" aria-label={`Select link ${row.id}`} />
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      aria-label={`Select link ${row.id}`}
+                    />
                   </td>
                   <td className="py-3">
-                    <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none">
+                    <a
+                      href={row.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary text-decoration-none"
+                    >
                       {row.url}
                     </a>
                   </td>
@@ -236,7 +330,9 @@ export default function BrokenImagesView() {
                     <span className="text-body">{row.responseCode}</span>
                   </td>
                   <td className="py-3">
-                    <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{row.type}</span>
+                    <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">
+                      {row.type}
+                    </span>
                   </td>
                   <td className="py-3 text-center">
                     <button
@@ -245,7 +341,9 @@ export default function BrokenImagesView() {
                       onClick={() => openDocumentsDrawer(row.url)}
                       title="View documents with this broken link"
                     >
-                      <span className="text-primary fw-medium">{row.documentsCount}</span>
+                      <span className="text-primary fw-medium">
+                        {row.documentsCount}
+                      </span>
                     </button>
                   </td>
                   <td className="py-3 text-center">
@@ -255,7 +353,9 @@ export default function BrokenImagesView() {
                       onClick={() => openContentDrawer(row.url)}
                       title="View content with this broken link"
                     >
-                      <span className="text-primary fw-medium">{row.pagesCount}</span>
+                      <span className="text-primary fw-medium">
+                        {row.pagesCount}
+                      </span>
                     </button>
                   </td>
                   <td className="py-3 pe-4">
@@ -267,11 +367,22 @@ export default function BrokenImagesView() {
                         aria-expanded="false"
                       >
                         Action
-                        <i className="isax isax-arrow-down-1 fs-12" aria-hidden="true"></i>
+                        <i
+                          className="isax isax-arrow-down-1 fs-12"
+                          aria-hidden="true"
+                        ></i>
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end">
-                        <li><button type="button" className="dropdown-item">Ignore</button></li>
-                        <li><button type="button" className="dropdown-item">Mark as fixed</button></li>
+                        <li>
+                          <button type="button" className="dropdown-item">
+                            Ignore
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" className="dropdown-item">
+                            Mark as fixed
+                          </button>
+                        </li>
                       </ul>
                     </div>
                   </td>
@@ -293,17 +404,27 @@ export default function BrokenImagesView() {
               }}
             >
               {ROWS_PER_PAGE_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
             <span className="text-muted small">
-              {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedRows.length)} of {sortedRows.length}
+              {(currentPage - 1) * rowsPerPage + 1}–
+              {Math.min(currentPage * rowsPerPage, sortedRows.length)} of{" "}
+              {sortedRows.length}
             </span>
           </div>
           <nav aria-label="Broken images pagination">
             <ul className="pagination pagination-sm mb-0 gap-1">
               <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1} aria-label="Previous">
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  aria-label="Previous"
+                >
                   Previous
                 </button>
               </li>
@@ -312,12 +433,28 @@ export default function BrokenImagesView() {
                 if (p > totalPages) return null;
                 return (
                   <li key={p} className="page-item">
-                    <button type="button" className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                    <button
+                      type="button"
+                      className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                      onClick={() => setCurrentPage(p)}
+                    >
+                      {p}
+                    </button>
                   </li>
                 );
               })}
-              <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
-                <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages} aria-label="Next">
+              <li
+                className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage >= totalPages}
+                  aria-label="Next"
+                >
                   Next
                 </button>
               </li>
@@ -341,4 +478,3 @@ export default function BrokenImagesView() {
     </div>
   );
 }
-

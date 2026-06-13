@@ -40,10 +40,15 @@ const PagesWithIgnoredChecksView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
         <div>
           <h5 className="mb-1 d-flex align-items-center gap-2 text-body">
-            <i className="isax isax-eye-slash fs-20 text-primary" aria-hidden="true" />
+            <i
+              className="isax isax-eye-slash fs-20 text-primary"
+              aria-hidden="true"
+            />
             Pages with ignored checks
           </h5>
-          <p className="text-muted fs-13 mb-0">{count} pages with ignored checks</p>
+          <p className="text-muted fs-13 mb-0">
+            {count} pages with ignored checks
+          </p>
         </div>
       </div>
 
@@ -67,7 +72,10 @@ const PagesWithIgnoredChecksView = () => {
                 className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                 onClick={exportCSV}
               >
-                <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <i
+                  className="isax isax-document-text me-2"
+                  aria-hidden="true"
+                />
                 CSV
               </button>
             </li>
@@ -77,7 +85,10 @@ const PagesWithIgnoredChecksView = () => {
                 className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                 onClick={exportPDF}
               >
-                <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <i
+                  className="isax isax-document-text me-2"
+                  aria-hidden="true"
+                />
                 PDF
               </button>
             </li>
@@ -87,7 +98,10 @@ const PagesWithIgnoredChecksView = () => {
                 className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                 onClick={exportExcel}
               >
-                <i className="isax isax-document-text me-2" aria-hidden="true" />
+                <i
+                  className="isax isax-document-text me-2"
+                  aria-hidden="true"
+                />
                 Excel
               </button>
             </li>

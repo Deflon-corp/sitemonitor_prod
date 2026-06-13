@@ -5,7 +5,12 @@ import { downloadBlob, safeFilename } from "@/lib/download";
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 
-export default function InventoryDetailsView({ domainId, currentView, pageUrl, variant }) {
+export default function InventoryDetailsView({
+  domainId,
+  currentView,
+  pageUrl,
+  variant,
+}) {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -51,7 +56,16 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
     } finally {
       setLoading(false);
     }
-  }, [domainId, currentView, page, limit, debouncedSearch, sortBy, sortOrder, pageUrl]);
+  }, [
+    domainId,
+    currentView,
+    page,
+    limit,
+    debouncedSearch,
+    sortBy,
+    sortOrder,
+    pageUrl,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -206,7 +220,12 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
           ],
         };
       default:
-        return { title: "Scanned Assets", icon: "isax-box", badgeColor: "bg-light text-muted", headers: [] };
+        return {
+          title: "Scanned Assets",
+          icon: "isax-box",
+          badgeColor: "bg-light text-muted",
+          headers: [],
+        };
     }
   }, [currentView]);
 
@@ -219,50 +238,89 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
     switch (currentView) {
       case "html-pages":
         header = "Title,Page URL,Status Code\n";
-        body = items.map((r) => `"${(r.page_title || "").replace(/"/g, '""')}","${r.page_url}",${r.status_code}`).join("\n");
+        body = items
+          .map(
+            (r) =>
+              `"${(r.page_title || "").replace(/"/g, '""')}","${r.page_url}",${r.status_code}`,
+          )
+          .join("\n");
         break;
       case "images":
         header = "Image URL,Page URL,Alt Text,Type,Status Code\n";
-        body = items.map((r) => `"${r.image_url}","${r.page_url}","${(r.alt_text || "").replace(/"/g, '""')}","${r.image_type || ""}",${r.status_code || 200}`).join("\n");
+        body = items
+          .map(
+            (r) =>
+              `"${r.image_url}","${r.page_url}","${(r.alt_text || "").replace(/"/g, '""')}","${r.image_type || ""}",${r.status_code || 200}`,
+          )
+          .join("\n");
         break;
       case "css":
         header = "CSS URL,Page URL,Status Code\n";
-        body = items.map((r) => `"${r.css_url}","${r.page_url}",${r.status_code || 200}`).join("\n");
+        body = items
+          .map((r) => `"${r.css_url}","${r.page_url}",${r.status_code || 200}`)
+          .join("\n");
         break;
       case "js":
         header = "JS URL,Page URL,Status Code\n";
-        body = items.map((r) => `"${r.js_url}","${r.page_url}",${r.status_code || 200}`).join("\n");
+        body = items
+          .map((r) => `"${r.js_url}","${r.page_url}",${r.status_code || 200}`)
+          .join("\n");
         break;
       case "documents":
         header = "Document URL,Page URL,Type\n";
-        body = items.map((r) => `"${r.document_url}","${r.page_url}","${r.document_type}"`).join("\n");
+        body = items
+          .map(
+            (r) => `"${r.document_url}","${r.page_url}","${r.document_type}"`,
+          )
+          .join("\n");
         break;
       case "emails":
         header = "Email Address,Page URL\n";
-        body = items.map((r) => `"${r.email_address}","${r.page_url}"`).join("\n");
+        body = items
+          .map((r) => `"${r.email_address}","${r.page_url}"`)
+          .join("\n");
         break;
       case "headlinks":
         header = "Rel Type,Href URL,Page URL\n";
-        body = items.map((r) => `"${r.rel_type}","${r.href}","${r.page_url}"`).join("\n");
+        body = items
+          .map((r) => `"${r.rel_type}","${r.href}","${r.page_url}"`)
+          .join("\n");
         break;
       case "links":
         header = "Target URL,Page URL,Anchor Text,Type,Status Code\n";
-        body = items.map((r) => `"${r.link_url}","${r.page_url}","${(r.anchor_text || "").replace(/"/g, '""')}","${r.link_type}",${r.status_code}`).join("\n");
+        body = items
+          .map(
+            (r) =>
+              `"${r.link_url}","${r.page_url}","${(r.anchor_text || "").replace(/"/g, '""')}","${r.link_type}",${r.status_code}`,
+          )
+          .join("\n");
         break;
       case "forms":
         header = "Form Action,Found on Page,Method,Inputs Count\n";
-        body = items.map((r) => `"${r.form_action || ""}","${r.page_url}","${r.form_method || "GET"}",${r.input_count || 0}`).join("\n");
+        body = items
+          .map(
+            (r) =>
+              `"${r.form_action || ""}","${r.page_url}","${r.form_method || "GET"}",${r.input_count || 0}`,
+          )
+          .join("\n");
         break;
       case "iframes":
         header = "IFrame Source,Found on Page\n";
-        body = items.map((r) => `"${r.iframe_src || ""}","${r.page_url}"`).join("\n");
+        body = items
+          .map((r) => `"${r.iframe_src || ""}","${r.page_url}"`)
+          .join("\n");
         break;
       case "frames":
         header = "Frame Source,Found on Page\n";
-        body = items.map((r) => `"${r.frame_src || ""}","${r.page_url}"`).join("\n");
+        body = items
+          .map((r) => `"${r.frame_src || ""}","${r.page_url}"`)
+          .join("\n");
         break;
     }
-    downloadBlob(new Blob([header + body], { type: "text/csv;charset=utf-8;" }), `${reportBase}.csv`);
+    downloadBlob(
+      new Blob([header + body], { type: "text/csv;charset=utf-8;" }),
+      `${reportBase}.csv`,
+    );
   }, [items, currentView, reportBase]);
 
   const exportExcel = useCallback(async () => {
@@ -270,37 +328,83 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
     let mapped = [];
     switch (currentView) {
       case "html-pages":
-        mapped = items.map((r) => ({ Title: r.page_title, URL: r.page_url, Status: r.status_code }));
+        mapped = items.map((r) => ({
+          Title: r.page_title,
+          URL: r.page_url,
+          Status: r.status_code,
+        }));
         break;
       case "images":
-        mapped = items.map((r) => ({ "Image URL": r.image_url, "Page URL": r.page_url, "Alt Text": r.alt_text, Type: r.image_type, Status: r.status_code || 200 }));
+        mapped = items.map((r) => ({
+          "Image URL": r.image_url,
+          "Page URL": r.page_url,
+          "Alt Text": r.alt_text,
+          Type: r.image_type,
+          Status: r.status_code || 200,
+        }));
         break;
       case "css":
-        mapped = items.map((r) => ({ "CSS URL": r.css_url, "Page URL": r.page_url, Status: r.status_code || 200 }));
+        mapped = items.map((r) => ({
+          "CSS URL": r.css_url,
+          "Page URL": r.page_url,
+          Status: r.status_code || 200,
+        }));
         break;
       case "js":
-        mapped = items.map((r) => ({ "JS URL": r.js_url, "Page URL": r.page_url, Status: r.status_code || 200 }));
+        mapped = items.map((r) => ({
+          "JS URL": r.js_url,
+          "Page URL": r.page_url,
+          Status: r.status_code || 200,
+        }));
         break;
       case "documents":
-        mapped = items.map((r) => ({ "Document URL": r.document_url, "Page URL": r.page_url, Type: r.document_type }));
+        mapped = items.map((r) => ({
+          "Document URL": r.document_url,
+          "Page URL": r.page_url,
+          Type: r.document_type,
+        }));
         break;
       case "emails":
-        mapped = items.map((r) => ({ Email: r.email_address, "Page URL": r.page_url }));
+        mapped = items.map((r) => ({
+          Email: r.email_address,
+          "Page URL": r.page_url,
+        }));
         break;
       case "headlinks":
-        mapped = items.map((r) => ({ Rel: r.rel_type, Href: r.href, "Page URL": r.page_url }));
+        mapped = items.map((r) => ({
+          Rel: r.rel_type,
+          Href: r.href,
+          "Page URL": r.page_url,
+        }));
         break;
       case "links":
-        mapped = items.map((r) => ({ "Target URL": r.link_url, "Found on Page": r.page_url, "Anchor Text": r.anchor_text, Type: r.link_type, Status: r.status_code }));
+        mapped = items.map((r) => ({
+          "Target URL": r.link_url,
+          "Found on Page": r.page_url,
+          "Anchor Text": r.anchor_text,
+          Type: r.link_type,
+          Status: r.status_code,
+        }));
         break;
       case "forms":
-        mapped = items.map((r) => ({ "Form Action": r.form_action, "Found on Page": r.page_url, Method: r.form_method, "Inputs Count": r.input_count }));
+        mapped = items.map((r) => ({
+          "Form Action": r.form_action,
+          "Found on Page": r.page_url,
+          Method: r.form_method,
+          "Inputs Count": r.input_count,
+        }));
         break;
       case "iframes":
-        mapped = items.map((r) => ({ "IFrame Source": r.iframe_src, "Found on Page": r.page_url }));
+        mapped = items.map((r) => ({
+          "IFrame Source": r.iframe_src,
+          "Found on Page": r.page_url,
+        }));
         break;
       case "frames":
-        mapped = items.map((r) => ({ "Frame Source": r.frame_src, "Found on Page": r.page_url }));
+        mapped = items.map((r) => ({
+          "Frame Source": r.frame_src,
+          "Found on Page": r.page_url,
+        }));
         break;
     }
     const ws = XLSX.utils.json_to_sheet(mapped);
@@ -320,19 +424,37 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
     switch (currentView) {
       case "html-pages":
         head = [["Title", "Page URL", "Status"]];
-        body = items.map((r) => [r.page_title || "", r.page_url, String(r.status_code)]);
+        body = items.map((r) => [
+          r.page_title || "",
+          r.page_url,
+          String(r.status_code),
+        ]);
         break;
       case "images":
         head = [["Image URL", "Page URL", "Alt Text", "Type", "Status"]];
-        body = items.map((r) => [r.image_url, r.page_url, r.alt_text || "", r.image_type || "", String(r.status_code || 200)]);
+        body = items.map((r) => [
+          r.image_url,
+          r.page_url,
+          r.alt_text || "",
+          r.image_type || "",
+          String(r.status_code || 200),
+        ]);
         break;
       case "css":
         head = [["CSS URL", "Page URL", "Status"]];
-        body = items.map((r) => [r.css_url, r.page_url, String(r.status_code || 200)]);
+        body = items.map((r) => [
+          r.css_url,
+          r.page_url,
+          String(r.status_code || 200),
+        ]);
         break;
       case "js":
         head = [["JS URL", "Page URL", "Status"]];
-        body = items.map((r) => [r.js_url, r.page_url, String(r.status_code || 200)]);
+        body = items.map((r) => [
+          r.js_url,
+          r.page_url,
+          String(r.status_code || 200),
+        ]);
         break;
       case "documents":
         head = [["Document URL", "Page URL", "Type"]];
@@ -347,12 +469,25 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
         body = items.map((r) => [r.rel_type, r.href, r.page_url]);
         break;
       case "links":
-        head = [["Target URL", "Found on Page", "Anchor Text", "Type", "Status"]];
-        body = items.map((r) => [r.link_url, r.page_url, r.anchor_text || "", r.link_type, String(r.status_code)]);
+        head = [
+          ["Target URL", "Found on Page", "Anchor Text", "Type", "Status"],
+        ];
+        body = items.map((r) => [
+          r.link_url,
+          r.page_url,
+          r.anchor_text || "",
+          r.link_type,
+          String(r.status_code),
+        ]);
         break;
       case "forms":
         head = [["Form Action", "Found on Page", "Method", "Inputs"]];
-        body = items.map((r) => [r.form_action || "", r.page_url, r.form_method || "GET", String(r.input_count || 0)]);
+        body = items.map((r) => [
+          r.form_action || "",
+          r.page_url,
+          r.form_method || "GET",
+          String(r.input_count || 0),
+        ]);
         break;
       case "iframes":
         head = [["IFrame Source", "Found on Page"]];
@@ -375,12 +510,13 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
 
   const SortIcon = ({ column }) => (
     <i
-      className={`isax ms-1 fs-12 ${sortBy === column
+      className={`isax ms-1 fs-12 ${
+        sortBy === column
           ? sortOrder === "asc"
             ? "isax-arrow-up-1"
             : "isax-arrow-down-1"
           : "isax-arrow-down-1"
-        }`}
+      }`}
       style={{ opacity: sortBy === column ? 1 : 0.4 }}
       aria-hidden="true"
     />
@@ -398,10 +534,15 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
               <span
                 className={`avatar avatar-40 avatar-rounded d-flex align-items-center justify-content-center flex-shrink-0 ${viewConfig.badgeColor}`}
               >
-                <i className={`isax ${viewConfig.icon} fs-22`} aria-hidden="true" />
+                <i
+                  className={`isax ${viewConfig.icon} fs-22`}
+                  aria-hidden="true"
+                />
               </span>
               <div>
-                <h6 className="mb-0 fw-semibold text-body">{viewConfig.title}</h6>
+                <h6 className="mb-0 fw-semibold text-body">
+                  {viewConfig.title}
+                </h6>
                 <p className="text-muted fs-13 mb-0">
                   {loading ? "Loading..." : `${total} items scanned`}
                 </p>
@@ -435,9 +576,15 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                   variant="icon"
                 />
               )}
-              <div className="input-group input-group-sm" style={{ minWidth: 240, maxWidth: 320 }}>
+              <div
+                className="input-group input-group-sm"
+                style={{ minWidth: 240, maxWidth: 320 }}
+              >
                 <span className="input-group-text bg-transparent border-end-0">
-                  <i className="isax isax-search-normal-1 text-muted" aria-hidden="true" />
+                  <i
+                    className="isax isax-search-normal-1 text-muted"
+                    aria-hidden="true"
+                  />
                 </span>
                 <input
                   type="search"
@@ -461,7 +608,10 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
               <thead>
                 <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
                   {viewConfig.headers.map((hdr) => (
-                    <th key={hdr.field} className="py-3 ps-4 fw-semibold text-body fs-13">
+                    <th
+                      key={hdr.field}
+                      className="py-3 ps-4 fw-semibold text-body fs-13"
+                    >
                       <button
                         type="button"
                         className="btn btn-link p-0 border-0 text-body text-decoration-none d-inline-flex align-items-center"
@@ -472,23 +622,39 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                       </button>
                     </th>
                   ))}
-                  <th className="py-3 pe-4 text-end" style={{ width: "80px" }} />
+                  <th
+                    className="py-3 pe-4 text-end"
+                    style={{ width: "80px" }}
+                  />
                 </tr>
               </thead>
 
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={viewConfig.headers.length + 1} className="py-5 text-center">
-                      <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                      <span className="text-muted">Loading asset inventory details...</span>
+                    <td
+                      colSpan={viewConfig.headers.length + 1}
+                      className="py-5 text-center"
+                    >
+                      <div
+                        className="spinner-border spinner-border-sm text-primary me-2"
+                        role="status"
+                      />
+                      <span className="text-muted">
+                        Loading asset inventory details...
+                      </span>
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={viewConfig.headers.length + 1} className="py-5 text-center">
+                    <td
+                      colSpan={viewConfig.headers.length + 1}
+                      className="py-5 text-center"
+                    >
                       <i className="isax isax-box fs-32 text-muted mb-2 d-block" />
-                      <span className="text-muted">No records found matching criteria.</span>
+                      <span className="text-muted">
+                        No records found matching criteria.
+                      </span>
                     </td>
                   </tr>
                 ) : (
@@ -501,7 +667,11 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                         <tr
                           style={{ cursor: "pointer" }}
                           onClick={() => toggleRowExpand(rowId)}
-                          className={isExpanded ? "table-active border-start border-primary border-4" : ""}
+                          className={
+                            isExpanded
+                              ? "table-active border-start border-primary border-4"
+                              : ""
+                          }
                         >
                           {/* Columns based on current view */}
                           {currentView === "html-pages" && (
@@ -511,19 +681,23 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   <span className="fw-semibold text-body">
                                     {row.page_title || "(No Title)"}
                                   </span>
-                                  <span className="text-muted small text-truncate" style={{ maxWidth: 450 }}>
+                                  <span
+                                    className="text-muted small text-truncate"
+                                    style={{ maxWidth: 450 }}
+                                  >
                                     {row.page_url}
                                   </span>
                                 </div>
                               </td>
                               <td className="py-3">
                                 <span
-                                  className={`badge rounded-pill ${row.status_code < 300
+                                  className={`badge rounded-pill ${
+                                    row.status_code < 300
                                       ? "bg-success bg-opacity-10 text-success"
                                       : row.status_code < 400
                                         ? "bg-warning bg-opacity-10 text-warning"
                                         : "bg-danger bg-opacity-10 text-danger"
-                                    }`}
+                                  }`}
                                 >
                                   {row.status_code}
                                 </span>
@@ -534,22 +708,34 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "images" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 350 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 350 }}
+                                >
                                   {row.image_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 250 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 250 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
                               <td className="py-3">
                                 <span className="text-muted small">
-                                  {row.alt_text || <em className="text-danger">None (Missing Alt Text)</em>}
+                                  {row.alt_text || (
+                                    <em className="text-danger">
+                                      None (Missing Alt Text)
+                                    </em>
+                                  )}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className={`badge rounded-pill ${row.status_code < 400 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+                                <span
+                                  className={`badge rounded-pill ${row.status_code < 400 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"}`}
+                                >
                                   {row.status_code || 200}
                                 </span>
                               </td>
@@ -559,17 +745,25 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "css" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 400 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 400 }}
+                                >
                                   {row.css_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 300 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 300 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className={`badge rounded-pill ${row.status_code < 400 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+                                <span
+                                  className={`badge rounded-pill ${row.status_code < 400 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"}`}
+                                >
                                   {row.status_code || 200}
                                 </span>
                               </td>
@@ -579,17 +773,25 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "js" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 400 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 400 }}
+                                >
                                   {row.js_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 300 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 300 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className={`badge rounded-pill ${row.status_code < 400 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+                                <span
+                                  className={`badge rounded-pill ${row.status_code < 400 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"}`}
+                                >
                                   {row.status_code || 200}
                                 </span>
                               </td>
@@ -599,12 +801,18 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "documents" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 350 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 350 }}
+                                >
                                   {row.document_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 250 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 250 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
@@ -622,7 +830,10 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                 {row.email_address}
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 400 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 400 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
@@ -637,12 +848,18 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 300 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 300 }}
+                                >
                                   {row.href}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 250 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 250 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
@@ -652,27 +869,44 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "links" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 300 }}>
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 300 }}
+                                >
                                   {row.link_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 200 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 200 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 150 }}>
-                                  {row.anchor_text || <em className="text-muted">(Empty Anchor)</em>}
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 150 }}
+                                >
+                                  {row.anchor_text || (
+                                    <em className="text-muted">
+                                      (Empty Anchor)
+                                    </em>
+                                  )}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className={`badge rounded-pill ${row.link_type === 'internal' ? 'bg-primary bg-opacity-10 text-primary' : 'bg-secondary bg-opacity-10 text-secondary'}`}>
+                                <span
+                                  className={`badge rounded-pill ${row.link_type === "internal" ? "bg-primary bg-opacity-10 text-primary" : "bg-secondary bg-opacity-10 text-secondary"}`}
+                                >
                                   {row.link_type}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className={`badge rounded-pill ${row.status_code < 400 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+                                <span
+                                  className={`badge rounded-pill ${row.status_code < 400 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"}`}
+                                >
                                   {row.status_code}
                                 </span>
                               </td>
@@ -682,18 +916,28 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "forms" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 300 }}>
-                                  {row.form_action || <em className="text-muted">(Self Submit)</em>}
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 300 }}
+                                >
+                                  {row.form_action || (
+                                    <em className="text-muted">
+                                      (Self Submit)
+                                    </em>
+                                  )}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 250 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 250 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
                               <td className="py-3">
                                 <span className="badge bg-primary bg-opacity-10 text-primary text-uppercase">
-                                  {row.form_method || 'GET'}
+                                  {row.form_method || "GET"}
                                 </span>
                               </td>
                               <td className="py-3 ps-4 fw-semibold text-body">
@@ -705,12 +949,20 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "iframes" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 450 }}>
-                                  {row.iframe_src || <em className="text-muted">(No Source)</em>}
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 450 }}
+                                >
+                                  {row.iframe_src || (
+                                    <em className="text-muted">(No Source)</em>
+                                  )}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 350 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 350 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
@@ -720,12 +972,20 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                           {currentView === "frames" && (
                             <>
                               <td className="py-3 ps-4">
-                                <span className="text-body fw-medium text-truncate d-inline-block" style={{ maxWidth: 450 }}>
-                                  {row.frame_src || <em className="text-muted">(No Source)</em>}
+                                <span
+                                  className="text-body fw-medium text-truncate d-inline-block"
+                                  style={{ maxWidth: 450 }}
+                                >
+                                  {row.frame_src || (
+                                    <em className="text-muted">(No Source)</em>
+                                  )}
                                 </span>
                               </td>
                               <td className="py-3">
-                                <span className="text-muted small text-truncate d-inline-block" style={{ maxWidth: 350 }}>
+                                <span
+                                  className="text-muted small text-truncate d-inline-block"
+                                  style={{ maxWidth: 350 }}
+                                >
                                   {row.page_url}
                                 </span>
                               </td>
@@ -734,8 +994,11 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
 
                           <td className="py-3 pe-4 text-end">
                             <i
-                              className={`isax fs-18 text-primary ${isExpanded ? "isax-arrow-up-1" : "isax-arrow-down-1"
-                                }`}
+                              className={`isax fs-18 text-primary ${
+                                isExpanded
+                                  ? "isax-arrow-up-1"
+                                  : "isax-arrow-down-1"
+                              }`}
                             />
                           </td>
                         </tr>
@@ -743,12 +1006,17 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                         {/* Expandable Slide-down container */}
                         {isExpanded && (
                           <tr className="bg-light bg-opacity-50">
-                            <td colSpan={viewConfig.headers.length + 1} className="p-4 border-bottom">
+                            <td
+                              colSpan={viewConfig.headers.length + 1}
+                              className="p-4 border-bottom"
+                            >
                               <div
                                 className="p-3 bg-white rounded-3 border shadow-sm animate__animated animate__fadeIn"
                                 style={{ fontSize: "13px" }}
                               >
-                                <h6 className="fw-semibold text-primary mb-3">Asset Granular Specification</h6>
+                                <h6 className="fw-semibold text-primary mb-3">
+                                  Asset Granular Specification
+                                </h6>
 
                                 <div className="row g-3">
                                   {currentView === "html-pages" && (
@@ -764,14 +1032,21 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.page_url)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.page_url,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>MIME Scope:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">text/html</span>
+                                        <strong>MIME Scope:</strong>{" "}
+                                        <span className="badge bg-light text-dark d-block py-2 mt-1">
+                                          text/html
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -779,7 +1054,9 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "images" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>Absolute Image Source URL:</strong>
+                                        <strong>
+                                          Absolute Image Source URL:
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
@@ -789,27 +1066,42 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.image_url)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.image_url,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Format:</strong> <span className="badge bg-light text-dark text-uppercase d-block py-2 mt-1">{row.image_type || "N/A"}</span>
+                                        <strong>Format:</strong>{" "}
+                                        <span className="badge bg-light text-dark text-uppercase d-block py-2 mt-1">
+                                          {row.image_type || "N/A"}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Alternate Tag:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">{row.alt_text || "None"}</span>
+                                        <strong>Alternate Tag:</strong>{" "}
+                                        <span className="badge bg-light text-dark d-block py-2 mt-1">
+                                          {row.alt_text || "None"}
+                                        </span>
                                       </div>
-                                      {row.image_size && row.image_size !== "Unknown" && (
-                                        <div className="col-6 col-md-4">
-                                          <strong>Image Size:</strong> <span className="badge bg-light text-dark d-block py-2 mt-1">{row.image_size}</span>
-                                        </div>
-                                      )}
+                                      {row.image_size &&
+                                        row.image_size !== "Unknown" && (
+                                          <div className="col-6 col-md-4">
+                                            <strong>Image Size:</strong>{" "}
+                                            <span className="badge bg-light text-dark d-block py-2 mt-1">
+                                              {row.image_size}
+                                            </span>
+                                          </div>
+                                        )}
                                     </>
                                   )}
 
-                                  {(currentView === "css" || currentView === "js") && (
+                                  {(currentView === "css" ||
+                                    currentView === "js") && (
                                     <>
                                       <div className="col-12">
                                         <strong>Resolved Asset URL:</strong>
@@ -818,11 +1110,21 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                             type="text"
                                             readOnly
                                             className="form-control form-control-sm bg-light text-muted"
-                                            value={currentView === "css" ? row.css_url : row.js_url}
+                                            value={
+                                              currentView === "css"
+                                                ? row.css_url
+                                                : row.js_url
+                                            }
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(currentView === "css" ? row.css_url : row.js_url)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                currentView === "css"
+                                                  ? row.css_url
+                                                  : row.js_url,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
@@ -830,7 +1132,9 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                       </div>
                                       <div className="col-12">
                                         <strong>Linked on Source URL:</strong>
-                                        <span className="text-muted d-block mt-1">{row.page_url}</span>
+                                        <span className="text-muted d-block mt-1">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -838,7 +1142,9 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "documents" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>Downloadable File Resource Link:</strong>
+                                        <strong>
+                                          Downloadable File Resource Link:
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
@@ -848,17 +1154,27 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.document_url)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.document_url,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Extension Format:</strong> <span className="badge bg-danger bg-opacity-10 text-danger text-uppercase d-block py-2 mt-1">{row.document_type}</span>
+                                        <strong>Extension Format:</strong>{" "}
+                                        <span className="badge bg-danger bg-opacity-10 text-danger text-uppercase d-block py-2 mt-1">
+                                          {row.document_type}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-8">
-                                        <strong>Parent Crawler URL:</strong> <span className="text-muted d-block mt-2">{row.page_url}</span>
+                                        <strong>Parent Crawler URL:</strong>{" "}
+                                        <span className="text-muted d-block mt-2">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -866,12 +1182,18 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "emails" && (
                                     <>
                                       <div className="col-6 col-md-6">
-                                        <strong>Harvested Inbox Address:</strong>
-                                        <span className="text-primary fw-semibold d-block mt-1">{row.email_address}</span>
+                                        <strong>
+                                          Harvested Inbox Address:
+                                        </strong>
+                                        <span className="text-primary fw-semibold d-block mt-1">
+                                          {row.email_address}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-6">
                                         <strong>Found on Page:</strong>
-                                        <span className="text-muted d-block mt-1">{row.page_url}</span>
+                                        <span className="text-muted d-block mt-1">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -879,7 +1201,9 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "headlinks" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>Head Link Reference (href):</strong>
+                                        <strong>
+                                          Head Link Reference (href):
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
@@ -889,17 +1213,31 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.href)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.href,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Relationship Value (rel):</strong> <span className="badge bg-dark bg-opacity-10 text-dark d-block py-2 mt-1">{row.rel_type}</span>
+                                        <strong>
+                                          Relationship Value (rel):
+                                        </strong>{" "}
+                                        <span className="badge bg-dark bg-opacity-10 text-dark d-block py-2 mt-1">
+                                          {row.rel_type}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-8">
-                                        <strong>Parent DOM Document URL:</strong> <span className="text-muted d-block mt-2">{row.page_url}</span>
+                                        <strong>
+                                          Parent DOM Document URL:
+                                        </strong>{" "}
+                                        <span className="text-muted d-block mt-2">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -907,7 +1245,9 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "links" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>Absolute Target Link URL:</strong>
+                                        <strong>
+                                          Absolute Target Link URL:
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
@@ -917,23 +1257,41 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.link_url)}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.link_url,
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Classification Scope:</strong> <span className="badge bg-primary bg-opacity-10 text-primary text-uppercase d-block py-2 mt-1">{row.link_type}</span>
+                                        <strong>Classification Scope:</strong>{" "}
+                                        <span className="badge bg-primary bg-opacity-10 text-primary text-uppercase d-block py-2 mt-1">
+                                          {row.link_type}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Status Code Response:</strong> <span className={`badge ${row.status_code < 400 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'} d-block py-2 mt-1`}>{row.status_code}</span>
+                                        <strong>Status Code Response:</strong>{" "}
+                                        <span
+                                          className={`badge ${row.status_code < 400 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"} d-block py-2 mt-1`}
+                                        >
+                                          {row.status_code}
+                                        </span>
                                       </div>
                                       <div className="col-12 col-md-4">
-                                        <strong>Anchor Text Label:</strong> <span className="text-body fw-medium d-block mt-2">{row.anchor_text || '(Empty Anchor)'}</span>
+                                        <strong>Anchor Text Label:</strong>{" "}
+                                        <span className="text-body fw-medium d-block mt-2">
+                                          {row.anchor_text || "(Empty Anchor)"}
+                                        </span>
                                       </div>
                                       <div className="col-12 mt-2">
-                                        <strong>Linked on Page URL:</strong> <span className="text-muted d-block">{row.page_url}</span>
+                                        <strong>Linked on Page URL:</strong>{" "}
+                                        <span className="text-muted d-block">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -941,30 +1299,47 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "forms" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>Form Action Destination URL:</strong>
+                                        <strong>
+                                          Form Action Destination URL:
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
                                             readOnly
                                             className="form-control form-control-sm bg-light text-muted"
-                                            value={row.form_action || '(Self Submit)'}
+                                            value={
+                                              row.form_action || "(Self Submit)"
+                                            }
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.form_action || '')}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.form_action || "",
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Request Method:</strong> <span className="badge bg-success bg-opacity-10 text-success text-uppercase d-block py-2 mt-1">{row.form_method || 'GET'}</span>
+                                        <strong>Request Method:</strong>{" "}
+                                        <span className="badge bg-success bg-opacity-10 text-success text-uppercase d-block py-2 mt-1">
+                                          {row.form_method || "GET"}
+                                        </span>
                                       </div>
                                       <div className="col-6 col-md-4">
-                                        <strong>Input Element Count:</strong> <span className="badge bg-primary bg-opacity-10 text-primary d-block py-2 mt-1">{row.input_count || 0} Elements</span>
+                                        <strong>Input Element Count:</strong>{" "}
+                                        <span className="badge bg-primary bg-opacity-10 text-primary d-block py-2 mt-1">
+                                          {row.input_count || 0} Elements
+                                        </span>
                                       </div>
                                       <div className="col-12 col-md-4">
-                                        <strong>Found on Page:</strong> <span className="text-muted d-block mt-2">{row.page_url}</span>
+                                        <strong>Found on Page:</strong>{" "}
+                                        <span className="text-muted d-block mt-2">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -972,24 +1347,33 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                   {currentView === "iframes" && (
                                     <>
                                       <div className="col-12">
-                                        <strong>IFrame Source URL (src):</strong>
+                                        <strong>
+                                          IFrame Source URL (src):
+                                        </strong>
                                         <div className="d-flex align-items-center mt-1">
                                           <input
                                             type="text"
                                             readOnly
                                             className="form-control form-control-sm bg-light text-muted"
-                                            value={row.iframe_src || ''}
+                                            value={row.iframe_src || ""}
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.iframe_src || '')}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.iframe_src || "",
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-12 mt-2">
-                                        <strong>Host Page URL:</strong> <span className="text-muted d-block">{row.page_url}</span>
+                                        <strong>Host Page URL:</strong>{" "}
+                                        <span className="text-muted d-block">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -1003,18 +1387,25 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                                             type="text"
                                             readOnly
                                             className="form-control form-control-sm bg-light text-muted"
-                                            value={row.frame_src || ''}
+                                            value={row.frame_src || ""}
                                           />
                                           <button
                                             className="btn btn-sm btn-outline-primary ms-2"
-                                            onClick={() => navigator.clipboard.writeText(row.frame_src || '')}
+                                            onClick={() =>
+                                              navigator.clipboard.writeText(
+                                                row.frame_src || "",
+                                              )
+                                            }
                                           >
                                             Copy
                                           </button>
                                         </div>
                                       </div>
                                       <div className="col-12 mt-2">
-                                        <strong>Host Page URL:</strong> <span className="text-muted d-block">{row.page_url}</span>
+                                        <strong>Host Page URL:</strong>{" "}
+                                        <span className="text-muted d-block">
+                                          {row.page_url}
+                                        </span>
                                       </div>
                                     </>
                                   )}
@@ -1052,7 +1443,8 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                   ))}
                 </select>
                 <span className="text-muted small">
-                  {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
+                  {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of{" "}
+                  {total}
                 </span>
               </div>
 
@@ -1085,11 +1477,15 @@ export default function InventoryDetailsView({ domainId, currentView, pageUrl, v
                     );
                   })}
 
-                  <li className={`page-item ${page >= totalPages ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${page >= totalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page >= totalPages}
                     >
                       Next

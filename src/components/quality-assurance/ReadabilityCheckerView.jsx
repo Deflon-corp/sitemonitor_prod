@@ -1,4 +1,4 @@
-import React, { useState, useCallback  } from "react";
+import React, { useState, useCallback } from "react";
 
 /** Approximate syllable count for a word (English heuristic: vowel groups, min 1). */
 function countSyllables(word) {
@@ -21,10 +21,7 @@ function getSentences(text) {
 
 /** Get words from text. */
 function getWords(text) {
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  return text.trim().split(/\s+/).filter(Boolean);
 }
 
 function getFleschReadability(text) {
@@ -33,18 +30,25 @@ function getFleschReadability(text) {
   if (sentences.length === 0 || allWords.length === 0) return null;
   const totalSentences = sentences.length;
   const totalWords = allWords.length;
-  const totalSyllables = allWords.reduce((sum, word) => sum + countSyllables(word), 0);
+  const totalSyllables = allWords.reduce(
+    (sum, word) => sum + countSyllables(word),
+    0,
+  );
 
   const wordsPerSentence = totalWords / totalSentences;
   const syllablesPerWord = totalSyllables / totalWords;
 
   // Flesch Reading Ease: 206.835 - 1.015 * (words/sentences) - 84.6 * (syllables/words)
-  const readingEase = 206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord;
+  const readingEase =
+    206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord;
 
   // Flesch-Kincaid Grade Level
   const gradeLevel = 0.39 * wordsPerSentence + 11.8 * syllablesPerWord - 15.59;
 
-  return { readingEase: Math.round(readingEase * 10) / 10, gradeLevel: Math.max(0, Math.min(18, gradeLevel)) };
+  return {
+    readingEase: Math.round(readingEase * 10) / 10,
+    gradeLevel: Math.max(0, Math.min(18, gradeLevel)),
+  };
 }
 
 const GRADE_LEVEL_LABELS = [
@@ -89,18 +93,30 @@ export default function ReadabilityCheckerView() {
   }, [inputText]);
 
   return (
-    <div className="readability-checker-view d-flex flex-column w-100" style={{ minHeight: "calc(100vh - 10rem)" }}>
+    <div
+      className="readability-checker-view d-flex flex-column w-100"
+      style={{ minHeight: "calc(100vh - 10rem)" }}
+    >
       <div className="card border-0 shadow-sm rounded-3 flex-grow-1 d-flex flex-column w-100">
         <div className="card-body p-4 p-lg-5 d-flex flex-column flex-grow-1">
           <h6 className="fw-semibold text-body mb-1 d-flex align-items-center gap-2">
-            <i className="isax isax-eye text-primary fs-18" aria-hidden="true" />
+            <i
+              className="isax isax-eye text-primary fs-18"
+              aria-hidden="true"
+            />
             Readability Checker
           </h6>
-          <p className="fs-13 text-muted mb-4">Calculate the readability score of any text (based on Flesch Kincaid)</p>
+          <p className="fs-13 text-muted mb-4">
+            Calculate the readability score of any text (based on Flesch
+            Kincaid)
+          </p>
 
           <div className="row g-4 flex-grow-1">
             <div className="col-lg-6 d-flex flex-column">
-              <label htmlFor="readability-checker-text" className="form-label visually-hidden">
+              <label
+                htmlFor="readability-checker-text"
+                className="form-label visually-hidden"
+              >
                 Enter text
               </label>
               <textarea
@@ -126,17 +142,25 @@ export default function ReadabilityCheckerView() {
                 className="rounded-3 border border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50 p-4 p-lg-5 flex-grow-1 d-flex flex-column justify-content-center"
                 style={{ minHeight: "min(380px, 45vh)" }}
               >
-                <h6 className="fw-semibold text-body mb-4 fs-5">Readability Level</h6>
+                <h6 className="fw-semibold text-body mb-4 fs-5">
+                  Readability Level
+                </h6>
                 {result ? (
                   <p className="mb-0 d-flex align-items-baseline flex-wrap gap-2">
-                    <span className="display-5 fw-bold text-body" style={{ fontSize: "2.25rem" }}>
+                    <span
+                      className="display-5 fw-bold text-body"
+                      style={{ fontSize: "2.25rem" }}
+                    >
                       {result.readingEase}
                     </span>
-                    <span className="text-muted fs-4 fw-medium">- {result.label}</span>
+                    <span className="text-muted fs-4 fw-medium">
+                      - {result.label}
+                    </span>
                   </p>
                 ) : (
                   <p className="text-muted mb-0" style={{ fontSize: "1rem" }}>
-                    Enter text and click "Calculate Readability Score" to see the result.
+                    Enter text and click "Calculate Readability Score" to see
+                    the result.
                   </p>
                 )}
               </div>

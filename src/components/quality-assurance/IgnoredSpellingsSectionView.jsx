@@ -5,12 +5,13 @@ import { useQaDictionary } from "../../hooks/useQaDictionary";
 import { QaPanelEmpty } from "./QaDataStates";
 
 export default function IgnoredSpellingsSectionView() {
-  const [selectedIgnoredSpellingId, setSelectedIgnoredSpellingId] = useState(null);
+  const [selectedIgnoredSpellingId, setSelectedIgnoredSpellingId] =
+    useState(null);
   const { items, loading, error } = useQaDictionary();
 
   const selectedIssue =
     selectedIgnoredSpellingId != null
-      ? items.find((r) => r.id === selectedIgnoredSpellingId) ?? null
+      ? (items.find((r) => r.id === selectedIgnoredSpellingId) ?? null)
       : null;
 
   if (loading) {
@@ -18,7 +19,13 @@ export default function IgnoredSpellingsSectionView() {
   }
 
   if (error) {
-    return <QaPanelEmpty title="Could not load ignored words" message={error} icon="isax-danger" />;
+    return (
+      <QaPanelEmpty
+        title="Could not load ignored words"
+        message={error}
+        icon="isax-danger"
+      />
+    );
   }
 
   if (items.length === 0) {

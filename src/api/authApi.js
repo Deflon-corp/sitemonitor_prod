@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from "./axiosInstance";
 
 /**
  * Authentication API Service Layer
@@ -7,7 +7,7 @@ import axiosInstance from './axiosInstance';
 // POST /auth/login
 export const loginUser = async (data) => {
   try {
-    const response = await axiosInstance.post('/auth/login', data);
+    const response = await axiosInstance.post("/auth/login", data);
     return response.data;
   } catch (error) {
     // Error is already logged in axiosInstance interceptor
@@ -18,7 +18,7 @@ export const loginUser = async (data) => {
 // POST /auth/refresh-token
 export const refreshAccessTokenApi = async (refreshToken) => {
   try {
-    const response = await axiosInstance.post('/auth/refresh-token', {
+    const response = await axiosInstance.post("/auth/refresh-token", {
       refresh_token: refreshToken,
     });
     return response.data;
@@ -29,7 +29,7 @@ export const refreshAccessTokenApi = async (refreshToken) => {
 // POST /auth/send-otp
 export const sendOtpApi = async (loginId) => {
   try {
-    const response = await axiosInstance.post('/auth/send-otp', {
+    const response = await axiosInstance.post("/auth/send-otp", {
       login_id: loginId,
     });
     return response.data;
@@ -41,7 +41,7 @@ export const sendOtpApi = async (loginId) => {
 // POST /auth/verify-otp
 export const verifyOtpApi = async (loginId, otp) => {
   try {
-    const response = await axiosInstance.post('/auth/verify-otp', {
+    const response = await axiosInstance.post("/auth/verify-otp", {
       login_id: loginId,
       otp: otp,
     });

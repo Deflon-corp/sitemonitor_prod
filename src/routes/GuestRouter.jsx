@@ -9,7 +9,6 @@ import useAuth from "../hooks/useAuth";
 const GuestRouter = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-
   // If user is already authenticated, redirect to home
   if (isAuthenticated) {
     return <Navigate to="/home" replace />;

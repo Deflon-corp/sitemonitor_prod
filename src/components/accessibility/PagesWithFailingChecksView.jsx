@@ -17,14 +17,44 @@ const TEAL = "#14b8a6";
 const ComplianceRing = ({ percent }) => {
   const r = 20;
   const circumference = 2 * Math.PI * r;
-  const filled = Math.min(100, Math.max(0, percent)) / 100 * circumference;
+  const filled = (Math.min(100, Math.max(0, percent)) / 100) * circumference;
   return (
-    <div className="position-relative d-inline-flex align-items-center justify-content-center" style={{ width: 48, height: 48 }}>
-      <svg width={48} height={48} viewBox="0 0 48 48" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
-        <circle cx="24" cy="24" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
-        <circle cx="24" cy="24" r={r} fill="none" stroke={TEAL} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${filled} ${circumference}`} />
+    <div
+      className="position-relative d-inline-flex align-items-center justify-content-center"
+      style={{ width: 48, height: 48 }}
+    >
+      <svg
+        width={48}
+        height={48}
+        viewBox="0 0 48 48"
+        style={{ transform: "rotate(-90deg)" }}
+        aria-hidden="true"
+      >
+        <circle
+          cx="24"
+          cy="24"
+          r={r}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="4"
+        />
+        <circle
+          cx="24"
+          cy="24"
+          r={r}
+          fill="none"
+          stroke={TEAL}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circumference}`}
+        />
       </svg>
-      <span className="position-absolute fw-semibold text-body" style={{ fontSize: "0.7rem" }}>{Math.round(percent)}%</span>
+      <span
+        className="position-absolute fw-semibold text-body"
+        style={{ fontSize: "0.7rem" }}
+      >
+        {Math.round(percent)}%
+      </span>
     </div>
   );
 };
@@ -55,16 +85,17 @@ const PagesWithFailingChecksView = () => {
         search: searchQuery,
         sortBy,
         sortOrder: sortDir,
-        filter: "failed"
+        filter: "failed",
       });
       if (res.success) {
-        const data = res.data.pages.map(p => ({
+        const data = res.data.pages.map((p) => ({
           id: p.id,
           title: p.title || "(No title found)",
           url: p.url,
           failingChecks: p.failedCount || 0,
           compliancePercent: p.score || 0,
-          priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+          priority:
+            p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
         }));
         setApiPages(data);
         setTotalItems(res.data.pagination.total);
@@ -86,7 +117,12 @@ const PagesWithFailingChecksView = () => {
   }, [fetchPages]);
 
   const openIssuePage = (p, index) => {
-    setSelectedPageForDetails({ id: index, title: p.title, url: p.url, failingChecks: p.failingChecks });
+    setSelectedPageForDetails({
+      id: index,
+      title: p.title,
+      url: p.url,
+      failingChecks: p.failingChecks,
+    });
     setPageDetailsDrawerOpen(true);
   };
 
@@ -117,7 +153,7 @@ const PagesWithFailingChecksView = () => {
           p.failingChecks,
           p.compliancePercent.toFixed(2),
           `"${p.priority}"`,
-        ].join(",")
+        ].join(","),
       )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
@@ -143,7 +179,9 @@ const PagesWithFailingChecksView = () => {
     const { jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
-    const head = [["Title", "URL", "Failing checks", "Compliance %", "Priority"]];
+    const head = [
+      ["Title", "URL", "Failing checks", "Compliance %", "Priority"],
+    ];
     const body = sortedPages.map((p) => [
       (p.title || "").slice(0, 30),
       p.url.slice(0, 50),
@@ -156,7 +194,13 @@ const PagesWithFailingChecksView = () => {
       body,
       startY: 10,
       styles: { fontSize: 7 },
-      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 70 }, 2: { cellWidth: 25 }, 3: { cellWidth: 25 }, 4: { cellWidth: 20 } },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 20 },
+      },
     });
     doc.save(`${reportBaseName}.pdf`);
   }, [reportBaseName, sortedPages]);
@@ -167,7 +211,11 @@ const PagesWithFailingChecksView = () => {
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <div>
           <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
-            <i className="isax isax-document text-primary fs-22" aria-hidden="true" /> Pages with Failing Checks
+            <i
+              className="isax isax-document text-primary fs-22"
+              aria-hidden="true"
+            />{" "}
+            Pages with Failing Checks
           </h5>
           <p className="text-muted fs-13 mb-0">
             {totalItems} pages with failing checks WCAG 2.2
@@ -186,8 +234,15 @@ const PagesWithFailingChecksView = () => {
             className="d-flex align-items-center border border-secondary border-opacity-25 rounded-2 overflow-hidden bg-white"
             style={{ width: 220 }}
           >
-            <span className="d-flex align-items-center ps-3 flex-shrink-0 text-muted" aria-hidden="true">
-              <i className="isax isax-search-normal-1" style={{ fontSize: "1rem" }} aria-hidden="true" />
+            <span
+              className="d-flex align-items-center ps-3 flex-shrink-0 text-muted"
+              aria-hidden="true"
+            >
+              <i
+                className="isax isax-search-normal-1"
+                style={{ fontSize: "1rem" }}
+                aria-hidden="true"
+              />
             </span>
             <input
               type="search"
@@ -220,9 +275,15 @@ const PagesWithFailingChecksView = () => {
                     >
                       Page URL
                       {sortBy === "url" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
@@ -234,9 +295,15 @@ const PagesWithFailingChecksView = () => {
                     >
                       Failing checks
                       {sortBy === "issues" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
@@ -248,23 +315,34 @@ const PagesWithFailingChecksView = () => {
                     >
                       Compliance Score
                       {sortBy === "score" ? (
-                        <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                        <i
+                          className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold">
-                    Priority
-                  </th>
-                  <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 120 }} aria-label="Actions" />
+                  <th className="py-3 text-body fs-13 fw-semibold">Priority</th>
+                  <th
+                    className="py-3 pe-4 text-body fs-13 fw-semibold"
+                    style={{ width: 120 }}
+                    aria-label="Actions"
+                  />
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
                     <td colSpan={5} className="text-center py-5 text-muted">
-                      <div className="spinner-border spinner-border-sm text-primary mb-2" role="status">
+                      <div
+                        className="spinner-border spinner-border-sm text-primary mb-2"
+                        role="status"
+                      >
                         <span className="visually-hidden">Loading...</span>
                       </div>
                       <p className="mb-0 fs-13">Loading pages...</p>
@@ -290,7 +368,9 @@ const PagesWithFailingChecksView = () => {
                         </div>
                       </td>
                       <td className="py-3">
-                        <span className="fs-13 text-body">{p.failingChecks}</span>
+                        <span className="fs-13 text-body">
+                          {p.failingChecks}
+                        </span>
                       </td>
                       <td className="py-3">
                         <div className="d-flex align-items-center gap-2">
@@ -302,12 +382,13 @@ const PagesWithFailingChecksView = () => {
                       </td>
                       <td className="py-3">
                         <span
-                          className={`badge rounded-pill ${p.priority === "High"
+                          className={`badge rounded-pill ${
+                            p.priority === "High"
                               ? "bg-danger bg-opacity-10 text-danger"
                               : p.priority === "Medium"
                                 ? "bg-warning bg-opacity-10 text-warning"
                                 : "bg-secondary bg-opacity-10 text-secondary"
-                            }`}
+                          }`}
                         >
                           {p.priority}
                         </span>
@@ -321,7 +402,10 @@ const PagesWithFailingChecksView = () => {
                             aria-label="Open page details"
                             onClick={() => openIssuePage(p, idx)}
                           >
-                            <i className="isax isax-document-text fs-14" aria-hidden="true" />
+                            <i
+                              className="isax isax-document-text fs-14"
+                              aria-hidden="true"
+                            />
                           </button>
                         </div>
                       </td>
@@ -330,7 +414,9 @@ const PagesWithFailingChecksView = () => {
                 ) : (
                   <tr>
                     <td colSpan={5} className="text-center py-5 text-muted">
-                      <p className="mb-0 fs-14">{emptyMessage || "No pages found."}</p>
+                      <p className="mb-0 fs-14">
+                        {emptyMessage || "No pages found."}
+                      </p>
                     </td>
                   </tr>
                 )}
@@ -357,12 +443,16 @@ const PagesWithFailingChecksView = () => {
                 ))}
               </select>
               <span className="text-muted small">
-                {totalItems === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems}
+                {totalItems === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1}-
+                {Math.min(currentPage * rowsPerPage, totalItems)} of{" "}
+                {totalItems}
               </span>
             </div>
             <nav aria-label="Pagination">
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
@@ -377,7 +467,8 @@ const PagesWithFailingChecksView = () => {
                   let p;
                   if (totalPages <= 7) p = i + 1;
                   else if (currentPage <= 4) p = i + 1;
-                  else if (currentPage >= totalPages - 3) p = totalPages - 6 + i;
+                  else if (currentPage >= totalPages - 3)
+                    p = totalPages - 6 + i;
                   else p = currentPage - 3 + i;
                   if (p < 1 || p > totalPages) return null;
                   return (
@@ -399,16 +490,24 @@ const PagesWithFailingChecksView = () => {
                 )}
                 {totalPages > 7 && (
                   <li className="page-item">
-                    <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPages)}>
+                    <button
+                      type="button"
+                      className="page-link rounded-2"
+                      onClick={() => setCurrentPage(totalPages)}
+                    >
                       {totalPages}
                     </button>
                   </li>
                 )}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                     aria-label="Next"
                   >

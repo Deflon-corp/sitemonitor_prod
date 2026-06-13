@@ -4,13 +4,20 @@ import DownloadReportDropdown from "@/components/ui/DownloadReportDropdown";
 import { downloadBlob, safeFilename } from "@/lib/download";
 import SeoCheckpointPagesDrawer from "@/components/seo/SeoCheckpointPagesDrawer";
 import PageDetailsMisspellingsDrawer from "@/components/prioritized-content/PageDetailsMisspellingsDrawer";
-import { getDomainByIdApi, getDomainSeoCheckpointsApi } from "../../api/domainApi";
+import {
+  getDomainByIdApi,
+  getDomainSeoCheckpointsApi,
+} from "../../api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 
 const getFriendlyIssueMessage = (msg) => {
   if (!msg) return "";
   const lower = msg.toLowerCase();
-  if (lower.includes("incomplete t&c") || lower.includes("incomplete terms") || (lower.includes("t&c") && lower.includes("missing"))) {
+  if (
+    lower.includes("incomplete t&c") ||
+    lower.includes("incomplete terms") ||
+    (lower.includes("t&c") && lower.includes("missing"))
+  ) {
     return "Terms & Conditions is missing key legal clauses";
   }
   return msg;
@@ -21,7 +28,7 @@ const TEAL = "#14b8a6";
 const ComplianceRing = ({ percent, status }) => {
   const r = 20;
   const circumference = 2 * Math.PI * r;
-  const filled = Math.min(100, Math.max(0, percent)) / 100 * circumference;
+  const filled = (Math.min(100, Math.max(0, percent)) / 100) * circumference;
 
   let color = "#e5e7eb"; // Default gray
   if (status === "ok" || percent === 100) {
@@ -35,15 +42,48 @@ const ComplianceRing = ({ percent, status }) => {
   }
 
   return (
-    <div className="position-relative d-inline-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}>
-      <svg width={44} height={44} viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
-        <circle cx="22" cy="22" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
-        <circle cx="22" cy="22" r={r} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${filled} ${circumference}`} />
+    <div
+      className="position-relative d-inline-flex align-items-center justify-content-center"
+      style={{ width: 44, height: 44 }}
+    >
+      <svg
+        width={44}
+        height={44}
+        viewBox="0 0 44 44"
+        style={{ transform: "rotate(-90deg)" }}
+        aria-hidden="true"
+      >
+        <circle
+          cx="22"
+          cy="22"
+          r={r}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="4"
+        />
+        <circle
+          cx="22"
+          cy="22"
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${circumference}`}
+        />
       </svg>
       {status === "ok" && percent >= 100 ? (
-        <i className="isax isax-tick-circle position-absolute text-success fs-18" aria-hidden="true" />
+        <i
+          className="isax isax-tick-circle position-absolute text-success fs-18"
+          aria-hidden="true"
+        />
       ) : (
-        <span className="position-absolute fw-semibold text-body" style={{ fontSize: "0.65rem" }}>{percent}%</span>
+        <span
+          className="position-absolute fw-semibold text-body"
+          style={{ fontSize: "0.65rem" }}
+        >
+          {percent}%
+        </span>
       )}
     </div>
   );
@@ -75,36 +115,64 @@ const CheckpointSection = ({
           <table className="table table-borderless align-middle mb-0">
             <thead>
               <tr className="border-bottom border-secondary border-opacity-25">
-                <th className="py-2 ps-0 text-body fs-13 fw-semibold">Audit Checkpoint</th>
-                <th className="py-2 pe-0 text-body fs-13 fw-semibold">Affected Pages List</th>
+                <th className="py-2 ps-0 text-body fs-13 fw-semibold">
+                  Audit Checkpoint
+                </th>
+                <th className="py-2 pe-0 text-body fs-13 fw-semibold">
+                  Affected Pages List
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-bottom border-secondary border-opacity-10">
+                <tr
+                  key={row.id}
+                  className="border-bottom border-secondary border-opacity-10"
+                >
                   <td className="py-3 ps-0">
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                       <span className="flex-shrink-0">
                         {row.status === "ok" ? (
-                          <i className="isax isax-tick-circle text-success fs-18" aria-hidden="true" />
+                          <i
+                            className="isax isax-tick-circle text-success fs-18"
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <i className="isax isax-danger text-danger fs-18" aria-hidden="true" />
+                          <i
+                            className="isax isax-danger text-danger fs-18"
+                            aria-hidden="true"
+                          />
                         )}
                       </span>
-                      <span 
-                        className="fs-13 text-body hover-text-primary" 
-                        style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}
+                      <span
+                        className="fs-13 text-body hover-text-primary"
+                        style={{
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                          textDecorationStyle: "dotted",
+                        }}
                         onClick={() => onPagesClick?.(row)}
                         title="Click to view affected pages"
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onPagesClick?.(row); } }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            onPagesClick?.(row);
+                          }
+                        }}
                       >
                         {getFriendlyIssueMessage(row.issue)}
                       </span>
                       {row.showInfoIcon && (
-                        <span className="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style={{ width: 18, height: 18 }}>
-                          <i className="isax isax-information text-primary" style={{ fontSize: 10 }} aria-hidden="true" />
+                        <span
+                          className="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                          style={{ width: 18, height: 18 }}
+                        >
+                          <i
+                            className="isax isax-information text-primary"
+                            style={{ fontSize: 10 }}
+                            aria-hidden="true"
+                          />
                         </span>
                       )}
                     </div>
@@ -112,8 +180,11 @@ const CheckpointSection = ({
                   <td className="py-3 pe-0">
                     {(() => {
                       const count = parsePageCount(row.pagesLabel);
-                      const displayLabel = count === 0 ? "0 Pages Affected (Passed)" : `${count} Page${count !== 1 ? 's' : ''} Affected`;
-                      
+                      const displayLabel =
+                        count === 0
+                          ? "0 Pages Affected (Passed)"
+                          : `${count} Page${count !== 1 ? "s" : ""} Affected`;
+
                       return row.pagesHref && onPagesClick ? (
                         <button
                           type="button"
@@ -123,7 +194,10 @@ const CheckpointSection = ({
                           {displayLabel}
                         </button>
                       ) : row.pagesHref ? (
-                        <Link to={row.pagesHref} className="fs-13 text-primary text-decoration-none fw-medium">
+                        <Link
+                          to={row.pagesHref}
+                          className="fs-13 text-primary text-decoration-none fw-medium"
+                        >
                           {displayLabel}
                         </Link>
                       ) : (
@@ -135,7 +209,9 @@ const CheckpointSection = ({
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan="2" className="text-center py-3 text-muted fs-13">No issues found in this category.</td>
+                  <td colSpan="2" className="text-center py-3 text-muted fs-13">
+                    No issues found in this category.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -149,13 +225,34 @@ const CheckpointSection = ({
 const REPORT_BASE = safeFilename("SEO-Checkpoints-Report");
 
 const QUICK_HELP_BY_ISSUE = {
-  "Missing title": ["This page is missing a title.", "We recommend that all your pages has an unique title."],
-  "Missing H1": ["This page is missing an H1 heading.", "We recommend that every page has exactly one H1."],
-  "Title found on more than one page": ["The same title is used on multiple pages.", "Each page should have a unique title for better SEO."],
-  "Multiple H1 on page": ["This page has more than one H1.", "We recommend a single H1 per page."],
-  "H1 found on more than one page": ["The same H1 is used on multiple pages.", "Consider using unique H1s per page."],
-  "Images missing ALT": ["Some images on this page are missing alt text.", "Add descriptive alt text for accessibility and SEO."],
-  "Missing sub headings": ["This page has no sub headings (H2–H6).", "Sub headings help structure content and improve readability."],
+  "Missing title": [
+    "This page is missing a title.",
+    "We recommend that all your pages has an unique title.",
+  ],
+  "Missing H1": [
+    "This page is missing an H1 heading.",
+    "We recommend that every page has exactly one H1.",
+  ],
+  "Title found on more than one page": [
+    "The same title is used on multiple pages.",
+    "Each page should have a unique title for better SEO.",
+  ],
+  "Multiple H1 on page": [
+    "This page has more than one H1.",
+    "We recommend a single H1 per page.",
+  ],
+  "H1 found on more than one page": [
+    "The same H1 is used on multiple pages.",
+    "Consider using unique H1s per page.",
+  ],
+  "Images missing ALT": [
+    "Some images on this page are missing alt text.",
+    "Add descriptive alt text for accessibility and SEO.",
+  ],
+  "Missing sub headings": [
+    "This page has no sub headings (H2–H6).",
+    "Sub headings help structure content and improve readability.",
+  ],
 };
 
 const SeoCheckpointsView = () => {
@@ -164,32 +261,39 @@ const SeoCheckpointsView = () => {
   const [pageDetailsDrawerOpen, setPageDetailsDrawerOpen] = useState(false);
   const [selectedPageForDetails, setSelectedPageForDetails] = useState(null);
   const [selectedIssueForPage, setSelectedIssueForPage] = useState(null);
-  const [checkpoints, setCheckpoints] = useState({ high: [], medium: [], low: [] });
+  const [checkpoints, setCheckpoints] = useState({
+    high: [],
+    medium: [],
+    low: [],
+  });
   const [domain, setDomain] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
-  const fetchCheckpoints = useCallback(async (showLoading = true) => {
-    if (!domainId) return;
-    if (showLoading) setIsLoading(true);
-    try {
-      const [cpRes, domRes] = await Promise.all([
-        getDomainSeoCheckpointsApi(domainId),
-        getDomainByIdApi(domainId)
-      ]);
-      if (cpRes.success) {
-        setCheckpoints(cpRes.data);
+  const fetchCheckpoints = useCallback(
+    async (showLoading = true) => {
+      if (!domainId) return;
+      if (showLoading) setIsLoading(true);
+      try {
+        const [cpRes, domRes] = await Promise.all([
+          getDomainSeoCheckpointsApi(domainId),
+          getDomainByIdApi(domainId),
+        ]);
+        if (cpRes.success) {
+          setCheckpoints(cpRes.data);
+        }
+        if (domRes.success) {
+          setDomain(domRes.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch SEO checkpoints:", error);
+      } finally {
+        if (showLoading) setIsLoading(false);
       }
-      if (domRes.success) {
-        setDomain(domRes.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch SEO checkpoints:", error);
-    } finally {
-      if (showLoading) setIsLoading(false);
-    }
-  }, [domainId]);
+    },
+    [domainId],
+  );
 
   useEffect(() => {
     fetchCheckpoints();
@@ -197,7 +301,11 @@ const SeoCheckpointsView = () => {
 
   useEffect(() => {
     let interval;
-    if (domain && (domain.dm_seo_status === 'pending' || domain.dm_seo_status === 'scanning')) {
+    if (
+      domain &&
+      (domain.dm_seo_status === "pending" ||
+        domain.dm_seo_status === "scanning")
+    ) {
       interval = setInterval(() => {
         fetchCheckpoints(false);
       }, 5000);
@@ -220,15 +328,30 @@ const SeoCheckpointsView = () => {
   }, []);
 
   const allRows = [
-    ...checkpoints.high.map((r) => ({ ...r, priority: "High", issue: getFriendlyIssueMessage(r.issue) })),
-    ...checkpoints.medium.map((r) => ({ ...r, priority: "Medium", issue: getFriendlyIssueMessage(r.issue) })),
-    ...checkpoints.low.map((r) => ({ ...r, priority: "Low", issue: getFriendlyIssueMessage(r.issue) }))
+    ...checkpoints.high.map((r) => ({
+      ...r,
+      priority: "High",
+      issue: getFriendlyIssueMessage(r.issue),
+    })),
+    ...checkpoints.medium.map((r) => ({
+      ...r,
+      priority: "Medium",
+      issue: getFriendlyIssueMessage(r.issue),
+    })),
+    ...checkpoints.low.map((r) => ({
+      ...r,
+      priority: "Low",
+      issue: getFriendlyIssueMessage(r.issue),
+    })),
   ];
 
   const exportCSV = useCallback(() => {
     const header = "Priority,Issue,Compliance %,Pages\n";
     const body = allRows
-      .map((r) => `"${r.priority}","${r.issue.replace(/"/g, '""')}",${r.compliancePercent},"${r.pagesLabel.replace(/"/g, '""')}"`)
+      .map(
+        (r) =>
+          `"${r.priority}","${r.issue.replace(/"/g, '""')}",${r.compliancePercent},"${r.pagesLabel.replace(/"/g, '""')}"`,
+      )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${REPORT_BASE}.csv`);
@@ -236,7 +359,12 @@ const SeoCheckpointsView = () => {
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = allRows.map((r) => ({ Priority: r.priority, Issue: r.issue, "Compliance %": r.compliancePercent, Pages: r.pagesLabel }));
+    const rows = allRows.map((r) => ({
+      Priority: r.priority,
+      Issue: r.issue,
+      "Compliance %": r.compliancePercent,
+      Pages: r.pagesLabel,
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Checkpoints");
@@ -253,7 +381,12 @@ const SeoCheckpointsView = () => {
     autoTable(doc, {
       startY: 22,
       head: [["Priority", "Issue", "Compliance %", "Pages"]],
-      body: allRows.map((r) => [r.priority, r.issue, String(r.compliancePercent), r.pagesLabel]),
+      body: allRows.map((r) => [
+        r.priority,
+        r.issue,
+        String(r.compliancePercent),
+        r.pagesLabel,
+      ]),
       styles: { fontSize: 9 },
     });
     doc.save(`${REPORT_BASE}.pdf`);
@@ -269,19 +402,29 @@ const SeoCheckpointsView = () => {
     );
   }
 
-  const isActuallyScanning = domain?.dm_seo_status === 'pending' || domain?.dm_seo_status === 'scanning';
-  const hasData = checkpoints.high.length > 0 || checkpoints.medium.length > 0 || checkpoints.low.length > 0;
+  const isActuallyScanning =
+    domain?.dm_seo_status === "pending" || domain?.dm_seo_status === "scanning";
+  const hasData =
+    checkpoints.high.length > 0 ||
+    checkpoints.medium.length > 0 ||
+    checkpoints.low.length > 0;
 
   if (isActuallyScanning && !hasData) {
     return (
       <div className="text-center p-5">
         <div className="mb-4">
-          <div className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }} role="status">
+          <div
+            className="spinner-border text-primary"
+            style={{ width: "3rem", height: "3rem" }}
+            role="status"
+          >
             <span className="visually-hidden">Scanning...</span>
           </div>
         </div>
         <h5>SEO Scan in Progress...</h5>
-        <p className="text-muted">Please wait while we analyze your checkpoints.</p>
+        <p className="text-muted">
+          Please wait while we analyze your checkpoints.
+        </p>
       </div>
     );
   }
@@ -290,11 +433,18 @@ const SeoCheckpointsView = () => {
     <div className="seo-checkpoints-view">
       <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
         <h5 className="mb-0 fw-semibold text-body d-flex align-items-center gap-2">
-          <i className="isax isax-tick-circle text-primary fs-22" aria-hidden="true" />
+          <i
+            className="isax isax-tick-circle text-primary fs-22"
+            aria-hidden="true"
+          />
           SEO Audit Checklist
           {isActuallyScanning && (
             <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-2 px-3 ms-2">
-              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
               <span className="fs-12 fw-medium">Scanning for updates...</span>
             </span>
           )}
@@ -340,10 +490,20 @@ const SeoCheckpointsView = () => {
           setCheckpointDrawerOpen(false);
           setCheckpointDrawerIssue(null);
         }}
-        issueName={checkpointDrawerIssue?.issue || checkpointDrawerIssue?.message || ""}
-        pageCount={checkpointDrawerIssue ? parsePageCount(checkpointDrawerIssue.pagesLabel) : 0}
+        issueName={
+          checkpointDrawerIssue?.issue || checkpointDrawerIssue?.message || ""
+        }
+        pageCount={
+          checkpointDrawerIssue
+            ? parsePageCount(checkpointDrawerIssue.pagesLabel)
+            : 0
+        }
         compliancePercent={checkpointDrawerIssue?.compliancePercent ?? 0}
-        quickHelpLines={checkpointDrawerIssue ? QUICK_HELP_BY_ISSUE[checkpointDrawerIssue.issue] : undefined}
+        quickHelpLines={
+          checkpointDrawerIssue
+            ? QUICK_HELP_BY_ISSUE[checkpointDrawerIssue.issue]
+            : undefined
+        }
         onOpenPageDetails={openPageDetails}
       />
 
@@ -356,15 +516,20 @@ const SeoCheckpointsView = () => {
         }}
         page={selectedPageForDetails}
         defaultTab={
-          selectedIssueForPage?.toLowerCase().includes("link") || 
-          selectedIssueForPage?.toLowerCase().includes("image") || 
-          selectedIssueForPage?.toLowerCase().includes("misspelling") 
-            ? "qa" : "seo"
+          selectedIssueForPage?.toLowerCase().includes("link") ||
+          selectedIssueForPage?.toLowerCase().includes("image") ||
+          selectedIssueForPage?.toLowerCase().includes("misspelling")
+            ? "qa"
+            : "seo"
         }
         defaultQaSubView={
-          selectedIssueForPage?.toLowerCase().includes("link") ? "broken-links" :
-          selectedIssueForPage?.toLowerCase().includes("image") ? "broken-images" :
-          selectedIssueForPage?.toLowerCase().includes("misspelling") ? "misspellings" : "misspellings"
+          selectedIssueForPage?.toLowerCase().includes("link")
+            ? "broken-links"
+            : selectedIssueForPage?.toLowerCase().includes("image")
+              ? "broken-images"
+              : selectedIssueForPage?.toLowerCase().includes("misspelling")
+                ? "misspellings"
+                : "misspellings"
         }
         backdropZIndex={1075}
         panelZIndex={1080}

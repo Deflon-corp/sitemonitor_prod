@@ -1,9 +1,9 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { loginUser, sendOtpApi, verifyOtpApi } from '../../../api/authApi';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { loginUser, sendOtpApi, verifyOtpApi } from "../../../api/authApi";
 
 // Async thunk for login
 export const loginUserThunk = createAsyncThunk(
-  'auth/loginUser',
+  "auth/loginUser",
   async (loginData, { rejectWithValue }) => {
     try {
       const response = await loginUser(loginData);
@@ -13,45 +13,48 @@ export const loginUserThunk = createAsyncThunk(
       const refreshToken = response.data?.refresh_token;
 
       if (token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", token);
       }
       if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem("refreshToken", refreshToken);
       }
       if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem("user", JSON.stringify(response.data.user));
       }
 
       // Return both data and message
       return {
         ...response.data,
-        message: response.message
+        message: response.message,
       };
     } catch (error) {
       // Use backend message if available
-      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+      const errorMessage =
+        error.response?.data?.message || "Login failed. Please try again.";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 // Async thunk for sending OTP
 export const sendOtpThunk = createAsyncThunk(
-  'auth/sendOtp',
+  "auth/sendOtp",
   async (loginId, { rejectWithValue }) => {
     try {
       const response = await sendOtpApi(loginId);
       return response;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to send OTP. Please try again.';
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to send OTP. Please try again.";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 // Async thunk for verifying OTP
 export const verifyOtpThunk = createAsyncThunk(
-  'auth/verifyOtp',
+  "auth/verifyOtp",
   async ({ loginId, otp }, { rejectWithValue }) => {
     try {
       const response = await verifyOtpApi(loginId, otp);
@@ -61,33 +64,37 @@ export const verifyOtpThunk = createAsyncThunk(
       const refreshToken = response.data?.refresh_token;
 
       if (token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", token);
       }
       if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem("refreshToken", refreshToken);
       }
       if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem("user", JSON.stringify(response.data.user));
       }
 
       // Return both data and message
       return {
         ...response.data,
-        message: response.message
+        message: response.message,
       };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Verification failed. Please try again.';
+      const errorMessage =
+        error.response?.data?.message ||
+        "Verification failed. Please try again.";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: {
-    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
-    token: localStorage.getItem('token') || null,
-    refreshToken: localStorage.getItem('refreshToken') || null,
+    user: localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user"))
+      : null,
+    token: localStorage.getItem("token") || null,
+    refreshToken: localStorage.getItem("refreshToken") || null,
     loading: false,
     error: null,
     success: false,
@@ -99,9 +106,9 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.error = null;
       state.success = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
     },
     updateTokens: (state, action) => {
       state.token = action.payload.access_token;

@@ -1,20 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getQaBrokenImagesApi } from '../api/qaApi';
-import { useQaDomainId } from './useQaDomainId';
-import { useQaRefreshKey } from '../contexts/QaScanContext';
+import { useState, useEffect, useCallback } from "react";
+import { getQaBrokenImagesApi } from "../api/qaApi";
+import { useQaDomainId } from "./useQaDomainId";
+import { useQaRefreshKey } from "../contexts/QaScanContext";
 
 export function useQaBrokenImages({
   page = 1,
   limit = 10,
-  search = '',
-  sortBy = 'pages',
-  sortOrder = 'desc',
-  tab = 'all',
+  search = "",
+  sortBy = "pages",
+  sortOrder = "desc",
+  tab = "all",
 }) {
   const domainId = useQaDomainId();
   const refreshKey = useQaRefreshKey();
   const [images, setImages] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit, total: 0, pages: 1 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit,
+    total: 0,
+    pages: 1,
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -34,7 +39,9 @@ export function useQaBrokenImages({
       });
       if (res.success) {
         setImages(res.data?.images || []);
-        setPagination(res.data?.pagination || { page, limit, total: 0, pages: 1 });
+        setPagination(
+          res.data?.pagination || { page, limit, total: 0, pages: 1 },
+        );
       } else {
         setImages([]);
       }

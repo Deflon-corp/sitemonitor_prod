@@ -8,10 +8,7 @@ import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 500];
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const SectionBlock = ({
-  section,
-  onOpenPageDetails,
-}) => {
+const SectionBlock = ({ section, onOpenPageDetails }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [sortBy, setSortBy] = useState("title");
@@ -22,7 +19,11 @@ const SectionBlock = ({
     const dir = sortDir === "asc" ? 1 : -1;
     return [...section.pages].sort((a, b) => {
       if (sortBy === "title")
-        return dir * ((a.title || "").localeCompare(b.title || "") || a.url.localeCompare(b.url));
+        return (
+          dir *
+          ((a.title || "").localeCompare(b.title || "") ||
+            a.url.localeCompare(b.url))
+        );
       if (sortBy === "priority") {
         const order = { High: 3, Medium: 2, Low: 1 };
         return dir * ((order[a.priority] ?? 0) - (order[b.priority] ?? 0));
@@ -31,7 +32,10 @@ const SectionBlock = ({
     });
   }, [section.pages, sortBy, sortDir]);
 
-  const totalPagesCount = Math.max(1, Math.ceil(sortedPages.length / rowsPerPage));
+  const totalPagesCount = Math.max(
+    1,
+    Math.ceil(sortedPages.length / rowsPerPage),
+  );
   const paginatedPages = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return sortedPages.slice(start, start + rowsPerPage);
@@ -49,7 +53,9 @@ const SectionBlock = ({
   return (
     <div className="border-bottom border-secondary border-opacity-25 pb-4 mb-4">
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <h6 className="mb-0 fw-semibold text-body fs-13">{section.issueTypeName}</h6>
+        <h6 className="mb-0 fw-semibold text-body fs-13">
+          {section.issueTypeName}
+        </h6>
         <div className="d-flex align-items-center gap-2">
           <div className="dropdown">
             <button
@@ -60,11 +66,20 @@ const SectionBlock = ({
               aria-label="Individual issues count"
             >
               <span className="text-muted fs-13">Individual issues</span>
-              <span className="fw-semibold text-body">{section.count.toLocaleString()}</span>
-              <i className="isax isax-arrow-down-1 fs-12 text-muted" aria-hidden="true" />
+              <span className="fw-semibold text-body">
+                {section.count.toLocaleString()}
+              </span>
+              <i
+                className="isax isax-arrow-down-1 fs-12 text-muted"
+                aria-hidden="true"
+              />
             </button>
             <ul className="dropdown-menu dropdown-menu-end">
-              <li><span className="dropdown-item-text fs-13">{section.count.toLocaleString()} issues</span></li>
+              <li>
+                <span className="dropdown-item-text fs-13">
+                  {section.count.toLocaleString()} issues
+                </span>
+              </li>
             </ul>
           </div>
         </div>
@@ -82,9 +97,15 @@ const SectionBlock = ({
                 >
                   Title and url
                   {sortBy === "title" ? (
-                    <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                    <i
+                      className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                    <i
+                      className="isax isax-sort fs-12 opacity-50"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </th>
@@ -96,13 +117,23 @@ const SectionBlock = ({
                 >
                   Priority
                   {sortBy === "priority" ? (
-                    <i className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`} aria-hidden="true" />
+                    <i
+                      className={`isax fs-12 ${sortDir === "asc" ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                    <i
+                      className="isax isax-sort fs-12 opacity-50"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </th>
-              <th className="py-3 pe-4 text-body fs-13 fw-semibold" style={{ width: 100 }} aria-label="Actions" />
+              <th
+                className="py-3 pe-4 text-body fs-13 fw-semibold"
+                style={{ width: 100 }}
+                aria-label="Actions"
+              />
             </tr>
           </thead>
           <tbody>
@@ -137,7 +168,7 @@ const SectionBlock = ({
                     {p.priority}
                   </span>
                 </td>
-                
+
                 <td className="py-3 pe-4">
                   <div className="d-flex gap-1">
                     <button
@@ -147,7 +178,10 @@ const SectionBlock = ({
                       aria-label="Open page details"
                       onClick={() => onOpenPageDetails?.(p)}
                     >
-                      <i className="isax isax-document-text fs-14 text-primary" aria-hidden="true" />
+                      <i
+                        className="isax isax-document-text fs-14 text-primary"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
                 </td>
@@ -171,11 +205,15 @@ const SectionBlock = ({
             aria-label="Rows per page"
           >
             {ROWS_PER_PAGE_OPTIONS.map((n) => (
-              <option key={n} value={n}>{n}</option>
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
           <span className="text-muted small">
-            {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, sortedPages.length)} of {sortedPages.length}
+            {(currentPage - 1) * rowsPerPage + 1}-
+            {Math.min(currentPage * rowsPerPage, sortedPages.length)} of{" "}
+            {sortedPages.length}
           </span>
         </div>
         <nav aria-label="Pagination">
@@ -195,7 +233,8 @@ const SectionBlock = ({
               let p;
               if (totalPagesCount <= 7) p = i + 1;
               else if (currentPage <= 4) p = i + 1;
-              else if (currentPage >= totalPagesCount - 3) p = totalPagesCount - 6 + i;
+              else if (currentPage >= totalPagesCount - 3)
+                p = totalPagesCount - 6 + i;
               else p = currentPage - 3 + i;
               if (p < 1 || p > totalPagesCount) return null;
               return (
@@ -217,16 +256,24 @@ const SectionBlock = ({
             )}
             {totalPagesCount > 7 && (
               <li className="page-item">
-                <button type="button" className="page-link rounded-2" onClick={() => setCurrentPage(totalPagesCount)}>
+                <button
+                  type="button"
+                  className="page-link rounded-2"
+                  onClick={() => setCurrentPage(totalPagesCount)}
+                >
                   {totalPagesCount}
                 </button>
               </li>
             )}
-            <li className={`page-item ${currentPage >= totalPagesCount ? "disabled" : ""}`}>
+            <li
+              className={`page-item ${currentPage >= totalPagesCount ? "disabled" : ""}`}
+            >
               <button
                 type="button"
                 className="page-link rounded-2"
-                onClick={() => setCurrentPage((p) => Math.min(totalPagesCount, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPagesCount, p + 1))
+                }
                 disabled={currentPage >= totalPagesCount}
                 aria-label="Next"
               >
@@ -268,9 +315,14 @@ const AccessibilityIssuesDrawer = ({
             res.data.pages.map((p) => ({
               title: p.title || "(No title found)",
               url: p.url,
-              priority: p.failedCount > 10 ? "High" : p.failedCount > 3 ? "Medium" : "Low",
+              priority:
+                p.failedCount > 10
+                  ? "High"
+                  : p.failedCount > 3
+                    ? "Medium"
+                    : "Low",
               views: 0,
-            }))
+            })),
           );
         }
       })
@@ -314,7 +366,11 @@ const AccessibilityIssuesDrawer = ({
       />
       <div
         className="position-fixed top-0 end-0 bottom-0 bg-white shadow overflow-auto d-flex flex-column"
-        style={{ zIndex: DRAWER_Z_PANEL, width: "min(100%, 960px)", maxWidth: "960px" }}
+        style={{
+          zIndex: DRAWER_Z_PANEL,
+          width: "min(100%, 960px)",
+          maxWidth: "960px",
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="accessibility-issues-drawer-title"
@@ -329,9 +385,15 @@ const AccessibilityIssuesDrawer = ({
                 title="Close"
                 aria-label="Close"
               >
-                <i className="isax isax-close-circle text-body" aria-hidden="true" />
+                <i
+                  className="isax isax-close-circle text-body"
+                  aria-hidden="true"
+                />
               </button>
-              <h6 className="mb-0 fw-semibold text-body" id="accessibility-issues-drawer-title">
+              <h6
+                className="mb-0 fw-semibold text-body"
+                id="accessibility-issues-drawer-title"
+              >
                 List of accessibility issues
               </h6>
             </div>
@@ -344,7 +406,11 @@ const AccessibilityIssuesDrawer = ({
         <div className="flex-grow-1 overflow-auto px-4 py-4">
           {isLoading ? (
             <div className="text-center text-muted py-5">
-              <div className="spinner-border spinner-border-sm text-primary me-2" role="status" aria-hidden="true" />
+              <div
+                className="spinner-border spinner-border-sm text-primary me-2"
+                role="status"
+                aria-hidden="true"
+              />
               Loading pages...
             </div>
           ) : pages.length === 0 ? (
@@ -360,7 +426,9 @@ const AccessibilityIssuesDrawer = ({
     </>
   );
 
-  return typeof document !== "undefined" ? createPortal(drawerContent, document.body) : null;
+  return typeof document !== "undefined"
+    ? createPortal(drawerContent, document.body)
+    : null;
 };
 
 export default AccessibilityIssuesDrawer;

@@ -8,17 +8,27 @@ const COMPARISON_OPTIONS = [
   "Equal",
 ];
 
-const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave, initialData }) => {
+const NewRuleExternalLinkCountDrawer = ({
+  open,
+  onClose,
+  onSave,
+  initialData,
+}) => {
   const [ruleName, setRuleName] = useState("");
   const [comparison, setComparison] = useState("Less than");
   const [linkCount, setLinkCount] = useState("");
 
-
   useEffect(() => {
     if (open && initialData) {
-      setRuleName(initialData?.ruleName !== undefined ? initialData.ruleName : "");
-      setComparison(initialData?.comparison !== undefined ? initialData.comparison : "");
-      setLinkCount(initialData?.linkCount !== undefined ? initialData.linkCount : "");
+      setRuleName(
+        initialData?.ruleName !== undefined ? initialData.ruleName : "",
+      );
+      setComparison(
+        initialData?.comparison !== undefined ? initialData.comparison : "",
+      );
+      setLinkCount(
+        initialData?.linkCount !== undefined ? initialData.linkCount : "",
+      );
     } else if (open && !initialData) {
       setRuleName("");
       setComparison("");
@@ -72,8 +82,15 @@ const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave, initialData }) 
               <i className="isax isax-close-circle fs-20" aria-hidden="true" />
             </button>
             <div>
-              <h5 id="new-rule-external-link-count-title" className="mb-0 fw-semibold text-body">New rule - External link count</h5>
-              <p className="text-muted fs-13 mb-0 mt-1">Define when the rule should apply for external links</p>
+              <h5
+                id="new-rule-external-link-count-title"
+                className="mb-0 fw-semibold text-body"
+              >
+                New rule - External link count
+              </h5>
+              <p className="text-muted fs-13 mb-0 mt-1">
+                Define when the rule should apply for external links
+              </p>
             </div>
           </div>
         </div>
@@ -93,7 +110,9 @@ const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave, initialData }) 
           </div>
 
           <div className="mb-4">
-            <label className="form-label text-body fs-13">Links (Number of external links):</label>
+            <label className="form-label text-body fs-13">
+              Links (Number of external links):
+            </label>
             <div className="d-flex gap-2 align-items-center flex-wrap">
               <select
                 className="form-select flex-shrink-0"
@@ -102,7 +121,9 @@ const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave, initialData }) 
                 onChange={(e) => setComparison(e.target.value)}
               >
                 {COMPARISON_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
               </select>
               <input
@@ -120,7 +141,13 @@ const NewRuleExternalLinkCountDrawer = ({ open, onClose, onSave, initialData }) 
 
         <div className="border-top border-secondary border-opacity-25 px-4 py-3 flex-shrink-0 bg-white">
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-primary" onClick={handleSave}>Save</button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

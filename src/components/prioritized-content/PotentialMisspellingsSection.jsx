@@ -31,13 +31,14 @@ const PotentialMisspellingsSection = ({
       const langLabel = LANGUAGES.find((l) => l.key === key)?.label || "";
       return listSource.filter((r) => r.language === langLabel).length;
     },
-    [listSource]
+    [listSource],
   );
 
   const filteredItems = useMemo(() => {
     let list = listSource;
     if (languageFilter !== "all") {
-      const langLabel = LANGUAGES.find((l) => l.key === languageFilter)?.label || "";
+      const langLabel =
+        LANGUAGES.find((l) => l.key === languageFilter)?.label || "";
       list = list.filter((r) => r.language === langLabel);
     }
     if (searchQuery.trim()) {
@@ -51,7 +52,8 @@ const PotentialMisspellingsSection = ({
     if (!sortBy) return filteredItems;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filteredItems].sort((a, b) => {
-      if (sortBy === "word") return dir * (a.word.localeCompare(b.word) || a.id - b.id);
+      if (sortBy === "word")
+        return dir * (a.word.localeCompare(b.word) || a.id - b.id);
       return dir * (a.pages - b.pages);
     });
   }, [filteredItems, sortBy, sortDir]);
@@ -71,7 +73,10 @@ const PotentialMisspellingsSection = ({
     return sortedItems.slice(start, start + rowsPerPage);
   }, [sortedItems, currentPage, rowsPerPage]);
 
-  const wordCountLabel = filteredItems.length === 1 ? "1 word found" : `${filteredItems.length} words found`;
+  const wordCountLabel =
+    filteredItems.length === 1
+      ? "1 word found"
+      : `${filteredItems.length} words found`;
 
   const reportName = "Potential-Misspellings-Report";
   const baseName = safeFilename(reportName);
@@ -79,7 +84,10 @@ const PotentialMisspellingsSection = ({
   const exportCSV = useCallback(() => {
     const header = "Word,Language,Date found,Pages\n";
     const body = listSource
-      .map((r) => `"${r.word.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}","${r.dateFound}",${r.pages}`)
+      .map(
+        (r) =>
+          `"${r.word.replace(/"/g, '""')}","${r.language.replace(/"/g, '""')}","${r.dateFound}",${r.pages}`,
+      )
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv;charset=utf-8;" });
     downloadBlob(blob, `${baseName}.csv`);
@@ -87,7 +95,12 @@ const PotentialMisspellingsSection = ({
 
   const exportExcel = useCallback(async () => {
     const XLSX = await import("xlsx");
-    const rows = listSource.map((r) => ({ Word: r.word, Language: r.language, "Date found": r.dateFound, Pages: r.pages }));
+    const rows = listSource.map((r) => ({
+      Word: r.word,
+      Language: r.language,
+      "Date found": r.dateFound,
+      Pages: r.pages,
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Potential Misspellings");
@@ -99,13 +112,23 @@ const PotentialMisspellingsSection = ({
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ orientation: "landscape" });
     const head = [["Word", "Language", "Date found", "Pages"]];
-    const body = listSource.map((r) => [r.word, r.language, r.dateFound, String(r.pages)]);
+    const body = listSource.map((r) => [
+      r.word,
+      r.language,
+      r.dateFound,
+      String(r.pages),
+    ]);
     autoTable(doc, {
       head,
       body,
       startY: 10,
       styles: { fontSize: 8 },
-      columnStyles: { 0: { cellWidth: "wrap" }, 1: { cellWidth: "wrap" }, 2: { cellWidth: 24 }, 3: { cellWidth: 18 } },
+      columnStyles: {
+        0: { cellWidth: "wrap" },
+        1: { cellWidth: "wrap" },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 18 },
+      },
     });
     doc.save(`${baseName}.pdf`);
   }, [listSource, baseName]);
@@ -130,7 +153,10 @@ const PotentialMisspellingsSection = ({
                 aria-expanded="false"
                 title="Download Report"
               >
-                <i className="isax isax-document-download text-primary fs-18" aria-hidden="true" />
+                <i
+                  className="isax isax-document-download text-primary fs-18"
+                  aria-hidden="true"
+                />
                 Download Report
               </button>
               <ul className="dropdown-menu dropdown-menu-end">
@@ -140,7 +166,10 @@ const PotentialMisspellingsSection = ({
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportCSV}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     CSV
                   </button>
                 </li>
@@ -150,7 +179,10 @@ const PotentialMisspellingsSection = ({
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportPDF}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     PDF
                   </button>
                 </li>
@@ -160,7 +192,10 @@ const PotentialMisspellingsSection = ({
                     className="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent text-start"
                     onClick={exportExcel}
                   >
-                    <i className="isax isax-document-text me-2" aria-hidden="true" />
+                    <i
+                      className="isax isax-document-text me-2"
+                      aria-hidden="true"
+                    />
                     Excel
                   </button>
                 </li>
@@ -193,8 +228,15 @@ const PotentialMisspellingsSection = ({
             <table className="table table-hover table-striped table-borderless align-middle mb-0">
               <thead>
                 <tr className="border-bottom border-secondary border-opacity-25 bg-body-tertiary bg-opacity-50">
-                  <th className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap" style={{ width: 40 }}>
-                    <input type="checkbox" className="form-check-input" aria-label="Select all" />
+                  <th
+                    className="py-3 ps-4 text-body fs-13 fw-semibold text-nowrap"
+                    style={{ width: 40 }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      aria-label="Select all"
+                    />
                   </th>
                   <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
                     <button
@@ -209,11 +251,16 @@ const PotentialMisspellingsSection = ({
                           aria-hidden="true"
                         />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">Lookup in Google</th>
+                  <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
+                    Lookup in Google
+                  </th>
                   <th className="py-3 text-body fs-13 fw-semibold text-nowrap">
                     <button
                       type="button"
@@ -227,18 +274,30 @@ const PotentialMisspellingsSection = ({
                           aria-hidden="true"
                         />
                       ) : (
-                        <i className="isax isax-sort fs-12 opacity-50" aria-hidden="true" />
+                        <i
+                          className="isax isax-sort fs-12 opacity-50"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   </th>
-                  <th className="fw-semibold text-body py-3 text-center" style={{ width: 100 }}>Details</th>
+                  <th
+                    className="fw-semibold text-body py-3 text-center"
+                    style={{ width: 100 }}
+                  >
+                    Details
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedItems.map((row) => (
                   <tr key={row.id}>
                     <td className="py-3 ps-4">
-                      <input type="checkbox" className="form-check-input" aria-label={`Select ${row.word}`} />
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        aria-label={`Select ${row.word}`}
+                      />
                     </td>
                     <td className="py-3 fw-medium text-body">{row.word}</td>
                     <td className="py-3">
@@ -255,8 +314,12 @@ const PotentialMisspellingsSection = ({
                     </td>
                     <td className="py-3">
                       <div className="d-flex flex-column">
-                        <span className="fw-medium text-primary">{row.pages.toLocaleString()}</span>
-                        <span className="text-muted small">{row.pages === 1 ? "PAGE" : "PAGES"}</span>
+                        <span className="fw-medium text-primary">
+                          {row.pages.toLocaleString()}
+                        </span>
+                        <span className="text-muted small">
+                          {row.pages === 1 ? "PAGE" : "PAGES"}
+                        </span>
                       </div>
                     </td>
                     <td className="py-3">
@@ -267,10 +330,12 @@ const PotentialMisspellingsSection = ({
                         onClick={() => onOpenIssue?.(row.id)}
                         aria-label="Open potential misspelling details"
                       >
-                        <i className="isax isax-info-circle fs-18" aria-hidden="true" />
+                        <i
+                          className="isax isax-info-circle fs-18"
+                          aria-hidden="true"
+                        />
                       </button>
                     </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -295,13 +360,16 @@ const PotentialMisspellingsSection = ({
                 ))}
               </select>
               <span className="text-muted small">
-                {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, sortedItems.length)} of{" "}
+                {(currentPage - 1) * rowsPerPage + 1}–
+                {Math.min(currentPage * rowsPerPage, sortedItems.length)} of{" "}
                 {sortedItems.length}
               </span>
             </div>
             <nav aria-label="Potential misspellings pagination">
               <ul className="pagination pagination-sm mb-0 gap-1">
-                <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
@@ -326,11 +394,15 @@ const PotentialMisspellingsSection = ({
                     </li>
                   );
                 })}
-                <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                <li
+                  className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                >
                   <button
                     type="button"
                     className="page-link rounded-2"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage >= totalPages}
                   >
                     Next
@@ -358,7 +430,12 @@ const PotentialMisspellingsSection = ({
             aria-labelledby="confirm-misspelling-modal-title"
             style={{ backgroundColor: "transparent", zIndex: 1050 }}
           >
-            <div className="modal-dialog modal-dialog-centered" role="document" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "420px" }}>
+            <div
+              className="modal-dialog modal-dialog-centered"
+              role="document"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: "420px" }}
+            >
               <div className="modal-content border-0 rounded-3 shadow-lg overflow-hidden position-relative">
                 <button
                   type="button"

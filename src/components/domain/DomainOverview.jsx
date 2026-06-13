@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getDomainsApi, deleteDomainApi, archiveDomainApi, restoreDomainApi, hardDeleteDomainApi } from "../../api/domainApi";
+import {
+  getDomainsApi,
+  deleteDomainApi,
+  archiveDomainApi,
+  restoreDomainApi,
+  hardDeleteDomainApi,
+} from "../../api/domainApi";
 import { ConfirmAlert } from "../common/alerts/ConfirmAlert";
 import { ToastAlert } from "../common/alerts/ToastAlert"; // Assuming ToastAlert is available or I can use alert/toast if I find one
 
@@ -29,13 +35,20 @@ const ExternalLinkIcon = ({ size = 16, className = "" }) => (
 const ScriptSetupDrawer = ({ isOpen, onClose, domain }) => {
   if (!isOpen) return null;
   return (
-    <div className="offcanvas offcanvas-end show" style={{ visibility: "visible" }} tabIndex="-1">
+    <div
+      className="offcanvas offcanvas-end show"
+      style={{ visibility: "visible" }}
+      tabIndex="-1"
+    >
       <div className="offcanvas-header">
         <h5 className="offcanvas-title">Script Setup Guide: {domain?.name}</h5>
         <button type="button" className="btn-close" onClick={onClose}></button>
       </div>
       <div className="offcanvas-body">
-        <p>To start monitoring <strong>{domain?.name}</strong>, add this script to your site's <code>&lt;head&gt;</code> section:</p>
+        <p>
+          To start monitoring <strong>{domain?.name}</strong>, add this script
+          to your site's <code>&lt;head&gt;</code> section:
+        </p>
         <pre className="bg-light p-3 rounded">
           {`<script src="https://app.sitemonitor.com/widget.js" data-id="${domain?.id}"></script>`}
         </pre>
@@ -47,13 +60,22 @@ const ScriptSetupDrawer = ({ isOpen, onClose, domain }) => {
 const ExcludedIpDrawer = ({ isOpen, onClose, domain }) => {
   if (!isOpen) return null;
   return (
-    <div className="offcanvas offcanvas-end show" style={{ visibility: "visible" }} tabIndex="-1">
+    <div
+      className="offcanvas offcanvas-end show"
+      style={{ visibility: "visible" }}
+      tabIndex="-1"
+    >
       <div className="offcanvas-header">
-        <h5 className="offcanvas-title">Excluded IP Addresses: {domain?.name}</h5>
+        <h5 className="offcanvas-title">
+          Excluded IP Addresses: {domain?.name}
+        </h5>
         <button type="button" className="btn-close" onClick={onClose}></button>
       </div>
       <div className="offcanvas-body">
-        <p>Manage excluded IP addresses for <strong>{domain?.name}</strong> to prevent tracking internal traffic.</p>
+        <p>
+          Manage excluded IP addresses for <strong>{domain?.name}</strong> to
+          prevent tracking internal traffic.
+        </p>
         <ul className="list-group">
           <li className="list-group-item">192.168.1.1 (Office)</li>
           <li className="list-group-item">10.0.0.1 (Developer)</li>
@@ -66,7 +88,7 @@ const ExcludedIpDrawer = ({ isOpen, onClose, domain }) => {
 function formatApiDate(dateStr) {
   if (!dateStr) return { month: "N/A", day: "--", year: "----" };
   const date = new Date(dateStr);
-  const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
   const day = date.getDate();
   const year = date.getFullYear();
   return { month, day, year };
@@ -94,7 +116,11 @@ const DomainOverview = () => {
   const fetchDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getDomainsApi(currentPage, rowsPerPage, isArchivedView);
+      const response = await getDomainsApi(
+        currentPage,
+        rowsPerPage,
+        isArchivedView,
+      );
       if (response.success) {
         setDomains(response.data.domains);
         setTotalItems(response.data.pagination.total);
@@ -117,7 +143,9 @@ const DomainOverview = () => {
 
     window.sessionStorage.setItem(SELECTED_DOMAIN_KEY, domainId);
     window.dispatchEvent(
-      new CustomEvent("sitemonitor:select-domain", { detail: { id: domainId } })
+      new CustomEvent("sitemonitor:select-domain", {
+        detail: { id: domainId },
+      }),
     );
     navigate("/domain");
   };
@@ -133,14 +161,18 @@ const DomainOverview = () => {
   };
 
   const startOnDemandScan = async (domain) => {
-    const confirmed = await ConfirmAlert(`Are you sure you want to start an on-demand scan for ${domain.name}?`);
+    const confirmed = await ConfirmAlert(
+      `Are you sure you want to start an on-demand scan for ${domain.name}?`,
+    );
     if (confirmed) {
       setScanningDomainIds((prev) => new Set(prev).add(domain.id));
     }
   };
 
   const handleDeleteDomain = async (domain) => {
-    const confirmed = await ConfirmAlert(`Are you sure you want to remove the domain ${domain.dm_title}? This action cannot be undone.`);
+    const confirmed = await ConfirmAlert(
+      `Are you sure you want to remove the domain ${domain.dm_title}? This action cannot be undone.`,
+    );
     if (confirmed) {
       try {
         const response = await deleteDomainApi(domain.dm_id);
@@ -155,7 +187,9 @@ const DomainOverview = () => {
   };
 
   const handleArchiveDomain = async (domain) => {
-    const confirmed = await ConfirmAlert(`Are you sure you want to archive ${domain.dm_title}?`);
+    const confirmed = await ConfirmAlert(
+      `Are you sure you want to archive ${domain.dm_title}?`,
+    );
     if (confirmed) {
       try {
         const response = await archiveDomainApi(domain.dm_id);
@@ -170,7 +204,9 @@ const DomainOverview = () => {
   };
 
   const handleRestoreDomain = async (domain) => {
-    const confirmed = await ConfirmAlert(`Are you sure you want to restore ${domain.dm_title}?`);
+    const confirmed = await ConfirmAlert(
+      `Are you sure you want to restore ${domain.dm_title}?`,
+    );
     if (confirmed) {
       try {
         const response = await restoreDomainApi(domain.dm_id);
@@ -185,7 +221,9 @@ const DomainOverview = () => {
   };
 
   const handleHardDeleteDomain = async (domain) => {
-    const confirmed = await ConfirmAlert(`Are you sure you want to PERMANENTLY delete ${domain.dm_title}? This cannot be undone.`);
+    const confirmed = await ConfirmAlert(
+      `Are you sure you want to PERMANENTLY delete ${domain.dm_title}? This cannot be undone.`,
+    );
     if (confirmed) {
       try {
         const response = await hardDeleteDomainApi(domain.dm_id);
@@ -205,7 +243,8 @@ const DomainOverview = () => {
         <div>
           <h1 className="domain-overview-title mb-1">Domain Overview</h1>
           <p className="domain-overview-subtitle text-muted mb-0">
-            You have {totalItems} {isArchivedView ? "archived " : ""}domain(s) on your account
+            You have {totalItems} {isArchivedView ? "archived " : ""}domain(s)
+            on your account
           </p>
         </div>
 
@@ -238,7 +277,10 @@ const DomainOverview = () => {
           >
             <i className="isax isax-filter" /> Filter
           </button>
-          <Link to="/home/add-domain" className="btn btn-primary btn-sm d-flex align-items-center gap-2">
+          <Link
+            to="/home/add-domain"
+            className="btn btn-primary btn-sm d-flex align-items-center gap-2"
+          >
             <i className="isax isax-add" /> Add domain
           </Link>
         </div>
@@ -253,21 +295,25 @@ const DomainOverview = () => {
                 <tr>
                   <th className="text-muted fw-medium">Last Scan</th>
                   <th className="text-muted fw-medium">Domain</th>
-                  
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
                     <td colSpan="3" className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status">
+                      <div
+                        className="spinner-border text-primary"
+                        role="status"
+                      >
                         <span className="visually-hidden">Loading...</span>
                       </div>
                     </td>
                   </tr>
                 ) : domains.length > 0 ? (
                   domains.map((domain) => {
-                    const { month, day, year } = formatApiDate(domain.dm_created_at);
+                    const { month, day, year } = formatApiDate(
+                      domain.dm_created_at,
+                    );
                     const domainId = domain._id;
                     const isScanning = scanningDomainIds.has(domainId);
 
@@ -287,7 +333,9 @@ const DomainOverview = () => {
                         <td>
                           <div className="domain-overview-date d-flex flex-column">
                             <span className="fw-medium">{month}</span>
-                            <span className="display-6 lh-1 fw-bold text-body">{day}</span>
+                            <span className="display-6 lh-1 fw-bold text-body">
+                              {day}
+                            </span>
                             <span className="text-muted small">{year}</span>
                           </div>
                         </td>
@@ -295,22 +343,36 @@ const DomainOverview = () => {
                         {/* Domain Info */}
                         <td>
                           <div className="d-flex flex-column gap-1">
-                            <span className="fw-medium text-body">{domain.dm_title}</span>
+                            <span className="fw-medium text-body">
+                              {domain.dm_title}
+                            </span>
                             <a
-                              href={domain.dm_url.startsWith('http') ? domain.dm_url : `https://${domain.dm_url}`}
+                              href={
+                                domain.dm_url.startsWith("http")
+                                  ? domain.dm_url
+                                  : `https://${domain.dm_url}`
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary small text-decoration-none d-inline-flex align-items-center gap-1"
                             >
-                              <ExternalLinkIcon size={12} className="flex-shrink-0 text-primary" />
+                              <ExternalLinkIcon
+                                size={12}
+                                className="flex-shrink-0 text-primary"
+                              />
                               {domain.dm_url}
                             </a>
                           </div>
 
                           {isScanning ? (
                             <div className="mt-2">
-                              <div className="text-muted small mb-1">Scan in progress</div>
-                              <div className="progress rounded-pill" style={{ height: 8 }}>
+                              <div className="text-muted small mb-1">
+                                Scan in progress
+                              </div>
+                              <div
+                                className="progress rounded-pill"
+                                style={{ height: 8 }}
+                              >
                                 <div
                                   className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
                                   role="progressbar"
@@ -324,25 +386,46 @@ const DomainOverview = () => {
                           ) : (
                             <div className="domain-overview-metrics d-flex flex-wrap align-items-center gap-3 mt-2">
                               {/* Dummy metrics as they are not in the provided API response */}
-                              <span className="d-inline-flex align-items-center gap-1 small text-success" title="Issues">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-success"
+                                title="Issues"
+                              >
                                 <i className="isax isax-hammer" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-primary" title="Passed">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-primary"
+                                title="Passed"
+                              >
                                 <i className="isax isax-tick-circle" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-primary" title="Pages">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-primary"
+                                title="Pages"
+                              >
                                 <i className="isax isax-chart-2" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-success" title="Secure">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-success"
+                                title="Secure"
+                              >
                                 <i className="isax isax-lock-1" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-primary" title="Accessibility">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-primary"
+                                title="Accessibility"
+                              >
                                 <i className="isax isax-profile-2user" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-success" title="Documents">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-success"
+                                title="Documents"
+                              >
                                 <i className="isax isax-document-text" /> 0
                               </span>
-                              <span className="d-inline-flex align-items-center gap-1 small text-primary" title="Scanned">
+                              <span
+                                className="d-inline-flex align-items-center gap-1 small text-primary"
+                                title="Scanned"
+                              >
                                 <i className="isax isax-folder" /> 0
                               </span>
                             </div>
@@ -362,8 +445,15 @@ const DomainOverview = () => {
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end">
                               <li>
-                                <Link className="dropdown-item d-flex align-items-center" to="/domain">
-                                  <i className="isax isax-home me-2" aria-hidden="true" /> Go to domain
+                                <Link
+                                  className="dropdown-item d-flex align-items-center"
+                                  to="/domain"
+                                >
+                                  <i
+                                    className="isax isax-home me-2"
+                                    aria-hidden="true"
+                                  />{" "}
+                                  Go to domain
                                 </Link>
                               </li>
                               {/* <li>
@@ -380,7 +470,11 @@ const DomainOverview = () => {
                                   className="dropdown-item d-flex align-items-center"
                                   to={`/home/update-domain/${domain.dm_id}`}
                                 >
-                                  <i className="isax isax-setting-25 me-2" aria-hidden="true" /> Edit domain
+                                  <i
+                                    className="isax isax-setting-25 me-2"
+                                    aria-hidden="true"
+                                  />{" "}
+                                  Edit domain
                                 </Link>
                               </li>
                               {/* <li>
@@ -413,9 +507,19 @@ const DomainOverview = () => {
                                 <button
                                   type="button"
                                   className="dropdown-item d-flex align-items-center text-danger w-100 border-0 bg-transparent text-start"
-                                  onClick={() => isArchivedView ? handleHardDeleteDomain(domain) : handleArchiveDomain(domain)}
+                                  onClick={() =>
+                                    isArchivedView
+                                      ? handleHardDeleteDomain(domain)
+                                      : handleArchiveDomain(domain)
+                                  }
                                 >
-                                  <i className={`isax ${isArchivedView ? "isax-trash" : "isax-archive-add"} me-2`} aria-hidden="true" /> {isArchivedView ? "Hard Delete" : "Archive domain"}
+                                  <i
+                                    className={`isax ${isArchivedView ? "isax-trash" : "isax-archive-add"} me-2`}
+                                    aria-hidden="true"
+                                  />{" "}
+                                  {isArchivedView
+                                    ? "Hard Delete"
+                                    : "Archive domain"}
                                 </button>
                               </li>
                               {isArchivedView && (
@@ -425,7 +529,11 @@ const DomainOverview = () => {
                                     className="dropdown-item d-flex align-items-center text-success w-100 border-0 bg-transparent text-start"
                                     onClick={() => handleRestoreDomain(domain)}
                                   >
-                                    <i className="isax isax-rotate-right me-2" aria-hidden="true" /> Restore domain
+                                    <i
+                                      className="isax isax-rotate-right me-2"
+                                      aria-hidden="true"
+                                    />{" "}
+                                    Restore domain
                                   </button>
                                 </li>
                               )}
@@ -468,14 +576,17 @@ const DomainOverview = () => {
                 </select>
 
                 <span className="text-muted small">
-                  {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, totalItems)} of{" "}
+                  {(currentPage - 1) * rowsPerPage + 1}–
+                  {Math.min(currentPage * rowsPerPage, totalItems)} of{" "}
                   {totalItems}
                 </span>
               </div>
 
               <nav aria-label="Domain list pagination">
                 <ul className="pagination pagination-sm mb-0 gap-1">
-                  <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
@@ -486,23 +597,29 @@ const DomainOverview = () => {
                     </button>
                   </li>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <li key={p} className="page-item">
-                      <button
-                        type="button"
-                        className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
-                        onClick={() => setCurrentPage(p)}
-                      >
-                        {p}
-                      </button>
-                    </li>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
+                      <li key={p} className="page-item">
+                        <button
+                          type="button"
+                          className={`page-link rounded-2 ${currentPage === p ? "active" : ""}`}
+                          onClick={() => setCurrentPage(p)}
+                        >
+                          {p}
+                        </button>
+                      </li>
+                    ),
+                  )}
 
-                  <li className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}>
+                  <li
+                    className={`page-item ${currentPage >= totalPages ? "disabled" : ""}`}
+                  >
                     <button
                       type="button"
                       className="page-link rounded-2"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage >= totalPages}
                     >
                       Next
@@ -514,7 +631,6 @@ const DomainOverview = () => {
           )}
         </div>
       </div>
-
 
       {/* Drawers */}
       <ScriptSetupDrawer
