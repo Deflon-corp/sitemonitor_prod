@@ -160,6 +160,17 @@ const SeoSummaryView = () => {
 
   const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
+  const sortedIssues = React.useMemo(() => {
+    if (!summary || !summary.topIssues) return [];
+    const priorityOrder = { high: 1, medium: 2, low: 3 };
+    return [...summary.topIssues].sort((a, b) => {
+      const pA = priorityOrder[a.priority] || 4;
+      const pB = priorityOrder[b.priority] || 4;
+      if (pA !== pB) return pA - pB;
+      return (b.count || 0) - (a.count || 0);
+    });
+  }, [summary]);
+
   const fetchSummary = useCallback(
     async (showLoading = true) => {
       if (!domainId) return;
@@ -428,7 +439,7 @@ const SeoSummaryView = () => {
                 visibility.
               </p>
               <div className="d-flex flex-column gap-3">
-                {(summary.topIssues || []).slice(0, 10).map((item) => (
+                {sortedIssues.slice(0, 10).map((item) => (
                   <div
                     key={item.message}
                     className="d-flex align-items-center gap-2 cursor-pointer p-2 rounded hover-bg-light transition-all"
@@ -468,9 +479,15 @@ const SeoSummaryView = () => {
                         style={{ height: 8 }}
                       >
                         <div
-                          className="progress-bar bg-warning"
+                          className="progress-bar"
                           style={{
                             width: `${maxCount > 0 ? (item.count / maxCount) * 100 : 0}%`,
+                            backgroundColor:
+                              item.priority === "high"
+                                ? "#dc3545"
+                                : item.priority === "medium"
+                                  ? "#fd7e14"
+                                  : "#0d6efd",
                           }}
                           role="progressbar"
                         />

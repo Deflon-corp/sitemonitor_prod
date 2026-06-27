@@ -18,7 +18,7 @@ const CONFIG_OPTIONS = [
   {
     key: "measure-from",
     label: "Measure from",
-    value: "Australia: Sydney",
+    value: "India: Mumbai",
     icon: "isax-location",
   },
   {
@@ -27,19 +27,12 @@ const CONFIG_OPTIONS = [
     value: "Custom Profile",
     icon: "isax-wifi-square",
   },
-  {
-    key: "frequency",
-    label: "Check frequency",
-    value: "No Frequency",
-    icon: "isax-refresh",
-  },
 ];
 
 const MEASUREMENT_BAR_OPTIONS = [
   { label: "Device", value: "Desktop", icon: "isax-monitor" },
-  { label: "Measure from", value: "Australia: Sydney", icon: "isax-location" },
+  { label: "Measure from", value: "India: Mumbai", icon: "isax-location" },
   { label: "Network speed", value: "Custom Profile", icon: "isax-wifi-square" },
-  { label: "Check frequency", value: "Once a week", icon: "isax-refresh" },
 ];
 
 const getCoreWebVitals = (page) => {
@@ -97,9 +90,8 @@ const PERFORMANCE_REPORT_ROWS = [
   { metric: "Checks to fix", value: "73" },
   { metric: "Profile", value: "Desktop cable" },
   { metric: "Device", value: "Desktop" },
-  { metric: "Measure from", value: "Australia: Sydney" },
+  { metric: "Measure from", value: "India: Mumbai" },
   { metric: "Network speed", value: "Custom Profile" },
-  { metric: "Check frequency", value: "No Frequency" },
 ];
 
 const PerformanceScoreCard = ({ page }) => {

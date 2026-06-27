@@ -303,12 +303,7 @@ export default function UserList() {
               </ul>
             </div>
 
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
-            >
-              <i className="isax isax-filter"></i> Filter
-            </button>
+
 
             <div
               className="input-group input-group-sm"

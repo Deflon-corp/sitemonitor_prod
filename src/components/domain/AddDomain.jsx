@@ -283,20 +283,9 @@ const AddDomain = () => {
                 <i className="isax isax-global text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Domain Details</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenDomainDetails((v) => !v)}
-                aria-expanded={openDomainDetails}
-              >
-                <i
-                  className={`isax ${openDomainDetails ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openDomainDetails && (
-              <div id="domain-details">
+            <div id="domain-details">
                 <div className="card-body pt-0 px-4 pb-4">
                   <div className="mb-3">
                     <label className="form-label">
@@ -337,7 +326,6 @@ const AddDomain = () => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
 
           {/* Scan & Crawl */}
@@ -347,20 +335,9 @@ const AddDomain = () => {
                 <i className="isax isax-document-text text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Scan &amp; Crawl</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenScanCrawl((v) => !v)}
-                aria-expanded={openScanCrawl}
-              >
-                <i
-                  className={`isax ${openScanCrawl ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openScanCrawl && (
-              <div id="scan-crawl">
+            <div id="scan-crawl">
                 <div className="card-body pt-0 px-4 pb-4">
                   <div className="d-flex align-items-center justify-content-between mb-3">
                     <label className="form-label mb-0">
@@ -507,7 +484,6 @@ const AddDomain = () => {
                   ))}
                 </div>
               </div>
-            )}
           </div>
         </div>
 
@@ -520,20 +496,9 @@ const AddDomain = () => {
                 <i className="isax isax-category-2 text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Features</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenFeatures((v) => !v)}
-                aria-expanded={openFeatures}
-              >
-                <i
-                  className={`isax ${openFeatures ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openFeatures && (
-              <div id="features">
+            <div id="features">
                 <div className="card-body pt-0 px-4 pb-4">
                   {/* Accessibility, Readability, etc. */}
                   <div className="mb-3">
@@ -576,7 +541,6 @@ const AddDomain = () => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
 
           {/* Advanced Domain Options */}
@@ -586,20 +550,9 @@ const AddDomain = () => {
                 <i className="isax isax-setting-2 text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Advanced Domain Options</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenAdvanced((v) => !v)}
-                aria-expanded={openAdvanced}
-              >
-                <i
-                  className={`isax ${openAdvanced ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openAdvanced && (
-              <div id="advanced-options">
+            <div id="advanced-options">
                 <div className="card-body pt-0 px-4 pb-4">
                   {/* Path Constraints */}
                   <div className="mb-3">
@@ -849,7 +802,6 @@ const AddDomain = () => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
         </div>
       </div>

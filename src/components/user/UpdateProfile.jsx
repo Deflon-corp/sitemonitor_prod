@@ -317,20 +317,9 @@ const UpdateProfile = ({ isEditMode = true }) => {
                 <i className="isax isax-profile-2user text-primary"></i>
                 <h5 className="mb-0 fw-semibold">User information</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenDetails((v) => !v)}
-                aria-expanded={openDetails}
-              >
-                <i
-                  className={`isax ${openDetails ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openDetails && (
-              <div id="user-details">
+            <div id="user-details">
                 <div className="card-body pt-0 px-4 pb-4">
                   <div className="row g-3 mb-3">
                     <div className="col-md-6">
@@ -543,7 +532,6 @@ const UpdateProfile = ({ isEditMode = true }) => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
         </div>
 
@@ -556,20 +544,9 @@ const UpdateProfile = ({ isEditMode = true }) => {
                 <i className="isax isax-setting-2 text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Permissions</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenPermissions((v) => !v)}
-                aria-expanded={openPermissions}
-              >
-                <i
-                  className={`isax ${openPermissions ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openPermissions && (
-              <div id="permissions-notes">
+            <div id="permissions-notes">
                 <div className="card-body pt-0 px-4 pb-4">
                   <div className="add-user-permission-section">
                     <div className="row g-0">
@@ -755,7 +732,6 @@ const UpdateProfile = ({ isEditMode = true }) => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
         </div>
       </div>
@@ -769,20 +745,9 @@ const UpdateProfile = ({ isEditMode = true }) => {
                 <i className="isax isax-global text-primary"></i>
                 <h5 className="mb-0 fw-semibold">Domains</h5>
               </div>
-              <button
-                className="btn btn-link btn-sm p-0 text-muted"
-                type="button"
-                onClick={() => setOpenDomains((v) => !v)}
-                aria-expanded={openDomains}
-              >
-                <i
-                  className={`isax ${openDomains ? "isax-arrow-up-1" : "isax-arrow-down-1"}`}
-                ></i>
-              </button>
             </div>
 
-            {openDomains && (
-              <div id="domains-section">
+            <div id="domains-section">
                 <div className="card-body pt-0 px-4 pb-4">
                   <h6 className="fw-semibold text-body text-muted mb-3">
                     Domains
@@ -887,7 +852,6 @@ const UpdateProfile = ({ isEditMode = true }) => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
         </div>
       </div>

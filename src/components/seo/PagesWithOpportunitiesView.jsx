@@ -188,7 +188,7 @@ const PagesWithOpportunitiesView = () => {
             We've identified {totalCount} pages that could rank higher with some
             SEO improvements.
             {domain?.dm_seo_status === "scanning" ||
-            domain?.dm_seo_status === "pending" ? (
+              domain?.dm_seo_status === "pending" ? (
               <span className="badge rounded-pill bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-2 py-1 px-2">
                 <span
                   className="spinner-border spinner-border-sm"
@@ -249,7 +249,7 @@ const PagesWithOpportunitiesView = () => {
                 </div>
               </div>
             ) : (domain?.dm_seo_status === "pending" ||
-                domain?.dm_seo_status === "scanning") &&
+              domain?.dm_seo_status === "scanning") &&
               pages.length === 0 ? (
               <div className="text-center p-5">
                 <div className="mb-4">
@@ -369,13 +369,12 @@ const PagesWithOpportunitiesView = () => {
                       </td>
                       <td className="py-3">
                         <span
-                          className={`badge rounded-pill ${
-                            p.priority === "High"
+                          className={`badge rounded-pill ${p.priority === "High"
                               ? "bg-danger bg-opacity-10 text-danger"
                               : p.priority === "Medium"
                                 ? "bg-warning bg-opacity-10 text-warning"
                                 : "bg-secondary bg-opacity-10 text-secondary"
-                          }`}
+                            }`}
                         >
                           {p.priority}
                         </span>

@@ -221,18 +221,18 @@ export default function InventoryPage() {
   // Map scanStatus counts to old format compatible with InventorySummaryView
   const summaryDataMapped = scanStatus
     ? {
-        htmlPages: scanStatus.totalPages || 0,
-        documents: scanStatus.totalDocuments || 0,
-        images: scanStatus.totalImages || 0,
-        css: scanStatus.totalCss || 0,
-        js: scanStatus.totalJs || 0,
-        frames: 0,
-        iframes: 0,
-        links: 0,
-        emails: scanStatus.totalEmails || 0,
-        headlinks: scanStatus.totalHeadlinks || 0,
-        history: scanStatus.history || [],
-      }
+      htmlPages: scanStatus.totalPages || 0,
+      documents: scanStatus.totalDocuments || 0,
+      images: scanStatus.totalImages || 0,
+      css: scanStatus.totalCss || 0,
+      js: scanStatus.totalJs || 0,
+      frames: 0,
+      iframes: 0,
+      links: 0,
+      emails: scanStatus.totalEmails || 0,
+      headlinks: scanStatus.totalHeadlinks || 0,
+      history: scanStatus.history || [],
+    }
     : null;
 
   const supportedDetailViews = [
@@ -285,97 +285,97 @@ export default function InventoryPage() {
           }
           {
             scanStatus &&
-              (scanStatus.status === "pending" ||
-                scanStatus.status === "scanning" ||
-                isScanning) && (
-                <div
-                  className="card mb-4 border border-primary border-opacity-25 rounded-3 shadow-sm animate__animated animate__fadeIn"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.7)",
-                    backdropFilter: "blur(8px)",
-                    backgroundImage:
-                      "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%)",
-                  }}
-                >
-                  <div className="card-body p-4">
-                    {
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="spinner-grow spinner-grow-sm text-primary" />
-                          <div>
-                            <h6 className="fw-semibold text-primary mb-1">
-                              Recursive Site Crawl In Progress
-                            </h6>
-                            <p className="text-muted fs-13 mb-0">
-                              {`Scanned ${scanStatus.totalPages || 0} pages recursively. Collecting images, code snippets, emails, and head links.`}
-                            </p>
-                          </div>
+            (scanStatus.status === "pending" ||
+              scanStatus.status === "scanning" ||
+              isScanning) && (
+              <div
+                className="card mb-4 border border-primary border-opacity-25 rounded-3 shadow-sm animate__animated animate__fadeIn"
+                style={{
+                  background: "rgba(255, 255, 255, 0.7)",
+                  backdropFilter: "blur(8px)",
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%)",
+                }}
+              >
+                <div className="card-body p-4">
+                  {
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <div className="d-flex align-items-center gap-3">
+                        <span className="spinner-grow spinner-grow-sm text-primary" />
+                        <div>
+                          <h6 className="fw-semibold text-primary mb-1">
+                            Recursive Site Crawl In Progress
+                          </h6>
+                          <p className="text-muted fs-13 mb-0">
+                            {`Scanned ${scanStatus.totalPages || 0} pages recursively. Collecting images, code snippets, emails, and head links.`}
+                          </p>
                         </div>
-                        <span className="badge bg-primary fs-14 fw-bold py-2 px-3 rounded-pill">
-                          {`${progressPercent}%`}
-                        </span>
                       </div>
+                      <span className="badge bg-primary fs-14 fw-bold py-2 px-3 rounded-pill">
+                        {`${progressPercent}%`}
+                      </span>
+                    </div>
 
-                      /* Progress Bar */
-                    }
-                    {
+                    /* Progress Bar */
+                  }
+                  {
+                    <div
+                      className="progress mb-3"
+                      style={{ height: 10, borderRadius: 5 }}
+                    >
                       <div
-                        className="progress mb-3"
-                        style={{ height: 10, borderRadius: 5 }}
-                      >
-                        <div
-                          className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                          role="progressbar"
-                          style={{ width: `${progressPercent}%` }}
-                          aria-valuenow={progressPercent}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        />
-                      </div>
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                        role="progressbar"
+                        style={{ width: `${progressPercent}%` }}
+                        aria-valuenow={progressPercent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      />
+                    </div>
 
-                      /* Counts Summary */
-                    }
-                    <div className="d-flex flex-wrap gap-4 mt-3">
-                      <div className="small text-muted">
-                        {"Pages Crawled: "}
-                        <strong className="text-body">
-                          {scanStatus.totalPages || 0}
-                        </strong>
-                      </div>
-                      <div className="small text-muted">
-                        {"Images: "}
-                        <strong className="text-body">
-                          {scanStatus.totalImages || 0}
-                        </strong>
-                      </div>
-                      <div className="small text-muted">
-                        {"Stylesheets: "}
-                        <strong className="text-body">
-                          {scanStatus.totalCss || 0}
-                        </strong>
-                      </div>
-                      <div className="small text-muted">
-                        {"JS Files: "}
-                        <strong className="text-body">
-                          {scanStatus.totalJs || 0}
-                        </strong>
-                      </div>
-                      <div className="small text-muted">
-                        {"Documents: "}
-                        <strong className="text-body">
-                          {scanStatus.totalDocuments || 0}
-                        </strong>
-                      </div>
-                      <div className="small text-muted">
-                        {"Emails: "}
-                        <strong className="text-body">
-                          {scanStatus.totalEmails || 0}
-                        </strong>
-                      </div>
+                    /* Counts Summary */
+                  }
+                  <div className="d-flex flex-wrap gap-4 mt-3">
+                    <div className="small text-muted">
+                      {"Pages Crawled: "}
+                      <strong className="text-body">
+                        {scanStatus.totalPages || 0}
+                      </strong>
+                    </div>
+                    <div className="small text-muted">
+                      {"Images: "}
+                      <strong className="text-body">
+                        {scanStatus.totalImages || 0}
+                      </strong>
+                    </div>
+                    <div className="small text-muted">
+                      {"Stylesheets: "}
+                      <strong className="text-body">
+                        {scanStatus.totalCss || 0}
+                      </strong>
+                    </div>
+                    <div className="small text-muted">
+                      {"JS Files: "}
+                      <strong className="text-body">
+                        {scanStatus.totalJs || 0}
+                      </strong>
+                    </div>
+                    <div className="small text-muted">
+                      {"Documents: "}
+                      <strong className="text-body">
+                        {scanStatus.totalDocuments || 0}
+                      </strong>
+                    </div>
+                    <div className="small text-muted">
+                      {"Emails: "}
+                      <strong className="text-body">
+                        {scanStatus.totalEmails || 0}
+                      </strong>
                     </div>
                   </div>
                 </div>
-              )
+              </div>
+            )
             /* Navigation Tabs */
           }
           {

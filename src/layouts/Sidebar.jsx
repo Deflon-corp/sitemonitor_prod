@@ -161,16 +161,12 @@ export default function Sidebar() {
                   to="/"
                   className="logo logo-normal d-flex align-items-center"
                 >
-                  <span
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: "700",
-                      color: "#2c496e",
-                      letterSpacing: "-0.5px",
-                    }}
-                  >
-                    Sitemonitor
-                  </span>
+                  <img
+                    src="/assets/images/logo-dark.jpeg"
+                    alt="Sitemonitor Logo"
+                    className="img-fluid"
+                    style={{ maxHeight: "32px", objectFit: "contain" }}
+                  />
                 </Link>
                 {/* <Link to="/" className="logo-small d-flex align-items-center justify-content-center">
                                     <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#343a40" }}>S</span>
@@ -181,9 +177,9 @@ export default function Sidebar() {
                                 <Link to="/" className="dark-small d-flex align-items-center justify-content-center">
                                     <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#fff" }}>S</span>
                                 </Link> */}
-                <a href="#" id="toggle_btn">
+                {/* <a href="#" id="toggle_btn">
                   <i className="isax isax-menu-1"></i>
-                </a>
+                </a> */}
               </div>
             </div>
             <div className="sidebar-inner" data-simplebar="">
@@ -244,16 +240,12 @@ export default function Sidebar() {
                 to="/"
                 className="logo logo-normal d-flex align-items-center"
               >
-                <span
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: "700",
-                    color: "#2c496e",
-                    letterSpacing: "-0.5px",
-                  }}
-                >
-                  Sitemonitor
-                </span>
+                <img
+                  src="/assets/images/logo-dark.jpeg"
+                  alt="Sitemonitor Logo"
+                  className="img-fluid"
+                  style={{ maxHeight: "32px", objectFit: "contain" }}
+                />
               </Link>
               {/* <Link to="/" className="logo-small d-flex align-items-center justify-content-center">
                                 <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#343a40" }}>S</span>
@@ -264,9 +256,9 @@ export default function Sidebar() {
                             <Link to="/" className="dark-small d-flex align-items-center justify-content-center">
                                 <span style={{ fontSize: "1.2rem", fontWeight: "800", color: "#fff" }}>S</span>
                             </Link> */}
-              <a href="#" id="toggle_btn">
+              {/* <a href="#" id="toggle_btn">
                 <i className="isax isax-menu-1"></i>
-              </a>
+              </a> */}
             </div>
             <div className="sidebar-search">
               <div className="input-icon-end position-relative">
@@ -307,6 +299,15 @@ export default function Sidebar() {
                   })()}
                 <ul>
                   {/* <li className="menu-title"><span>Main</span></li> */}
+                  <li>
+                    <Link
+                      to="/domain"
+                      className={pathname === "/domain" ? "active" : ""}
+                    >
+                      <i className="isax isax-grid-5" aria-hidden />
+                      <span className="text-truncate">Dashboard</span>
+                    </Link>
+                  </li>
                   <li className="submenu">
                     <a
                       href="#"

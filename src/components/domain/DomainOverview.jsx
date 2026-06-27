@@ -271,12 +271,6 @@ const DomainOverview = () => {
               Archived
             </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
-          >
-            <i className="isax isax-filter" /> Filter
-          </button>
           <Link
             to="/home/add-domain"
             className="btn btn-primary btn-sm d-flex align-items-center gap-2"
