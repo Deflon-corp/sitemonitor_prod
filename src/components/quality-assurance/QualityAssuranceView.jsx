@@ -370,6 +370,8 @@ export default function QualityAssuranceView() {
   const fetchSummary = React.useCallback(async () => {
     if (!domainId) return;
     setIsLoading(true);
+    setQaSummary(null);
+    setDomain(null);
     try {
       const [qaRes, domainRes] = await Promise.all([
         getQaSummaryApi(domainId),
@@ -467,6 +469,16 @@ export default function QualityAssuranceView() {
   }, [qaSummary]);
   const totalIssues = qaSummary?.totalQaIssues ?? 0;
   const contentWithIssues = qaSummary?.contentWithQaErrors ?? 0;
+  if (isLoading) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center border-0 shadow-sm rounded bg-white my-4 p-5" style={{ minHeight: "350px" }}>
+        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <h5 className="mt-3 text-muted">Loading QA statistics...</h5>
+      </div>
+    );
+  }
   const totalPages = qaSummary?.totalPagesScanned ?? 0;
 
   return (
@@ -581,35 +593,6 @@ export default function QualityAssuranceView() {
                 );
               })}
             </nav>
-            <div className="d-flex flex-shrink-0 align-items-center gap-2">
-              <button
-                type="button"
-                className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
-                disabled={!domainId || isScanning}
-                onClick={() => runQaScan()}
-                title={
-                  !domainId
-                    ? "Select a domain first"
-                    : "Run QA scan only (broken links, images, spellcheck, readability)"
-                }
-              >
-                {isScanning ? (
-                  <>
-                    <span
-                      className="spinner-border spinner-border-sm"
-                      role="status"
-                      aria-hidden="true"
-                    />
-                    QA scan in progress…
-                  </>
-                ) : (
-                  <>
-                    <i className="isax isax-refresh-2" aria-hidden="true" />
-                    Run QA scan
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         </div>
       </div>

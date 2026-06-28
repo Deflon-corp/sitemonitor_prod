@@ -88,7 +88,7 @@ const PolicyListTableRow = ({
             aria-expanded="false"
             aria-label="Policy actions"
           >
-            <i className="isax isax-more" aria-hidden="true" />
+            <i className="bi bi-three-dots-vertical" aria-hidden="true" />
           </button>
           <ul className="dropdown-menu dropdown-menu-end">
             <li>
@@ -97,16 +97,8 @@ const PolicyListTableRow = ({
                 className="dropdown-item"
                 onClick={() => onEdit && onEdit(row.id)}
               >
+                <i className="bi bi-pencil me-2" />
                 Edit policy
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className="dropdown-item"
-                onClick={() => onView && onView(row.id)}
-              >
-                View details
               </button>
             </li>
             <li>
@@ -115,6 +107,7 @@ const PolicyListTableRow = ({
                 className="dropdown-item"
                 onClick={() => onViewHits && onViewHits(row)}
               >
+                <i className="bi bi-eye me-2" />
                 View hits
               </button>
             </li>
@@ -124,6 +117,7 @@ const PolicyListTableRow = ({
                 className="dropdown-item"
                 onClick={() => onDuplicate && onDuplicate(row.id)}
               >
+                <i className="bi bi-files me-2" />
                 Duplicate
               </button>
             </li>
@@ -136,6 +130,7 @@ const PolicyListTableRow = ({
                 className="dropdown-item text-danger"
                 onClick={() => onDelete && onDelete(row.id)}
               >
+                <i className="bi bi-trash text-danger me-2" />
                 Delete
               </button>
             </li>

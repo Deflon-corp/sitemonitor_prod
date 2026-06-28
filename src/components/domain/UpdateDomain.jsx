@@ -12,6 +12,7 @@ const UpdateDomain = () => {
   const [crawlAuto, setCrawlAuto] = useState(false);
   const [connectionsPerMin, setConnectionsPerMin] = useState("normal");
   const [maxScannedPages, setMaxScannedPages] = useState("");
+  const [customUrlsText, setCustomUrlsText] = useState("");
   const [scanSubdomains, setScanSubdomains] = useState(true);
   const [spellingIgnoreCaps, setSpellingIgnoreCaps] = useState(false);
   const [caseSensitiveUrls, setCaseSensitiveUrls] = useState(true);
@@ -59,6 +60,7 @@ const UpdateDomain = () => {
           setCrawlAuto(data.dm_crawl_auto || false);
           setConnectionsPerMin(data.dm_connections_per_min || "normal");
           setMaxScannedPages(data.dm_max_scanned_pages?.toString() || "");
+          setCustomUrlsText(data.dm_custom_urls ? data.dm_custom_urls.join("\n") : "");
           setScanSubdomains(data.dm_scan_subdomains ?? true);
           setSpellingIgnoreCaps(data.dm_spelling_ignore_caps || false);
           setCaseSensitiveUrls(data.dm_case_sensitive_urls ?? true);
@@ -161,13 +163,16 @@ const UpdateDomain = () => {
     }
 
     // URL validation
+    let hostNorm = "";
     if (!url.trim()) {
       newErrors.url = "URL is required";
     } else {
       try {
-        const parsedUrl = new URL(url);
+        const parsedUrl = new URL(url.startsWith("http") ? url.trim() : `https://${url.trim()}`);
         if (!["http:", "https:"].includes(parsedUrl.protocol)) {
           newErrors.url = "URL must start with http:// or https://";
+        } else {
+          hostNorm = parsedUrl.hostname.replace(/^www\./, "").toLowerCase();
         }
       } catch (err) {
         newErrors.url = "Please enter a valid URL (e.g., https://example.com)";
@@ -180,6 +185,32 @@ const UpdateDomain = () => {
       (isNaN(maxScannedPages) || Number(maxScannedPages) < 0)
     ) {
       newErrors.maxScannedPages = "Must be a non-negative number";
+    }
+
+    // Custom scan URLs validation
+    if (customUrlsText.trim()) {
+      const urls = customUrlsText.split("\n").map(u => u.trim()).filter(Boolean);
+      if (urls.length > 10) {
+        newErrors.customUrls = "You can add a maximum of 10 custom URLs";
+      } else {
+        for (const u of urls) {
+          try {
+            const parsedUrl = new URL(u);
+            if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+              newErrors.customUrls = "All custom URLs must start with http:// or https://";
+              break;
+            }
+            const customHost = parsedUrl.hostname.replace(/^www\./, "").toLowerCase();
+            if (hostNorm && customHost !== hostNorm && !customHost.endsWith("." + hostNorm)) {
+              newErrors.customUrls = `Custom URL "${u}" does not match the domain ${hostNorm}`;
+              break;
+            }
+          } catch (err) {
+            newErrors.customUrls = `Invalid URL: "${u}". Please enter valid absolute URLs.`;
+            break;
+          }
+        }
+      }
     }
 
     // Scan frequency validation
@@ -207,6 +238,7 @@ const UpdateDomain = () => {
     setIsLoading(true);
 
     try {
+      const dm_custom_urls = customUrlsText.split("\n").map(u => u.trim()).filter(Boolean);
       const payload = {
         dm_id: Number(dm_id),
         dm_title: title,
@@ -221,6 +253,7 @@ const UpdateDomain = () => {
         dm_mark_403_as_broken: mark403AsBroken,
         dm_ignore_canonical_urls: ignoreCanonicalUrls,
         dm_use_language_attribute: useLanguageAttribute,
+        dm_custom_urls,
         dm_path_constraints: pathConstraints,
         dm_exclude_patterns: excludePatterns,
         dm_internal_urls: internalUrls.map((item) => ({
@@ -415,6 +448,26 @@ const UpdateDomain = () => {
                     {errors.maxScannedPages && (
                       <div className="invalid-feedback">
                         {errors.maxScannedPages}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Custom Scan URLs (optional, max 10, one per line)</label>
+                    <textarea
+                      className={`form-control ${errors.customUrls ? "is-invalid" : ""}`}
+                      placeholder="e.g.&#10;https://example.com/page1&#10;https://example.com/page2"
+                      value={customUrlsText}
+                      onChange={(e) => {
+                        setCustomUrlsText(e.target.value);
+                        if (errors.customUrls)
+                          setErrors({ ...errors, customUrls: "" });
+                      }}
+                      rows={4}
+                    />
+                    {errors.customUrls && (
+                      <div className="invalid-feedback d-block">
+                        {errors.customUrls}
                       </div>
                     )}
                   </div>

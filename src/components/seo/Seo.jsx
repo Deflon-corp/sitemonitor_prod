@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import SeoSummaryView from "./SeoSummaryView";
 import PagesWithOpportunitiesView from "./PagesWithOpportunitiesView";
 import SeoCheckpointsView from "./SeoCheckpointsView";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
+import { getDomainByIdApi, triggerDomainScanApi } from "../../api/domainApi";
+import toast from "react-hot-toast";
 
 const SEO_NAV = [
   {
@@ -31,9 +34,90 @@ const SEO_NAV = [
 const Seo = () => {
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
+  const [isScanning, setIsScanning] = useState(false);
+  const [domain, setDomain] = useState(null);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const checkStatus = useCallback(async () => {
+    if (!domainId) return;
+    try {
+      const res = await getDomainByIdApi(domainId);
+      if (res.success && res.data) {
+        setDomain(res.data);
+        setIsScanning(
+          res.data.dm_seo_status === "pending" ||
+          res.data.dm_seo_status === "scanning"
+        );
+      }
+    } catch (err) {
+      console.error("Error checking domain status in SEO:", err);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  useEffect(() => {
+    let interval;
+    if (isScanning && domainId) {
+      interval = setInterval(checkStatus, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isScanning, domainId, checkStatus]);
+
+  const handleTriggerScan = async () => {
+    if (!domainId) return;
+    setIsScanning(true);
+    try {
+      const res = await triggerDomainScanApi(domainId);
+      if (res.success) {
+        toast.success("SEO scan triggered successfully!");
+        setDomain((prev) =>
+          prev ? { ...prev, dm_seo_status: "pending" } : null,
+        );
+      }
+    } catch (err) {
+      console.error("Failed to trigger scan", err);
+      toast.error("Failed to trigger SEO scan");
+      setIsScanning(false);
+    }
+  };
 
   return (
     <div className="seo-page">
+      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <h6 className="mb-0 fs-18 fw-semibold text-body">SEO</h6>
+        {domainId && (
+          <button
+            type="button"
+            className="btn btn-success d-inline-flex align-items-center gap-2 shadow-sm"
+            disabled={isScanning}
+            onClick={handleTriggerScan}
+            title="Trigger manual SEO scan"
+          >
+            {isScanning ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <i className="isax isax-chart-215 fs-16" aria-hidden="true" />
+                Scan New SEO
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body py-3">
           <nav

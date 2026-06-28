@@ -443,6 +443,9 @@ const PolicyListView = ({
                   <th className="py-3 text-body fs-13 fw-semibold">
                     Policy Hits
                   </th>
+                  <th className="py-3 pe-4 text-body fs-13 fw-semibold text-end">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -567,7 +570,7 @@ const PolicyListView = ({
                             aria-expanded="false"
                             aria-label="Policy actions"
                           >
-                            <i className="isax isax-more" aria-hidden="true" />
+                            <i className="bi bi-three-dots-vertical" aria-hidden="true" />
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end">
                             <li>
@@ -578,6 +581,7 @@ const PolicyListView = ({
                                   onEditPolicy && onEditPolicy(row.id)
                                 }
                               >
+                                <i className="bi bi-pencil me-2" />
                                 Edit policy
                               </button>
                             </li>
@@ -590,18 +594,8 @@ const PolicyListView = ({
                                   setHitsDrawerOpen(true);
                                 }}
                               >
+                                <i className="bi bi-eye me-2" />
                                 View hits
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                type="button"
-                                className="dropdown-item"
-                                onClick={() =>
-                                  onViewPolicy && onViewPolicy(row.id)
-                                }
-                              >
-                                View details
                               </button>
                             </li>
                             <li>
@@ -610,6 +604,7 @@ const PolicyListView = ({
                                 className="dropdown-item"
                                 onClick={() => handleDuplicate(row.id)}
                               >
+                                <i className="bi bi-files me-2" />
                                 Duplicate
                               </button>
                             </li>
@@ -622,6 +617,7 @@ const PolicyListView = ({
                                 className="dropdown-item text-danger"
                                 onClick={() => handleDelete(row.id)}
                               >
+                                <i className="bi bi-trash text-danger me-2" />
                                 Delete
                               </button>
                             </li>

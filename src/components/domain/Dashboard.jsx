@@ -54,6 +54,47 @@ const Dashboard = () => {
     });
   };
 
+  const getFriendlyError = (err) => {
+    if (!err) {
+      return (
+        <>
+          The domain <strong>{domainData?.dm_url}</strong> could not be reached
+          during the last scan. Please check if the domain is live and accessible.
+        </>
+      );
+    }
+    const lower = err.toLowerCase();
+    if (/ssl|cert|handshake|expired|unverified/i.test(lower)) {
+      return "The domain's SSL certificate is invalid, expired, or could not be verified. Please check your SSL configuration.";
+    }
+    if (lower.includes("err_name_not_resolved")) {
+      return "The domain name could not be resolved. Please verify that the domain name is correct and its DNS settings are active.";
+    }
+    if (lower.includes("err_connection_refused")) {
+      return "The server refused the connection. Please check if your web server is running and accepting connections.";
+    }
+    if (lower.includes("timeout") || lower.includes("err_connection_timed_out")) {
+      return "The connection timed out. Please check if your server is slow, overloaded, or blocking traffic.";
+    }
+    if (
+      lower.includes("is not defined") ||
+      lower.includes("referenceerror") ||
+      lower.includes("typeerror") ||
+      lower.includes("syntaxerror") ||
+      lower.includes("cannot read property") ||
+      lower.includes("mongodb") ||
+      lower.includes("database")
+    ) {
+      return "An internal system error occurred during the scan. Please try again or contact support if the issue persists.";
+    }
+    return (
+      <>
+        The domain <strong>{domainData?.dm_url}</strong> could not be reached
+        during the last scan. Please check if the domain is live and accessible.
+      </>
+    );
+  };
+
   const calculateDashArray = (percentage) => {
     const radius = 62;
     const circumference = 389; // Approx 2 * PI * 62
@@ -137,7 +178,13 @@ const Dashboard = () => {
     let selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
     try {
-      if (!isRefresh) setIsLoading(true);
+      if (!isRefresh) {
+        setIsLoading(true);
+        // Clear previous state to prevent flashing wrong data
+        setScanHistory([]);
+        setLatestSummary(null);
+        setPolicyStats(null);
+      }
       const response = await getDomainsApi(1, 100);
 
       if (response && response.success && response.data?.domains) {
@@ -151,7 +198,7 @@ const Dashboard = () => {
           const domain = domains.find((d) => d._id === selectedId);
           setDomainData(domain);
           if (domain) {
-            fetchScanData(domain.dm_id, domain._id);
+            await fetchScanData(domain.dm_id, domain._id);
           }
         }
       }
@@ -204,7 +251,38 @@ const Dashboard = () => {
         <div>
           <h6>Dashboard</h6>
         </div>
-        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2"></div>
+        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
+          {domainData && (
+            <button
+              type="button"
+              className="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm"
+              onClick={handleStartScan}
+              disabled={
+                isScanning ||
+                domainData?.dm_seo_status === "scanning" ||
+                domainData?.dm_seo_status === "pending"
+              }
+            >
+              {isScanning ||
+                domainData?.dm_seo_status === "scanning" ||
+                domainData?.dm_seo_status === "pending" ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-arrow-clockwise fs-16" aria-hidden="true" />
+                  Scan New Domain
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Welcome Banner */}
@@ -259,537 +337,552 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {domainData?.dm_seo_status === "failed" && (
-        <div
-          className="alert alert-danger d-flex align-items-center gap-3 mb-4 border-0 shadow-sm"
-          role="alert"
-        >
-          <i className="isax isax-danger fs-22"></i>
-          <div>
-            <h6 className="alert-heading mb-1">Last Scan Failed</h6>
-            <p className="mb-0 fs-13">
-              The domain <strong>{domainData.dm_url}</strong> could not be
-              reached during the last scan. Please check if the domain is live
-              and accessible.
-            </p>
+      {isLoading ? (
+        <div className="d-flex flex-column align-items-center justify-content-center border-0 shadow-sm rounded bg-white my-4 p-5" style={{ minHeight: "350px" }}>
+          <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+            <span className="visually-hidden">Loading...</span>
           </div>
+          <h5 className="mt-3 text-muted">Loading dashboard statistics...</h5>
         </div>
-      )}
-
-      <div className="row g-4 mb-4">
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill border-0 shadow-sm">
-            <div className="card-body pb-0">
-              <div className="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
-                <div>
-                  <h6 className="mb-1">Scan History</h6>
-                  <ScanHistoryPopover latestSummary={latestSummary} />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
-                  onClick={handleStartScan}
-                  disabled={
-                    isScanning ||
-                    domainData?.dm_seo_status === "scanning" ||
-                    domainData?.dm_seo_status === "pending"
-                  }
-                >
-                  <i
-                    className={`isax isax-refresh-2 ${isScanning ? "fa-spin" : ""}`}
-                  ></i>
-                  {domainData?.dm_seo_status === "scanning" ||
-                  domainData?.dm_seo_status === "pending"
-                    ? "Scanning..."
-                    : "Start new scan"}
-                </button>
-              </div>
-              <div id="scan_history_chart" style={{ minHeight: "200px" }}></div>
-              <div className="d-flex justify-content-end mt-2 pb-2">
-                <Link
-                  to="/home/history-center"
-                  className="text-primary fs-13 fw-medium text-decoration-none"
-                >
-                  Show history
-                </Link>
+      ) : domainData ? (
+        <>
+          {domainData?.dm_seo_status === "failed" && (
+            <div
+              className="alert alert-danger d-flex align-items-center gap-3 mb-4 border-0 shadow-sm"
+              role="alert"
+            >
+              <i className="isax isax-danger fs-22"></i>
+              <div>
+                <h6 className="alert-heading mb-1">Last Scan Failed</h6>
+                <p className="mb-0 fs-13">
+                  {getFriendlyError(domainData.dm_last_scan_error)}
+                  {domainData.dm_last_scan_error &&
+                    !/referenceerror|typeerror|syntaxerror|is not defined|cannot read property|mongodb|database/i.test(domainData.dm_last_scan_error) && (
+                      <small className="d-block mt-1 opacity-75">
+                        Error details: {domainData.dm_last_scan_error}
+                      </small>
+                    )}
+                </p>
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="mb-0 d-flex align-items-center gap-2">
-                  <i className="isax isax-heart5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
-                  Heartbeat
-                </h6>
-                <Link to="/domain/heartbeat" className="text-primary">
-                  <i className="isax isax-arrow-right-1"></i>
-                </Link>
-              </div>
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
-                  <div className="position-relative d-inline-flex align-items-center justify-content-center">
-                    <svg width="120" height="120" viewBox="0 0 140 140">
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#14b8a6"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={calculateDashArray(uptimePercentage)}
-                        transform="rotate(-90 70 70)"
-                      />
-                    </svg>
-                    <div
-                      className="position-absolute text-center px-1"
-                      style={{ maxWidth: 70, lineHeight: 1.2 }}
-                    >
-                      <span className="d-block fs-4 fw-bold text-body">
-                        {uptimePercentage} %
-                      </span>
-                      <span
-                        className="d-block text-muted"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        Uptime last 30 days
-                      </span>
+          <div className="row g-4 mb-4">
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill border-0 shadow-sm">
+                <div className="card-body pb-0">
+                  <div className="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                    <div>
+                      <h6 className="mb-1">Scan History</h6>
+                      <ScanHistoryPopover latestSummary={latestSummary} />
                     </div>
                   </div>
-                </div>
-                <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
-                  <p className="fs-13 text-muted mb-1">
-                    <span className="text-body fw-medium">Checkpoint:</span>{" "}
-                    <a
-                      href={domainData?.dm_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary text-decoration-none"
+                  <div id="scan_history_chart" style={{ minHeight: "200px" }}></div>
+                  <div className="d-flex justify-content-end mt-2 pb-2">
+                    <Link
+                      to="/home/history-center"
+                      className="text-primary fs-13 fw-medium text-decoration-none"
                     >
-                      {domainData?.dm_url}
-                    </a>
-                  </p>
-                  <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-2">
-                    <span className="text-body fw-medium">Current status:</span>
-                    <span
-                      className={`d-inline-flex align-items-center gap-1 ${uptimeStatus.className}`}
-                    >
-                      <i className={`isax ${uptimeStatus.icon} fs-16`}></i>
-                      <span className="text-capitalize fw-bold">
-                        {uptimeStatus.text}
-                      </span>
-                    </span>
-                  </p>
-                  <p className="fs-13 text-muted mb-0">
-                    <span className="text-body fw-medium">Last downtime:</span>{" "}
-                    {lastDowntime}
-                  </p>
+                      Show history
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                <Link
-                  to="/domain/heartbeat"
-                  className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
-                >
-                  Show history <i className="isax isax-arrow-right-1 ms-1"></i>
-                </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Metrics Row 1: Content Policies & Quality Assurance */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="mb-0 d-flex align-items-center gap-2">
-                  <i className="isax isax-tick-circle5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
-                  Content Policies
-                </h6>
-                <Link to="/domain/policies" className="text-primary">
-                  <i className="isax isax-arrow-right-1"></i>
-                </Link>
-              </div>
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
-                  <div className="position-relative d-inline-flex align-items-center justify-content-center">
-                    <svg
-                      className="content-policies-ring"
-                      width="120"
-                      height="120"
-                      viewBox="0 0 140 140"
-                    >
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#14b8a6"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={calculateDashArray(
-                          policyStats?.compliancePercent || 0,
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <i className="isax isax-heart5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
+                      Heartbeat
+                    </h6>
+                    <Link to="/domain/heartbeat" className="text-primary">
+                      <i className="isax isax-arrow-right-1"></i>
+                    </Link>
+                  </div>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
+                      <div className="position-relative d-inline-flex align-items-center justify-content-center">
+                        <svg width="120" height="120" viewBox="0 0 140 140">
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="12"
+                          />
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#14b8a6"
+                            strokeWidth="12"
+                            strokeLinecap="round"
+                            strokeDasharray={calculateDashArray(uptimePercentage)}
+                            transform="rotate(-90 70 70)"
+                          />
+                        </svg>
+                        <div
+                          className="position-absolute text-center px-1"
+                          style={{ maxWidth: 70, lineHeight: 1.2 }}
+                        >
+                          <span className="d-block fs-4 fw-bold text-body">
+                            {uptimePercentage} %
+                          </span>
+                          <span
+                            className="d-block text-muted"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            Uptime last 30 days
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
+                      <p className="fs-13 text-muted mb-1">
+                        <span className="text-body fw-medium">Checkpoint:</span>{" "}
+                        <a
+                          href={domainData?.dm_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary text-decoration-none"
+                        >
+                          {domainData?.dm_url}
+                        </a>
+                      </p>
+                      <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-2">
+                        <span className="text-body fw-medium">Current status:</span>
+                        <span
+                          className={`d-inline-flex align-items-center gap-1 ${uptimeStatus.className}`}
+                        >
+                          <i className={`isax ${uptimeStatus.icon} fs-16`}></i>
+                          <span className="text-capitalize fw-bold">
+                            {uptimeStatus.text}
+                          </span>
+                        </span>
+                      </p>
+                      <p className="fs-13 text-muted mb-1 d-flex align-items-center gap-2">
+                        <span className="text-body fw-medium">SSL status:</span>
+                        {latestSummary?.securitySummary?.sslValid ? (
+                          <span className="text-success fw-bold d-inline-flex align-items-center gap-1">
+                            <i className="isax isax-tick-circle fs-16"></i> Valid
+                          </span>
+                        ) : (
+                          <span className="text-danger fw-bold d-inline-flex align-items-center gap-1">
+                            <i className="isax isax-close-circle fs-16"></i> Invalid/Down
+                          </span>
                         )}
-                        transform="rotate(-90 70 70)"
-                      />
-                    </svg>
-                    <div
-                      className="position-absolute text-center px-1"
-                      style={{ maxWidth: 70, lineHeight: 1.2 }}
-                    >
-                      <span className="d-block fs-4 fw-bold text-body">
-                        {Math.round(policyStats?.compliancePercent || 0)} %
-                      </span>
-                      <span
-                        className="d-block text-muted"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        overall compliance
-                      </span>
+                      </p>
+                      {latestSummary?.securitySummary?.sslExpiryDate && (
+                        <p className="fs-13 text-muted mb-1">
+                          <span className="text-body fw-medium">SSL Expiry:</span>{" "}
+                          {formatDate(latestSummary.securitySummary.sslExpiryDate)}
+                        </p>
+                      )}
+                      <p className="fs-13 text-muted mb-0">
+                        <span className="text-body fw-medium">Last downtime:</span>{" "}
+                        {lastDowntime}
+                      </p>
                     </div>
                   </div>
-                </div>
-                <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
-                  <h6 className="fs-13 fw-semibold text-body mb-1">
-                    Policies with violations
-                  </h6>
-                  <p className="fs-2 fw-bold text-body mb-2">
-                    {policyStats?.policiesWithViolations || 0}
-                  </p>
-                  <div className="d-flex flex-wrap gap-3">
-                    <div
-                      className="d-flex align-items-center gap-2 text-muted fs-13"
-                      title="Unwanted"
+                  <div className="d-flex justify-content-end mt-3 pt-2 border-top">
+                    <Link
+                      to="/domain/heartbeat"
+                      className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
                     >
-                      <i className="isax isax-close-circle fs-18 text-danger"></i>
-                      <span>
-                        {policyStats?.distribution?.find(
-                          (d) => d.label === "Unwanted",
-                        )?.value || 0}
-                      </span>
-                    </div>
-                    <div
-                      className="d-flex align-items-center gap-2 text-muted fs-13"
-                      title="Required"
-                    >
-                      <i className="isax isax-danger fs-18 text-primary"></i>
-                      <span>
-                        {policyStats?.distribution?.find(
-                          (d) => d.label === "Required",
-                        )?.value || 0}
-                      </span>
-                    </div>
-                    <div
-                      className="d-flex align-items-center gap-2 text-muted fs-13"
-                      title="Matches"
-                    >
-                      <i className="isax isax-search-normal-1 fs-18 text-primary"></i>
-                      <span>
-                        {policyStats?.distribution?.find(
-                          (d) => d.label === "Matches",
-                        )?.value || 0}
-                      </span>
-                    </div>
+                      Show history <i className="isax isax-arrow-right-1 ms-1"></i>
+                    </Link>
                   </div>
                 </div>
-              </div>
-              <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                <Link
-                  to="/domain/policies"
-                  className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
-                >
-                  Show history <i className="isax isax-arrow-right-1 ms-1"></i>
-                </Link>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="mb-0 d-flex align-items-center gap-2">
-                  <i className="isax isax-document-text5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
-                  Quality Assurance
-                </h6>
-                <Link to="/domain/quality-assurance" className="text-primary">
-                  <i className="isax isax-arrow-right-1"></i>
-                </Link>
-              </div>
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
-                  <div className="position-relative d-inline-flex align-items-center justify-content-center">
-                    <svg width="120" height="120" viewBox="0 0 140 140">
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#14b8a6"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={calculateDashArray(
-                          latestSummary?.performanceMetrics
-                            ?.avgPerformanceScore,
-                        )}
-                        transform="rotate(-90 70 70)"
-                      />
-                    </svg>
-                    <div
-                      className="position-absolute text-center px-1"
-                      style={{ maxWidth: 70, lineHeight: 1.2 }}
+          {/* Metrics Row 1: Content Policies & Quality Assurance */}
+          <div className="row g-4 mb-4">
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <i className="isax isax-shield-tick5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
+                      Content Policies
+                    </h6>
+                    <Link to="/domain/policies" className="text-primary">
+                      <i className="isax isax-arrow-right-1"></i>
+                    </Link>
+                  </div>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
+                      <div className="position-relative d-inline-flex align-items-center justify-content-center">
+                        <svg
+                          className="content-policies-ring"
+                          width="120"
+                          height="120"
+                          viewBox="0 0 140 140"
+                        >
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="12"
+                          />
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#14b8a6"
+                            strokeWidth="12"
+                            strokeLinecap="round"
+                            strokeDasharray={calculateDashArray(
+                              policyStats?.compliancePercent || 0,
+                            )}
+                            transform="rotate(-90 70 70)"
+                          />
+                        </svg>
+                        <div
+                          className="position-absolute text-center px-1"
+                          style={{ maxWidth: 70, lineHeight: 1.2 }}
+                        >
+                          <span className="d-block fs-4 fw-bold text-body">
+                            {Math.round(policyStats?.compliancePercent || 0)} %
+                          </span>
+                          <span
+                            className="d-block text-muted"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            overall compliance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
+                      <h6 className="fs-13 fw-semibold text-body mb-1">
+                        Policies with violations
+                      </h6>
+                      <p className="fs-2 fw-bold text-body mb-2">
+                        {policyStats?.policiesWithViolations || 0}
+                      </p>
+                      <div className="d-flex flex-wrap gap-3">
+                        <div
+                          className="d-flex align-items-center gap-2 text-muted fs-13"
+                          title="Unwanted"
+                        >
+                          <i className="isax isax-close-circle fs-18 text-danger"></i>
+                          <span>
+                            {policyStats?.distribution?.find(
+                              (d) => d.label === "Unwanted",
+                            )?.value || 0}
+                          </span>
+                        </div>
+                        <div
+                          className="d-flex align-items-center gap-2 text-muted fs-13"
+                          title="Required"
+                        >
+                          <i className="isax isax-danger fs-18 text-primary"></i>
+                          <span>
+                            {policyStats?.distribution?.find(
+                              (d) => d.label === "Required",
+                            )?.value || 0}
+                          </span>
+                        </div>
+                        <div
+                          className="d-flex align-items-center gap-2 text-muted fs-13"
+                          title="Matches"
+                        >
+                          <i className="isax isax-search-normal-1 fs-18 text-primary"></i>
+                          <span>
+                            {policyStats?.distribution?.find(
+                              (d) => d.label === "Matches",
+                            )?.value || 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end mt-3 pt-2 border-top">
+                    <Link
+                      to="/domain/policies"
+                      className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
                     >
-                      <span className="d-block fs-4 fw-bold text-body">
-                        {latestSummary?.performanceMetrics
-                          ?.avgPerformanceScore || 0}{" "}
-                        %
-                      </span>
-                      <span
-                        className="d-block text-muted"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        overall compliance
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
-                  <h6 className="fs-13 fw-semibold text-body mb-1">
-                    QA Issues
-                  </h6>
-                  <p className="fs-2 fw-bold text-body mb-1">
-                    {(latestSummary?.issueBreakdown?.high || 0) +
-                      (latestSummary?.issueBreakdown?.medium || 0) +
-                      (latestSummary?.issueBreakdown?.low || 0)}
-                  </p>
-                  <p className="fs-13 text-muted mb-2">
-                    Affects{" "}
-                    <strong className="text-body">
-                      {latestSummary?.totalPages || 0}
-                    </strong>{" "}
-                    pages
-                  </p>
-                  <div className="d-flex flex-wrap gap-3">
-                    <div className="d-flex align-items-center gap-2 text-danger fs-13">
-                      <i className="isax isax-danger fs-18"></i>
-                      <span>{latestSummary?.issueBreakdown?.high || 0}</span>
-                    </div>
-                    <div className="d-flex align-items-center gap-2 text-muted fs-13">
-                      <i className="isax isax-document-text fs-18"></i>
-                      <span>{latestSummary?.issueBreakdown?.medium || 0}</span>
-                    </div>
-                    <div className="d-flex align-items-center gap-2 text-danger fs-13">
-                      <i className="isax isax-text fs-18"></i>
-                      <span>{latestSummary?.issueBreakdown?.low || 0}</span>
-                    </div>
+                      Show history <i className="isax isax-arrow-right-1 ms-1"></i>
+                    </Link>
                   </div>
                 </div>
               </div>
-              <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                <Link
-                  to="/domain/quality-assurance"
-                  className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
-                >
-                  Show history <i className="isax isax-arrow-right-1 ms-1"></i>
-                </Link>
+            </div>
+
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <i className="isax isax-tick-circle5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
+                      Quality Assurance
+                    </h6>
+                    <Link to="/domain/quality-assurance" className="text-primary">
+                      <i className="isax isax-arrow-right-1"></i>
+                    </Link>
+                  </div>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
+                      <div className="position-relative d-inline-flex align-items-center justify-content-center">
+                        <svg width="120" height="120" viewBox="0 0 140 140">
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="12"
+                          />
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#14b8a6"
+                            strokeWidth="12"
+                            strokeLinecap="round"
+                            strokeDasharray={calculateDashArray(
+                              latestSummary?.performanceMetrics
+                                ?.avgPerformanceScore,
+                            )}
+                            transform="rotate(-90 70 70)"
+                          />
+                        </svg>
+                        <div
+                          className="position-absolute text-center px-1"
+                          style={{ maxWidth: 70, lineHeight: 1.2 }}
+                        >
+                          <span className="d-block fs-4 fw-bold text-body">
+                            {latestSummary?.performanceMetrics
+                              ?.avgPerformanceScore || 0}{" "}
+                            %
+                          </span>
+                          <span
+                            className="d-block text-muted"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            overall compliance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
+                      <h6 className="fs-13 fw-semibold text-body mb-1">
+                        QA Issues
+                      </h6>
+                      <p className="fs-2 fw-bold text-body mb-1">
+                        {(latestSummary?.issueBreakdown?.high || 0) +
+                          (latestSummary?.issueBreakdown?.medium || 0) +
+                          (latestSummary?.issueBreakdown?.low || 0)}
+                      </p>
+                      <p className="fs-13 text-muted mb-2">
+                        Affects{" "}
+                        <strong className="text-body">
+                          {latestSummary?.totalPages || 0}
+                        </strong>{" "}
+                        pages
+                      </p>
+                      <div className="d-flex flex-wrap gap-3">
+                        <div className="d-flex align-items-center gap-2 text-danger fs-13" title="High severity issues">
+                          <i className="isax isax-danger fs-18"></i>
+                          <span>{latestSummary?.issueBreakdown?.high || 0}</span>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 text-warning fs-13" title="Medium severity issues">
+                          <i className="isax isax-info-circle fs-18"></i>
+                          <span>{latestSummary?.issueBreakdown?.medium || 0}</span>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 text-primary fs-13" title="Low severity issues">
+                          <i className="isax isax-info-circle fs-18"></i>
+                          <span>{latestSummary?.issueBreakdown?.low || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end mt-3 pt-2 border-top">
+                    <Link
+                      to="/domain/quality-assurance"
+                      className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
+                    >
+                      Show history <i className="isax isax-arrow-right-1 ms-1"></i>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Metrics Row 2: Accessibility & SEO */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="mb-0 d-flex align-items-center gap-2">
-                  <i className="isax isax-people5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
-                  Accessibility
-                </h6>
-                <Link to="/domain/accessibility" className="text-primary">
-                  <i className="isax isax-arrow-right-1"></i>
-                </Link>
-              </div>
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
-                  <div className="position-relative d-inline-flex align-items-center justify-content-center">
-                    <svg width="120" height="120" viewBox="0 0 140 140">
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#7c3aed"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={calculateDashArray(
-                          latestSummary?.performanceMetrics
-                            ?.avgAccessibilityScore,
-                        )}
-                        transform="rotate(-90 70 70)"
-                      />
-                    </svg>
-                    <div
-                      className="position-absolute text-center px-1"
-                      style={{ maxWidth: 70, lineHeight: 1.2 }}
-                    >
-                      <span className="d-block fs-4 fw-bold text-body">
-                        {latestSummary?.performanceMetrics
-                          ?.avgAccessibilityScore || 0}{" "}
-                        %
-                      </span>
-                      <span
-                        className="d-block text-muted"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        Overall compliance
-                      </span>
+          {/* Metrics Row 2: Accessibility & SEO */}
+          <div className="row g-4 mb-4">
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <i className="isax isax-people5 dashboard-metric-icon fs-18 text-primary"></i>{" "}
+                      Accessibility
+                    </h6>
+                    <Link to="/domain/accessibility" className="text-primary">
+                      <i className="isax isax-arrow-right-1"></i>
+                    </Link>
+                  </div>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
+                      <div className="position-relative d-inline-flex align-items-center justify-content-center">
+                        <svg width="120" height="120" viewBox="0 0 140 140">
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="12"
+                          />
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#7c3aed"
+                            strokeWidth="12"
+                            strokeLinecap="round"
+                            strokeDasharray={calculateDashArray(
+                              latestSummary?.performanceMetrics
+                                ?.avgAccessibilityScore,
+                            )}
+                            transform="rotate(-90 70 70)"
+                          />
+                        </svg>
+                        <div
+                          className="position-absolute text-center px-1"
+                          style={{ maxWidth: 70, lineHeight: 1.2 }}
+                        >
+                          <span className="d-block fs-4 fw-bold text-body">
+                            {latestSummary?.performanceMetrics
+                              ?.avgAccessibilityScore || 0}{" "}
+                            %
+                          </span>
+                          <span
+                            className="d-block text-muted"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            Overall compliance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
+                      <h6 className="fs-13 fw-semibold text-body mb-1">
+                        Failing accessibility checks
+                      </h6>
+                      <p className="fs-2 fw-bold text-body mb-0">0</p>
                     </div>
                   </div>
-                </div>
-                <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
-                  <h6 className="fs-13 fw-semibold text-body mb-1">
-                    Failing accessibility checks
-                  </h6>
-                  <p className="fs-2 fw-bold text-body mb-0">0</p>
+                  <div className="d-flex justify-content-end mt-3 pt-2 border-top">
+                    <Link
+                      to="/domain/accessibility"
+                      className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
+                    >
+                      Show history <i className="isax isax-arrow-right-1 ms-1"></i>
+                    </Link>
+                  </div>
                 </div>
               </div>
-              <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                <Link
-                  to="/domain/accessibility"
-                  className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
-                >
-                  Show history <i className="isax isax-arrow-right-1 ms-1"></i>
-                </Link>
+            </div>
+
+            <div className="col-md-6 d-flex">
+              <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <i className="isax isax-chart-215 dashboard-metric-icon fs-18 text-primary"></i>{" "}
+                      SEO Performance Overview
+                    </h6>
+                    <Link to="/domain/seo" className="text-primary">
+                      <i className="isax isax-arrow-right-1"></i>
+                    </Link>
+                  </div>
+                  <div className="row align-items-center g-3">
+                    <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
+                      <div className="position-relative d-inline-flex align-items-center justify-content-center">
+                        <svg width="120" height="120" viewBox="0 0 140 140">
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="12"
+                          />
+                          <circle
+                            cx="70"
+                            cy="70"
+                            r="62"
+                            fill="none"
+                            stroke="#14b8a6"
+                            strokeWidth="12"
+                            strokeLinecap="round"
+                            strokeDasharray={calculateDashArray(
+                              latestSummary?.finalSeoScore,
+                            )}
+                            transform="rotate(-90 70 70)"
+                          />
+                        </svg>
+                        <div
+                          className="position-absolute text-center px-1"
+                          style={{ maxWidth: 70, lineHeight: 1.2 }}
+                        >
+                          <span className="d-block fs-4 fw-bold text-body">
+                            {latestSummary?.finalSeoScore || 0} %
+                          </span>
+                          <span
+                            className="d-block text-muted"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            Overall compliance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
+                      <h6 className="fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1">
+                        Improvement Opportunities
+                        <i
+                          className="isax isax-info-circle text-muted fs-14"
+                          title="More information"
+                        ></i>
+                      </h6>
+                      <p className="fs-2 fw-bold text-body mb-0">
+                        {latestSummary?.topIssues?.length || 0}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end mt-3 pt-2 border-top">
+                    <Link
+                      to="/domain/seo"
+                      className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
+                    >
+                      Show history <i className="isax isax-arrow-right-1 ms-1"></i>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="col-md-6 d-flex">
-          <div className="card flex-fill dashboard-metric-card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="mb-0 d-flex align-items-center gap-2">
-                  <i className="isax isax-chart-215 dashboard-metric-icon fs-18 text-primary"></i>{" "}
-                  SEO Performance Overview
-                </h6>
-                <Link to="/domain/seo" className="text-primary">
-                  <i className="isax isax-arrow-right-1"></i>
-                </Link>
-              </div>
-              <div className="row align-items-center g-3">
-                <div className="col-12 col-md-5 d-flex justify-content-center justify-content-md-start order-2 order-md-1">
-                  <div className="position-relative d-inline-flex align-items-center justify-content-center">
-                    <svg width="120" height="120" viewBox="0 0 140 140">
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r="62"
-                        fill="none"
-                        stroke="#14b8a6"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={calculateDashArray(
-                          latestSummary?.finalSeoScore,
-                        )}
-                        transform="rotate(-90 70 70)"
-                      />
-                    </svg>
-                    <div
-                      className="position-absolute text-center px-1"
-                      style={{ maxWidth: 70, lineHeight: 1.2 }}
-                    >
-                      <span className="d-block fs-4 fw-bold text-body">
-                        {latestSummary?.finalSeoScore || 0} %
-                      </span>
-                      <span
-                        className="d-block text-muted"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        Overall compliance
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-12 col-md-7 order-1 order-md-2 min-w-0">
-                  <h6 className="fs-13 fw-semibold text-body mb-1 d-flex align-items-center gap-1">
-                    Improvement Opportunities
-                    <i
-                      className="isax isax-info-circle text-muted fs-14"
-                      title="More information"
-                    ></i>
-                  </h6>
-                  <p className="fs-2 fw-bold text-body mb-0">
-                    {latestSummary?.topIssues?.length || 0}
-                  </p>
-                </div>
-              </div>
-              <div className="d-flex justify-content-end mt-3 pt-2 border-top">
-                <Link
-                  to="/domain/seo"
-                  className="show-history-link d-inline-flex align-items-center fs-13 text-primary text-decoration-none"
-                >
-                  Show history <i className="isax isax-arrow-right-1 ms-1"></i>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Component */}
-      <DashboardCharts historyData={scanHistory} />
+          {/* Charts Component */}
+          <DashboardCharts historyData={scanHistory} />
+        </>
+      ) : null}
     </div>
   );
 };

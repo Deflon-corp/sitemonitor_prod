@@ -289,6 +289,7 @@ const DomainOverview = () => {
                 <tr>
                   <th className="text-muted fw-medium">Last Scan</th>
                   <th className="text-muted fw-medium">Domain</th>
+                  <th className="text-muted fw-medium text-end">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -430,12 +431,13 @@ const DomainOverview = () => {
                         <td className="text-end">
                           <div className="dropdown">
                             <button
-                              className="btn btn-sm btn-light border dropdown-toggle"
                               type="button"
+                              className="btn btn-icon btn-sm btn-light rounded-circle"
                               data-bs-toggle="dropdown"
                               aria-expanded="false"
+                              aria-label="Domain actions"
                             >
-                              Action
+                              <i className="bi bi-three-dots-vertical" aria-hidden="true" />
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end">
                               <li>
@@ -444,7 +446,7 @@ const DomainOverview = () => {
                                   to="/domain"
                                 >
                                   <i
-                                    className="isax isax-home me-2"
+                                    className="bi bi-box-arrow-up-right me-2"
                                     aria-hidden="true"
                                   />{" "}
                                   Go to domain
@@ -465,7 +467,7 @@ const DomainOverview = () => {
                                   to={`/home/update-domain/${domain.dm_id}`}
                                 >
                                   <i
-                                    className="isax isax-setting-25 me-2"
+                                    className="bi bi-pencil me-2"
                                     aria-hidden="true"
                                   />{" "}
                                   Edit domain
@@ -508,7 +510,7 @@ const DomainOverview = () => {
                                   }
                                 >
                                   <i
-                                    className={`isax ${isArchivedView ? "isax-trash" : "isax-archive-add"} me-2`}
+                                    className={`bi ${isArchivedView ? "bi-trash" : "bi-archive"} me-2`}
                                     aria-hidden="true"
                                   />{" "}
                                   {isArchivedView
@@ -524,7 +526,7 @@ const DomainOverview = () => {
                                     onClick={() => handleRestoreDomain(domain)}
                                   >
                                     <i
-                                      className="isax isax-rotate-right me-2"
+                                      className="bi bi-arrow-counterclockwise me-2"
                                       aria-hidden="true"
                                     />{" "}
                                     Restore domain

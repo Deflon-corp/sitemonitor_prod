@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import AccessibilitySummaryView from "./AccessibilitySummaryView";
 import AccessibilityFastTrackView from "./AccessibilityFastTrackView";
@@ -8,6 +8,12 @@ import GuidelinesView from "./GuidelinesView";
 import PagesWithIgnoredChecksView from "./PagesWithIgnoredChecksView";
 import InternalPdfsView from "./InternalPdfsView";
 import ExternalPdfsView from "./ExternalPdfsView";
+import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
+import {
+  triggerAccessibilityScanApi,
+  getAccessibilityScanStatusApi,
+} from "../../api/accessibilityApi";
+import toast from "react-hot-toast";
 
 const ACCESSIBILITY_NAV = [
   {
@@ -52,9 +58,74 @@ const ACCESSIBILITY_NAV = [
 const Accessibility = () => {
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
+  const [isScanning, setIsScanning] = useState(false);
+
+  const domainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+
+  const pollStatus = useCallback(async () => {
+    if (!domainId) return;
+    try {
+      const res = await getAccessibilityScanStatusApi(domainId);
+      if (res.success && res.data) {
+        setIsScanning(res.data.status === "scanning");
+      }
+    } catch (error) {
+      console.error("Failed to fetch scan status", error);
+    }
+  }, [domainId]);
+
+  useEffect(() => {
+    pollStatus();
+    const interval = setInterval(pollStatus, 5000);
+    return () => clearInterval(interval);
+  }, [pollStatus]);
+
+  const handleTriggerScan = async () => {
+    if (!domainId) return;
+    setIsScanning(true);
+    try {
+      const res = await triggerAccessibilityScanApi(domainId);
+      if (res.success) {
+        toast.success("Accessibility scan started successfully!");
+      }
+    } catch (err) {
+      console.error("Failed to trigger scan", err);
+      toast.error("Failed to trigger Accessibility scan");
+      setIsScanning(false);
+    }
+  };
 
   return (
     <div className="accessibility-page">
+      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <h6 className="mb-0 fs-18 fw-semibold text-body">Accessibility</h6>
+        {domainId && (
+          <button
+            type="button"
+            className="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm"
+            disabled={isScanning}
+            onClick={handleTriggerScan}
+            title="Trigger manual accessibility crawl"
+          >
+            {isScanning ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <i className="isax isax-tick-circle5 fs-16" aria-hidden="true" />
+                Scan New Accessibility
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
       <div className="card mb-4">
         <div className="card-body py-3">
           <nav

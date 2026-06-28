@@ -158,6 +158,7 @@ const PoliciesView = ({ isLanding = false }) => {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get("view") || "summary";
+  const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
 
   const [newPolicyDrawerOpen, setNewPolicyDrawerOpen] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState(null);
@@ -178,6 +179,14 @@ const PoliciesView = ({ isLanding = false }) => {
     const fetchStats = async () => {
       try {
         setLoading(true);
+        setStats({
+          priorities: [],
+          distribution: [],
+          policiesWithViolations: 0,
+          contentWithViolations: 0,
+          compliancePercent: 0,
+          trend: [],
+        });
         const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
         const res = await getPolicyStatsApi({ domainId: selectedId });
         if (res.success && res.data) {
@@ -189,7 +198,7 @@ const PoliciesView = ({ isLanding = false }) => {
             compliancePercent: res.data.compliancePercent || 0,
             trend: res.data.trend || [],
           });
-          
+
           if (res.data.isScanning) {
             setIsScanning(true);
           } else {
@@ -315,9 +324,45 @@ const PoliciesView = ({ isLanding = false }) => {
       </div>
     );
   }
+  if (loading) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center border-0 shadow-sm rounded bg-white my-4 p-5" style={{ minHeight: "350px" }}>
+        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <h5 className="mt-3 text-muted">Loading policy statistics...</h5>
+      </div>
+    );
+  }
 
   return (
     <>
+      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <h6 className="mb-0 fs-18 fw-semibold text-body">Policies</h6>
+        <div className="d-flex align-items-center gap-2">
+          {selectedId && (
+            <button
+              type="button"
+              className="btn btn-dark d-inline-flex align-items-center gap-2 shadow-sm"
+              onClick={handleScanPolicies}
+              disabled={isScanning}
+            >
+              {isScanning ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <i className="isax isax-shield-tick5 fs-16" aria-hidden="true" />
+                  Scan New Policies
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
       <div>
         {/* Horizontal nav – same pattern as Accessibility / Quality Assurance */}
         <div className="card mb-4">
@@ -344,26 +389,6 @@ const PoliciesView = ({ isLanding = false }) => {
                 );
               })}
             </nav>
-            <div className="d-flex align-items-center gap-2">
-              <button
-                type="button"
-                className="btn btn-outline-primary btn-sm rounded-2 d-inline-flex align-items-center"
-                onClick={handleScanPolicies}
-                disabled={isScanning}
-              >
-                {isScanning ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Scanning...
-                  </>
-                ) : (
-                  <>
-                    <i className="isax isax-scan fs-18 me-1" aria-hidden="true" />
-                    Scan Policies
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         </div>
 

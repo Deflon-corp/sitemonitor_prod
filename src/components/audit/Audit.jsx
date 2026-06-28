@@ -104,6 +104,7 @@ export default function RunWebsiteAuditPage() {
   const fetchAuditData = useCallback(async (domain, page = null) => {
     if (!domain) return;
     setIsLoading(true);
+    setAuditData(null);
     try {
       const res = await getDomainAuditDataApi(domain._id);
       if (res.success) {
@@ -268,11 +269,11 @@ export default function RunWebsiteAuditPage() {
         ? "Needs Improvement"
         : "Poor"
     : auditData?.performance?.status ||
-      (perfScore >= 90
-        ? "Good"
-        : perfScore >= 50
-          ? "Needs Improvement"
-          : "Poor");
+    (perfScore >= 90
+      ? "Good"
+      : perfScore >= 50
+        ? "Needs Improvement"
+        : "Poor");
   const perfStatusClass =
     perfStatus === "Good"
       ? "text-success"
@@ -313,18 +314,18 @@ export default function RunWebsiteAuditPage() {
   // Response Status
   const rs = selectedPage
     ? {
-        [selectedPage.httpStatus]: 1,
-        validUrls: selectedPage.httpStatus < 400 ? 1 : 0,
-      }
+      [selectedPage.httpStatus]: 1,
+      validUrls: selectedPage.httpStatus < 400 ? 1 : 0,
+    }
     : auditData?.responseStatus || {};
 
   // Pages Analyzed
   const pa = selectedPage
     ? {
-        totalPages: 1,
-        statusCodes: { [selectedPage.httpStatus]: 1 },
-        validUrls: selectedPage.httpStatus < 400 ? 1 : 0,
-      }
+      totalPages: 1,
+      statusCodes: { [selectedPage.httpStatus]: 1 },
+      validUrls: selectedPage.httpStatus < 400 ? 1 : 0,
+    }
     : auditData?.pagesAnalyzed || {};
 
   // Spell Checker
@@ -358,11 +359,43 @@ export default function RunWebsiteAuditPage() {
 
   return (
     <DashboardLayout
-      breadcrumbTitle="Run Website Audit"
+      breadcrumbTitle="Website Audit"
       breadcrumbParentHref="/domain/audit"
     >
       <div className="content">
-        <h5 className="mb-4">Run Website Audit</h5>
+        <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
+          <h6 className="mb-0 fs-18 fw-semibold text-body">Website Audit</h6>
+          {selectedDomain && (
+            <button
+              type="button"
+              className="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm"
+              onClick={handleTriggerNewScan}
+              disabled={
+                isTriggeringScan ||
+                auditData?.domain?.dm_seo_status === "pending" ||
+                auditData?.domain?.dm_seo_status === "scanning"
+              }
+            >
+              {isTriggeringScan ||
+                auditData?.domain?.dm_seo_status === "pending" ||
+                auditData?.domain?.dm_seo_status === "scanning" ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <i className="isax isax-search-status5 fs-16" aria-hidden="true" />
+                  Scan New Audit
+                </>
+              )}
+            </button>
+          )}
+        </div>
 
         {/* Input Section */}
         <div className="card mb-4">
@@ -422,8 +455,8 @@ export default function RunWebsiteAuditPage() {
                               style={{ cursor: "pointer" }}
                               onClick={() => handleSelectPage(page)}
                               onMouseEnter={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  "#f8f9fa")
+                              (e.currentTarget.style.backgroundColor =
+                                "#f8f9fa")
                               }
                               onMouseLeave={(e) =>
                                 (e.currentTarget.style.backgroundColor = "")
@@ -522,41 +555,6 @@ export default function RunWebsiteAuditPage() {
                       : auditData.lastScanDate,
                   )}
                 </p>
-              )}
-              {!selectedPage && (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-primary d-flex align-items-center gap-2 hover-scale transition-all"
-                  onClick={handleTriggerNewScan}
-                  disabled={
-                    isTriggeringScan ||
-                    auditData?.domain?.dm_seo_status === "pending" ||
-                    auditData?.domain?.dm_seo_status === "scanning"
-                  }
-                  style={{ borderRadius: "6px", fontWeight: "500" }}
-                >
-                  {isTriggeringScan ||
-                  auditData?.domain?.dm_seo_status === "pending" ||
-                  auditData?.domain?.dm_seo_status === "scanning" ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm"
-                        role="status"
-                        aria-hidden="true"
-                      />
-                      <span>
-                        {auditData?.domain?.dm_seo_status === "scanning"
-                          ? "Scanning..."
-                          : "Pending..."}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <i className="isax isax-refresh fs-14" />
-                      <span>New Audit Scan</span>
-                    </>
-                  )}
-                </button>
               )}
             </div>
           </div>

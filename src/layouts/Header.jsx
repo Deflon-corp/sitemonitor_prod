@@ -469,43 +469,43 @@ export default function Header({
   const getIconForAction = (action) => {
     switch (action) {
       case "SCAN_COMPLETED":
-        return <i className="ti ti-circle-check text-success fs-18" />;
+        return <i className="bi bi-check-circle-fill text-success fs-18" />;
       case "SCAN_FAILED":
-        return <i className="ti ti-alert-triangle text-danger fs-18" />;
+        return <i className="bi bi-exclamation-triangle-fill text-danger fs-18" />;
       case "CREATE_DOMAIN":
-        return <i className="ti ti-world-plus text-primary fs-18" />;
+        return <i className="bi bi-globe2 text-primary fs-18" />;
       case "UPDATE_DOMAIN":
-        return <i className="ti ti-world text-warning fs-18" />;
+        return <i className="bi bi-pencil-square text-warning fs-18" />;
       case "DELETE_DOMAIN":
       case "HARD_DELETE_DOMAIN":
-        return <i className="ti ti-trash text-danger fs-18" />;
+        return <i className="bi bi-trash text-danger fs-18" />;
       case "ARCHIVE_DOMAIN":
-        return <i className="ti ti-archive text-muted fs-18" />;
+        return <i className="bi bi-archive text-muted fs-18" />;
       case "RESTORE_DOMAIN":
-        return <i className="ti ti-rotate-clockwise-2 text-info fs-18" />;
+        return <i className="bi bi-arrow-counterclockwise text-info fs-18" />;
       case "TRIGGER_SCAN":
-        return <i className="ti ti-refresh text-primary fs-18" />;
+        return <i className="bi bi-play-circle text-primary fs-18" />;
       case "CREATE_USER":
-        return <i className="ti ti-user-plus text-success fs-18" />;
+        return <i className="bi bi-person-plus text-success fs-18" />;
       case "UPDATE_USER":
-        return <i className="ti ti-user-edit text-warning fs-18" />;
+        return <i className="bi bi-person-gear text-warning fs-18" />;
       case "DELETE_USER":
       case "HARD_DELETE_USER":
-        return <i className="ti ti-user-minus text-danger fs-18" />;
+        return <i className="bi bi-person-minus text-danger fs-18" />;
       case "ARCHIVE_USER":
-        return <i className="ti ti-user-x text-muted fs-18" />;
+        return <i className="bi bi-person-workspace text-muted fs-18" />;
       case "RESTORE_USER":
-        return <i className="ti ti-user-check text-info fs-18" />;
+        return <i className="bi bi-person-check text-info fs-18" />;
       case "CREATE_POLICY":
-        return <i className="ti ti-shield-check text-success fs-18" />;
+        return <i className="bi bi-shield-check text-success fs-18" />;
       case "UPDATE_POLICY":
-        return <i className="ti ti-shield text-warning fs-18" />;
+        return <i className="bi bi-shield-exclamation text-warning fs-18" />;
       case "DELETE_POLICY":
-        return <i className="ti ti-shield-x text-danger fs-18" />;
+        return <i className="bi bi-shield-slash text-danger fs-18" />;
       case "TRIGGER_POLICY_SCAN":
-        return <i className="ti ti-refresh text-primary fs-18" />;
+        return <i className="bi bi-play-circle text-primary fs-18" />;
       default:
-        return <i className="ti ti-bell text-secondary fs-18" />;
+        return <i className="bi bi-bell text-secondary fs-18" />;
     }
   };
 
@@ -758,11 +758,11 @@ export default function Header({
                           </a>
                           <div className="dropdown-menu dropdown-menu-end">
                             <a className="dropdown-item" href="#" onClick={handleMarkAsRead}>
-                              <i className="ti ti-bell-check me-1" />
+                              <i className="bi bi-check2-all me-1" />
                               Mark as Read
                             </a>
                             <a className="dropdown-item" href="#" onClick={handleDeleteAll}>
-                              <i className="ti ti-trash me-1" />
+                              <i className="bi bi-trash me-1" />
                               Delete All
                             </a>
                           </div>
@@ -777,7 +777,7 @@ export default function Header({
                   >
                     {notifications.length === 0 ? (
                       <div className="p-4 text-center text-muted">
-                        <i className="ti ti-bell-off fs-24 mb-2 d-block text-secondary opacity-50" />
+                        <i className="bi bi-bell-slash fs-24 mb-2 d-block text-secondary opacity-50" />
                         <p className="mb-0 fs-13">No new notifications</p>
                       </div>
                     ) : (

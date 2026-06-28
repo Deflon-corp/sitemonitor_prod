@@ -52,6 +52,7 @@ export default function InventoryPage() {
   const fetchDomainAndStatus = async () => {
     try {
       setLoading(true);
+      setScanStatus(null);
       const selDomainId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
       if (!selDomainId) {
         toast.error("No domain selected");
@@ -263,19 +264,19 @@ export default function InventoryPage() {
               </h5>
               <button
                 type="button"
-                className="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm rounded-2"
+                className="btn btn-info text-white d-inline-flex align-items-center gap-2 shadow-sm rounded-2"
                 disabled={isScanning || loading}
                 onClick={handleStartScan}
               >
                 {isScanning ? (
                   <React.Fragment>
                     <div className="spinner-border spinner-border-sm me-1" />
-                    Crawling Domain...
+                    Scanning...
                   </React.Fragment>
                 ) : (
                   <React.Fragment>
-                    <i className="isax isax-refresh fs-18" />
-                    Run New Inventory Scan
+                    <i className="isax isax-book5 fs-18" />
+                    Scan New Inventory
                   </React.Fragment>
                 )}
               </button>

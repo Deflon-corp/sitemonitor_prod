@@ -35,6 +35,8 @@ const PerformanceView = () => {
 
     try {
       setLoading(true);
+      setSummary(null);
+      setPages([]);
       const activePage = resetPage ? 1 : currentPage;
       if (resetPage) setCurrentPage(1);
 
@@ -225,6 +227,16 @@ const PerformanceView = () => {
   if (avgScore >= 90)
     ringColor = "#198754"; // Green
   else if (avgScore >= 50) ringColor = "#ffc107"; // Yellow
+  if (loading) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center border-0 shadow-sm rounded bg-white my-4 p-5" style={{ minHeight: "350px" }}>
+        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <h5 className="mt-3 text-muted">Loading performance statistics...</h5>
+      </div>
+    );
+  }
 
   return (
     <div className="performance-view">
@@ -254,12 +266,12 @@ const PerformanceView = () => {
                 role="status"
                 aria-hidden="true"
               />
-              <span className="fs-13">Scan in progress...</span>
+              <span className="fs-13">Scanning...</span>
             </div>
           ) : (
             <button
               type="button"
-              className="btn btn-primary d-flex align-items-center gap-2 shadow-sm py-2 px-3 fw-medium"
+              className="btn btn-warning text-dark d-flex align-items-center gap-2 shadow-sm py-2 px-3 fw-medium"
               onClick={handleRunScan}
             >
               <i className="isax isax-flash-1 fs-16" />

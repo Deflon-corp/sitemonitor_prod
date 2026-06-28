@@ -15,15 +15,7 @@ const Policies = () => {
     currentView === "unwanted" ||
     currentView === "ignored";
 
-  return (
-    <div className="policies-page">
-      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
-        <h6 className="mb-0">Policies</h6>
-      </div>
-
-      {showPoliciesView && <PoliciesView />}
-    </div>
-  );
+  return showPoliciesView ? <PoliciesView /> : null;
 };
 
 export default Policies;

@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon";
 import HeartbeatCheckpointDrawer from "@/components/heartbeat/HeartbeatCheckpointDrawer";
 import HeartbeatDateRangePicker from "@/components/heartbeat/HeartbeatDateRangePicker";
-import { getDomainsApi, getHeartbeatDataApi } from "@/api/domainApi";
+import { getDomainsApi, getHeartbeatDataApi, triggerDomainScanApi } from "@/api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import toast from "react-hot-toast";
 
 const DEFAULT_START = new Date();
 DEFAULT_START.setDate(DEFAULT_START.getDate() - 90);
@@ -376,6 +377,48 @@ export default function HeartbeatView() {
   const [heartbeatData, setHeartbeatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAllOutages, setShowAllOutages] = useState(false);
+  const [isScanTriggering, setIsScanTriggering] = useState(false);
+
+  const handleStartScan = async () => {
+    if (!selectedDomain) return;
+    try {
+      setIsScanTriggering(true);
+      const response = await triggerDomainScanApi(selectedDomain.dm_id);
+      if (response.success) {
+        toast.success("Scan triggered successfully!");
+        setSelectedDomain({ ...selectedDomain, dm_seo_status: "pending" });
+      }
+    } catch (error) {
+      console.error("Error triggering scan:", error);
+      toast.error("Failed to trigger scan");
+    } finally {
+      setIsScanTriggering(false);
+    }
+  };
+
+  // Polling for scan completion
+  useEffect(() => {
+    let interval;
+    if (
+      selectedDomain?.dm_seo_status === "pending" ||
+      selectedDomain?.dm_seo_status === "scanning"
+    ) {
+      interval = setInterval(async () => {
+        try {
+          const res = await getDomainsApi(1, 100);
+          if (res.success && res.data?.domains) {
+            const updated = res.data.domains.find((d) => d._id === selectedDomain._id);
+            if (updated) {
+              setSelectedDomain(updated);
+            }
+          }
+        } catch (e) {
+          console.error("Error polling domain status in Heartbeat:", e);
+        }
+      }, 10000); // Poll every 10 seconds
+    }
+    return () => clearInterval(interval);
+  }, [selectedDomain?.dm_seo_status, selectedDomain?._id]);
 
   // Load domains and selected domain on mount
   useEffect(() => {
@@ -404,6 +447,7 @@ export default function HeartbeatView() {
     async function fetchHeartbeat() {
       if (!selectedDomain) return;
       setIsLoading(true);
+      setHeartbeatData(null);
       try {
         const res = await getHeartbeatDataApi(
           selectedDomain._id,
@@ -478,177 +522,206 @@ export default function HeartbeatView() {
 
   return (
     <div className="heartbeat-view">
-      {
-        <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
-          <div>
-            <h5 className="mb-1 fw-semibold text-body d-flex align-items-center gap-2">
-              <i
-                className="isax isax-heart5 text-primary fs-22"
-                aria-hidden={true}
-              />
-              Heartbeat
-            </h5>
-            <p className="text-muted fs-13 mb-2">
-              Checks whether your website is responding and measures the
-              response time of the server.
-            </p>
-            <div className="d-flex align-items-center gap-2 mb-0">
-              <span className="fs-13 text-body">Inspecting:</span>
-              {selectedDomain ? (
-                <a
-                  href={selectedDomain.dm_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary text-decoration-none d-inline-flex align-items-center gap-1"
-                >
-                  <ExternalLinkIcon size={12} className="flex-shrink-0" />
-                  <span className="text-break">{selectedDomain.dm_url}</span>
-                </a>
-              ) : (
-                <span className="fs-13 text-muted">No domain selected</span>
-              )}
-            </div>
+      {/* Header */}
+      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <h6 className="mb-0 fs-18 fw-semibold text-body d-flex align-items-center gap-2">
+          <i
+            className="isax isax-heart5 text-primary fs-22"
+            aria-hidden={true}
+          />
+          Heartbeat
+        </h6>
+        {selectedDomain && (
+          <button
+            type="button"
+            className="btn btn-danger d-inline-flex align-items-center gap-2 shadow-sm"
+            onClick={handleStartScan}
+            disabled={
+              isScanTriggering ||
+              selectedDomain.dm_seo_status === "scanning" ||
+              selectedDomain.dm_seo_status === "pending"
+            }
+          >
+            {isScanTriggering ||
+              selectedDomain.dm_seo_status === "scanning" ||
+              selectedDomain.dm_seo_status === "pending" ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <i className="isax isax-heart5 fs-16" aria-hidden="true" />
+                Scan New Heartbeat
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+          <p className="text-muted fs-13 mb-2">
+            Checks whether your website is responding and measures the response time of the server.
+          </p>
+          <div className="d-flex align-items-center gap-2 mb-0">
+            <span className="fs-13 text-body fw-medium">Inspecting:</span>
+            {selectedDomain ? (
+              <a
+                href={selectedDomain.dm_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-decoration-none d-inline-flex align-items-center gap-1"
+              >
+                <ExternalLinkIcon size={12} className="flex-shrink-0" />
+                <span className="text-break">{selectedDomain.dm_url}</span>
+              </a>
+            ) : (
+              <span className="fs-13 text-muted">No domain selected</span>
+            )}
           </div>
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-icon btn-sm btn-light border border-secondary border-opacity-25 rounded-2"
-              title="Download"
-              aria-label="Download"
-              onClick={handleDownload}
-            >
-              <i
-                className="isax isax-document-download text-primary fs-18"
-                aria-hidden={true}
-              />
-            </button>
-            <HeartbeatDateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onRangeChange={(s, e) => {
-                setStartDate(s);
-                setEndDate(e);
-              }}
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-icon btn-light border border-secondary border-opacity-25 rounded-2"
+            title="Download"
+            aria-label="Download"
+            onClick={handleDownload}
+            style={{ width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <i
+              className="isax isax-document-download text-primary fs-18"
+              aria-hidden={true}
+            />
+          </button>
+          <HeartbeatDateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onRangeChange={(s, e) => {
+              setStartDate(s);
+              setEndDate(e);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Metrics */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-0">
+          <div className="d-flex flex-wrap border-bottom border-secondary border-opacity-25">
+            <MetricBlock label="Monitoring" value="ACTIVE" status="success" />
+            <div
+              className="border-start border-secondary border-opacity-25"
+              style={{ width: 1 }}
+              aria-hidden={true}
+            />
+            <MetricBlock
+              label="Current domain status"
+              value={currentStatus}
+              status={
+                currentStatus === "OK"
+                  ? "success"
+                  : currentStatus === "-" || currentStatus === "LOADING"
+                    ? "neutral"
+                    : "danger"
+              }
+            />
+            <div
+              className="border-start border-secondary border-opacity-25"
+              style={{ width: 1 }}
+              aria-hidden={true}
+            />
+            <MetricBlock
+              label="Average response time"
+              value={
+                isLoading
+                  ? "..."
+                  : hasData
+                    ? heartbeatData?.avgResponseMs
+                    : "-"
+              }
+              valueSub={hasData && !isLoading ? " ms" : ""}
+              status={hasData && !isLoading ? "success" : "neutral"}
+            />
+            <div
+              className="border-start border-secondary border-opacity-25"
+              style={{ width: 1 }}
+              aria-hidden={true}
+            />
+            <MetricBlock
+              label="Average uptime"
+              value={
+                isLoading
+                  ? "..."
+                  : hasData
+                    ? heartbeatData?.uptimePercent
+                    : "-"
+              }
+              valueSub={hasData && !isLoading ? " %" : ""}
+              status={uptimeStatus}
+            />
+            <div
+              className="border-start border-secondary border-opacity-25"
+              style={{ width: 1 }}
+              aria-hidden={true}
+            />
+            <MetricBlock
+              label="Incidents"
+              value={
+                isLoading ? "..." : hasData ? heartbeatData?.incidents : "-"
+              }
+              status={
+                !hasData || isLoading
+                  ? "neutral"
+                  : heartbeatData?.incidents > 0
+                    ? "danger"
+                    : "success"
+              }
             />
           </div>
         </div>
+      </div>
 
-        /* Metrics */
-      }
-      {
+      {/* Chart */}
+      {isLoading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary mb-3" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="text-muted fs-13">Fetching heartbeat data...</p>
+        </div>
+      ) : heartbeatData?.dates?.length > 0 ? (
+        <HeartbeatChart
+          responseTimeSample={heartbeatData.responseTimeSample}
+          incidentSample={heartbeatData.incidentSample}
+          avgResponseMs={heartbeatData.avgResponseMs}
+          dates={heartbeatData.dates}
+        />
+      ) : (
         <div className="card border-0 shadow-sm mb-4">
-          <div className="card-body p-0">
-            <div className="d-flex flex-wrap border-bottom border-secondary border-opacity-25">
-              <MetricBlock label="Monitoring" value="ACTIVE" status="success" />
-              <div
-                className="border-start border-secondary border-opacity-25"
-                style={{ width: 1 }}
+          <div className="card-body p-5 text-center">
+            <div className="text-muted mb-2">
+              <i
+                className="isax isax-document-filter fs-2"
                 aria-hidden={true}
-              />
-              <MetricBlock
-                label="Current domain status"
-                value={currentStatus}
-                status={
-                  currentStatus === "OK"
-                    ? "success"
-                    : currentStatus === "-" || currentStatus === "LOADING"
-                      ? "neutral"
-                      : "danger"
-                }
-              />
-              <div
-                className="border-start border-secondary border-opacity-25"
-                style={{ width: 1 }}
-                aria-hidden={true}
-              />
-              <MetricBlock
-                label="Average response time"
-                value={
-                  isLoading
-                    ? "..."
-                    : hasData
-                      ? heartbeatData?.avgResponseMs
-                      : "-"
-                }
-                valueSub={hasData && !isLoading ? " ms" : ""}
-                status={hasData && !isLoading ? "success" : "neutral"}
-              />
-              <div
-                className="border-start border-secondary border-opacity-25"
-                style={{ width: 1 }}
-                aria-hidden={true}
-              />
-              <MetricBlock
-                label="Average uptime"
-                value={
-                  isLoading
-                    ? "..."
-                    : hasData
-                      ? heartbeatData?.uptimePercent
-                      : "-"
-                }
-                valueSub={hasData && !isLoading ? " %" : ""}
-                status={uptimeStatus}
-              />
-              <div
-                className="border-start border-secondary border-opacity-25"
-                style={{ width: 1 }}
-                aria-hidden={true}
-              />
-              <MetricBlock
-                label="Incidents"
-                value={
-                  isLoading ? "..." : hasData ? heartbeatData?.incidents : "-"
-                }
-                status={
-                  !hasData || isLoading
-                    ? "neutral"
-                    : heartbeatData?.incidents > 0
-                      ? "danger"
-                      : "success"
-                }
               />
             </div>
+            <h6 className="fw-semibold text-body mb-1">No scan data found</h6>
+            <p className="text-muted fs-13 mb-0">
+              There are no recorded scans for this domain within the selected
+              date range.
+            </p>
           </div>
         </div>
-
-        /* Chart */
+      )
       }
-      {
-        isLoading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary mb-3" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="text-muted fs-13">Fetching heartbeat data...</p>
-          </div>
-        ) : heartbeatData?.dates?.length > 0 ? (
-          <HeartbeatChart
-            responseTimeSample={heartbeatData.responseTimeSample}
-            incidentSample={heartbeatData.incidentSample}
-            avgResponseMs={heartbeatData.avgResponseMs}
-            dates={heartbeatData.dates}
-          />
-        ) : (
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-5 text-center">
-              <div className="text-muted mb-2">
-                <i
-                  className="isax isax-document-filter fs-2"
-                  aria-hidden={true}
-                />
-              </div>
-              <h6 className="fw-semibold text-body mb-1">No scan data found</h6>
-              <p className="text-muted fs-13 mb-0">
-                There are no recorded scans for this domain within the selected
-                date range.
-              </p>
-            </div>
-          </div>
-        )
 
-        /* Outages table */
-      }
+      {/* Outages table */}
       <div className="card border-0 shadow-sm">
         <div className="card-body">
           <div className="mb-3">
@@ -722,10 +795,10 @@ export default function HeartbeatView() {
         initialData={
           checkpointDrawerEditMode
             ? {
-                url: selectedDomain?.dm_url || "",
-                status: true,
-                pingInterval: "5",
-              }
+              url: selectedDomain?.dm_url || "",
+              status: true,
+              pingInterval: "5",
+            }
             : undefined
         }
         onSave={(data) => {
@@ -733,6 +806,5 @@ export default function HeartbeatView() {
         }}
       />
     </div>
-    /* Header */
   );
 }

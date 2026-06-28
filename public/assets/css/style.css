@@ -5169,12 +5169,13 @@ fieldset:disabled .btn {
 
 .dropdown-toggle::after {
   display: inline-block;
-  vertical-align: 0;
-  content: "\ea5f";
-  font-family: "tabler-icons" !important;
+  vertical-align: middle;
+  content: "\f282";
+  font-family: "bootstrap-icons" !important;
   border: 0;
-  font-size: 14px;
+  font-size: 10px;
   position: relative;
+  margin-left: 4px;
 }
 
 .dropdown-toggle-split:before {

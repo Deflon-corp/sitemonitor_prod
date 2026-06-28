@@ -344,6 +344,7 @@ export default function UserList() {
                     <th className="text-muted fw-medium">User</th>
                     <th className="text-muted fw-medium">Latest login</th>
                     <th className="text-muted fw-medium">Status</th>
+                    <th className="text-muted fw-medium text-end">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -453,12 +454,13 @@ export default function UserList() {
                           <td className="text-end">
                             <div className="dropdown">
                               <button
-                                className="btn btn-sm btn-light border dropdown-toggle"
                                 type="button"
+                                className="btn btn-icon btn-sm btn-light rounded-circle"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
+                                aria-label="User actions"
                               >
-                                Actions
+                                <i className="bi bi-three-dots-vertical" aria-hidden="true" />
                               </button>
                               <ul className="dropdown-menu dropdown-menu-end">
                                 <li>
@@ -467,7 +469,7 @@ export default function UserList() {
                                     to={`/home/users/edit-user/${user.user_id}`}
                                   >
                                     <i
-                                      className="isax isax-setting-25 me-2"
+                                      className="bi bi-pencil me-2"
                                       aria-hidden="true"
                                     />{" "}
                                     Edit User
@@ -484,7 +486,7 @@ export default function UserList() {
                                     }
                                   >
                                     <i
-                                      className={`isax ${isArchivedView ? "isax-trash" : "isax-archive-add"} me-2`}
+                                      className={`bi ${isArchivedView ? "bi-trash" : "bi-archive"} me-2`}
                                       aria-hidden="true"
                                     />{" "}
                                     {isArchivedView
@@ -500,7 +502,7 @@ export default function UserList() {
                                       onClick={() => handleRestoreUser(user)}
                                     >
                                       <i
-                                        className="isax isax-rotate-right me-2"
+                                        className="bi bi-arrow-counterclockwise me-2"
                                         aria-hidden="true"
                                       />{" "}
                                       Restore User
