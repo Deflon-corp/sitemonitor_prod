@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import SeoSummaryView from "./SeoSummaryView";
 import PagesWithOpportunitiesView from "./PagesWithOpportunitiesView";
 import SeoCheckpointsView from "./SeoCheckpointsView";
+import SitemapCheckoutView from "./SitemapCheckoutView";
 import { SELECTED_DOMAIN_KEY } from "../../layouts/Sidebar";
 import { getDomainByIdApi, triggerDomainScanApi } from "../../api/domainApi";
 import toast from "react-hot-toast";
@@ -28,6 +29,13 @@ const SEO_NAV = [
     description: "Detailed breakdown of all SEO rules",
     icon: "isax-tick-circle",
     href: "/domain/seo?view=checkpoints",
+  },
+  {
+    key: "sitemap-checkout",
+    label: "Crawl & Sitemap",
+    description: "Review crawl files & sitemaps",
+    icon: "isax-document-text",
+    href: "/domain/seo?view=sitemap-checkout",
   },
 ];
 
@@ -153,6 +161,7 @@ const Seo = () => {
         {currentView === "summary" && <SeoSummaryView />}
         {currentView === "opportunities" && <PagesWithOpportunitiesView />}
         {currentView === "checkpoints" && <SeoCheckpointsView />}
+        {currentView === "sitemap-checkout" && <SitemapCheckoutView />}
       </div>
     </div>
   );

@@ -574,6 +574,38 @@ export default function Sidebar() {
                   <li className="submenu">
                     <a
                       href="#"
+                      className={`subdrop ${isSectionActive(["/domain/dark-pattern"]) ? "active" : ""}`}
+                      onClick={handleSubmenuClick}
+                    >
+                      <i
+                        className="isax isax-shield-tick sidebar-module-icon"
+                        aria-hidden
+                      />
+                      <span className="text-truncate">Dark Pattern</span>
+                      <span className="menu-arrow" />
+                    </a>
+                    <ul>
+                      <li>
+                        <Link
+                          to="/domain/dark-pattern?view=summary"
+                          className="d-flex align-items-center"
+                        >
+                          <i className="isax isax-home-2 me-2"></i>Audit Summary
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/domain/dark-pattern?view=issues"
+                          className="d-flex align-items-center"
+                        >
+                          <i className="isax isax-danger me-2"></i>Detected Issues
+                        </Link>
+                      </li>
+                    </ul>
+                  </li>
+                  <li className="submenu">
+                    <a
+                      href="#"
                       className={`subdrop ${isSectionActive(["/domain/accessibility"]) ? "active" : ""}`}
                       onClick={handleSubmenuClick}
                     >

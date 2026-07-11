@@ -3,6 +3,7 @@ import { showToast } from "../components/common/alerts/ToastAlert";
 import { getTenantId } from "../utils/subdomain";
 import { LogoutAlert } from "../components/common/alerts/LogoutAlert";
 import { clearSession } from "../utils/auth";
+import { decrypt } from "../utils/encryption";
 
 // Create a common axios instance
 // Determine base URL based on environment
@@ -52,6 +53,17 @@ axiosInstance.interceptors.request.use(
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Decrypt if necessary
+    if (response.data && response.data.encryptedData) {
+      try {
+        const decryptedStr = decrypt(response.data.encryptedData);
+        if (decryptedStr) {
+          response.data = JSON.parse(decryptedStr);
+        }
+      } catch (e) {
+        console.error("Decryption failed", e);
+      }
+    }
     // Logging response
     console.log(
       `[API Response] ${response.status} ${response.config.url}`,
@@ -88,6 +100,17 @@ axiosInstance.interceptors.response.use(
           );
 
           // Match the user's specified response structure: { data: { access_token: "..." } }
+          if (refreshResponse.data && refreshResponse.data.encryptedData) {
+            try {
+              const decryptedStr = decrypt(refreshResponse.data.encryptedData);
+              if (decryptedStr) {
+                refreshResponse.data = JSON.parse(decryptedStr);
+              }
+            } catch (e) {
+              console.error("Decryption failed on refresh token", e);
+            }
+          }
+
           if (refreshResponse.data && refreshResponse.data.success) {
             const { access_token } = refreshResponse.data.data;
 
@@ -129,6 +152,17 @@ axiosInstance.interceptors.response.use(
 
     // Generic error handling using backend message
     if (response) {
+      if (response.data && response.data.encryptedData) {
+        try {
+          const decryptedStr = decrypt(response.data.encryptedData);
+          if (decryptedStr) {
+            response.data = JSON.parse(decryptedStr);
+          }
+        } catch (e) {
+          console.error("Decryption failed on error response", e);
+        }
+      }
+
       // Always prioritize backend message over hardcoded ones
       const backendMessage = response.data?.message;
 

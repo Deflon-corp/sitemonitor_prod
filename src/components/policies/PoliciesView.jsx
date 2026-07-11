@@ -188,6 +188,13 @@ const PoliciesView = ({ isLanding = false }) => {
           trend: [],
         });
         const selectedId = sessionStorage.getItem(SELECTED_DOMAIN_KEY);
+        
+        // If we are on the landing page or no domain is selected, skip the API call
+        if (isLanding || !selectedId) {
+          setLoading(false);
+          return;
+        }
+
         const res = await getPolicyStatsApi({ domainId: selectedId });
         if (res.success && res.data) {
           setStats({

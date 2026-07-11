@@ -30,6 +30,7 @@ import SpellCheckerDetailPage from "../components/audit/spell-checker/SpellCheck
 import HeartbeatView from "../components/heartbeat/HeartbeatView";
 import PerformanceView from "../components/performance/PerformanceView";
 import InventoryPage from "../components/inventory/Inventory";
+import DarkPattern from "../components/dark-pattern/DarkPattern";
 
 const MainRouter = () => {
   const tenantId = getTenantId();
@@ -149,6 +150,21 @@ const MainRouter = () => {
           </ProtectedRouter>
         }
       />
+      <Route
+        path="/domain/dark-pattern"
+        element={
+          <ProtectedRouter>
+            <DashboardLayout
+              breadcrumbTitle="Dark Patterns"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
+              <DarkPattern />
+            </DashboardLayout>
+          </ProtectedRouter>
+        }
+      />
+
       <Route
         path="/domain/audit"
         element={
