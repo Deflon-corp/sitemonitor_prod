@@ -26,8 +26,13 @@ const DarkPattern = () => {
 
   return (
     <div className="dark-pattern-page">
-      <div className="d-flex d-block align-items-center justify-content-between flex-wrap gap-3 mb-4">
-        <h6 className="mb-0 fs-18 fw-semibold text-body">Dark Patterns</h6>
+      <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div className="d-flex align-items-center gap-2">
+          <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 fs-12 py-1 px-2 rounded">
+            Coming Soon (Currently showing static data)
+          </span>
+          <h6 className="mb-0 fs-18 fw-semibold text-body">Dark Patterns</h6>
+        </div>
       </div>
 
       <div className="card border-0 shadow-sm mb-4">

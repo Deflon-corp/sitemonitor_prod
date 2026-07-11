@@ -9,6 +9,8 @@ const UpdateDomain = () => {
 
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [gscEmail, setGscEmail] = useState("");
+  const [connectedEmails, setConnectedEmails] = useState([]);
   const [crawlAuto, setCrawlAuto] = useState(false);
   const [connectionsPerMin, setConnectionsPerMin] = useState("normal");
   const [maxScannedPages, setMaxScannedPages] = useState("");
@@ -49,6 +51,20 @@ const UpdateDomain = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    const fetchConnections = async () => {
+      try {
+        const res = await axiosInstance.get("/auth/google/connections");
+        if (res.data?.success && res.data?.connections) {
+          setConnectedEmails(res.data.connections);
+        }
+      } catch (err) {
+        console.error("Error fetching google connections:", err);
+      }
+    };
+    fetchConnections();
+  }, []);
+
+  useEffect(() => {
     const fetchDomain = async () => {
       try {
         setIsFetching(true);
@@ -57,6 +73,7 @@ const UpdateDomain = () => {
           const data = response.data.data;
           setTitle(data.dm_title || "");
           setUrl(data.dm_url || "");
+          setGscEmail(data.dm_gsc_email || "");
           setCrawlAuto(data.dm_crawl_auto || false);
           setConnectionsPerMin(data.dm_connections_per_min || "normal");
           setMaxScannedPages(data.dm_max_scanned_pages?.toString() || "");
@@ -243,6 +260,7 @@ const UpdateDomain = () => {
         dm_id: Number(dm_id),
         dm_title: title,
         dm_url: url,
+        dm_gsc_email: gscEmail || null,
         dm_crawl_auto: crawlAuto,
         dm_connections_per_min: connectionsPerMin,
         dm_max_scanned_pages: Number(maxScannedPages) || 0,
@@ -370,6 +388,20 @@ const UpdateDomain = () => {
                     {errors.url && (
                       <div className="invalid-feedback">{errors.url}</div>
                     )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Linked Google Search Console Email (Optional)</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="e.g. user@gmail.com"
+                      value={gscEmail}
+                      onChange={(e) => setGscEmail(e.target.value)}
+                    />
+                    <div className="form-text text-muted">
+                      Specify the Gmail address of the Google Search Console account associated with this domain.
+                    </div>
                   </div>
 
                   <div className="mb-3">

@@ -166,15 +166,17 @@ axiosInstance.interceptors.response.use(
       // Always prioritize backend message over hardcoded ones
       const backendMessage = response.data?.message;
 
-      if (backendMessage) {
-        showToast(backendMessage, "error");
-      } else if (response.status === 500) {
-        showToast("Internal Server Error. Please try again later.", "error");
-      } else if (response.status !== 401 || isLoginRequest) {
-        // Show generic error only if it's not a standard 401 (which is handled above or should show "Invalid Credentials" if login)
-        showToast("Something went wrong. Please try again.", "error");
+      if (!config?.skipToast) {
+        if (backendMessage) {
+          showToast(backendMessage, "error");
+        } else if (response.status === 500) {
+          showToast("Internal Server Error. Please try again later.", "error");
+        } else if (response.status !== 401 || isLoginRequest) {
+          // Show generic error only if it's not a standard 401 (which is handled above or should show "Invalid Credentials" if login)
+          showToast("Something went wrong. Please try again.", "error");
+        }
       }
-    } else {
+    } else if (!config?.skipToast) {
       showToast("Something went wrong. Please try again.", "error");
     }
 

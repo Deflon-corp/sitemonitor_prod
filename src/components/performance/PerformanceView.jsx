@@ -4,12 +4,15 @@ import PageDetailsDrawer from "@/components/prioritized-content/PageDetailsDrawe
 import performanceApi from "@/api/performanceApi";
 import { triggerDomainScanApi, getDomainByIdApi } from "@/api/domainApi";
 import { SELECTED_DOMAIN_KEY } from "@/layouts/Sidebar";
+import SearchPerformanceView from "./SearchPerformanceView";
 
 const PerformanceView = () => {
   const [summary, setSummary] = useState(null);
   const [pages, setPages] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  const [activeTab, setActiveTab] = useState("page");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -248,7 +251,7 @@ const PerformanceView = () => {
               className="isax isax-flash5 text-primary fs-22"
               aria-hidden="true"
             />
-            Page Performance
+            Performance
           </h5>
           <p className="text-muted fs-13 mb-0">
             Powered by Google Lighthouse diagnostics. Analyze, filter, and
@@ -300,6 +303,28 @@ const PerformanceView = () => {
         </div>
       )}
 
+      {/* Tabs */}
+      <ul className="nav nav-tabs mb-4 border-bottom">
+        <li className="nav-item">
+          <button
+            className={`nav-link fw-medium px-4 ${activeTab === "page" ? "active bg-white border-bottom-0 text-primary" : "text-muted border-transparent"}`}
+            onClick={() => setActiveTab("page")}
+            style={{ borderRadius: "8px 8px 0 0" }}
+          >
+            Page Performance
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link fw-medium px-4 ${activeTab === "search" ? "active bg-white border-bottom-0 text-primary" : "text-muted border-transparent"}`}
+            onClick={() => setActiveTab("search")}
+            style={{ borderRadius: "8px 8px 0 0" }}
+          >
+            Search Performance
+          </button>
+        </li>
+      </ul>
+
       {!domainId ? (
         <div className="alert alert-info py-4 border-0 shadow-sm glassmorphic-card">
           <div className="d-flex align-items-center gap-3">
@@ -312,6 +337,10 @@ const PerformanceView = () => {
               </p>
             </div>
           </div>
+        </div>
+      ) : activeTab === "search" ? (
+        <div className="mt-4">
+          <SearchPerformanceView domainId={domainId} scanning={scanning} />
         </div>
       ) : (
         <>

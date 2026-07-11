@@ -173,6 +173,16 @@ export const getAuditPerformanceApi = async (id) => {
   }
 };
 
+// GET /audit/search-performance/:id
+export const getAuditSearchPerformanceApi = async (id) => {
+  try {
+    const response = await axiosInstance.get(`/audit/search-performance/${id}`, { skipToast: true });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // GET /audit/security/:id
 export const getAuditSecurityApi = async (id) => {
   try {
