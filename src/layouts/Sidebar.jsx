@@ -704,6 +704,12 @@ export default function Sidebar() {
                       </li>
                     </ul>
                   </li>
+                  <li className={isLinkActive("/domain/competitors") ? "active" : ""}>
+                    <Link to="/domain/competitors">
+                      <i className="isax isax-radar sidebar-module-icon" aria-hidden />
+                      <span className="text-truncate">Market Competitors</span>
+                    </Link>
+                  </li>
                   <li className="submenu">
                     <a
                       href="#"

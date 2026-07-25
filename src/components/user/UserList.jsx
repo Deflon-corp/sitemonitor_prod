@@ -163,34 +163,20 @@ export default function UserList() {
   // Format latest login date
   function formatLatestLogin(dateStr) {
     if (!dateStr) {
-      return { month: "-", day: "--", year: "" };
+      return { formattedDate: "-" };
     }
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) {
-        return { month: "-", day: "--", year: "" };
+        return { formattedDate: "-" };
       }
-      const months = [
-        "JAN",
-        "FEB",
-        "MAR",
-        "APR",
-        "MAY",
-        "JUN",
-        "JUL",
-        "AUG",
-        "SEP",
-        "OCT",
-        "NOV",
-        "DEC",
-      ];
-      return {
-        month: months[date.getMonth()],
-        day: date.getDate().toString().padStart(2, "0"),
-        year: date.getFullYear(),
-      };
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      
+      return { formattedDate: `${day}-${month}-${year}` };
     } catch (e) {
-      return { month: "-", day: "--", year: "" };
+      return { formattedDate: "-" };
     }
   }
 
@@ -342,7 +328,8 @@ export default function UserList() {
                 <thead>
                   <tr>
                     <th className="text-muted fw-medium">User</th>
-                    <th className="text-muted fw-medium">Latest login</th>
+                    <th className="text-muted fw-medium">Email</th>
+                    <th className="text-muted fw-medium">Latest Login</th>
                     <th className="text-muted fw-medium">Status</th>
                     <th className="text-muted fw-medium text-end">Action</th>
                   </tr>
@@ -350,7 +337,7 @@ export default function UserList() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="4" className="text-center py-5">
+                      <td colSpan="5" className="text-center py-5">
                         <div
                           className="spinner-border spinner-border-sm text-primary me-2"
                           role="status"
@@ -362,7 +349,7 @@ export default function UserList() {
                     </tr>
                   ) : users.length > 0 ? (
                     users.map((user) => {
-                      const { month, day, year } = formatLatestLogin(
+                      const { formattedDate } = formatLatestLogin(
                         user.user_last_login,
                       );
 
@@ -413,36 +400,24 @@ export default function UserList() {
                                   {initials}
                                 </span>
                               )}
-                              <div>
-                                <span className="fw-medium text-body d-block">
-                                  {user.user_first_name} {user.user_last_name}
-                                </span>
-                                <span className="small text-muted d-flex align-items-center gap-1">
-                                  <i
-                                    className="isax isax-sms"
-                                    style={{ fontSize: "0.75rem" }}
-                                  ></i>
-                                  {user.user_email}
-                                </span>
-                              </div>
+                              <span className="fw-medium text-body">
+                                {user.user_first_name} {user.user_last_name}
+                              </span>
                             </div>
                           </td>
                           <td>
-                            <div className="domain-overview-date d-flex flex-column">
-                              {user.user_last_login ? (
-                                <>
-                                  <span className="fw-medium">{month}</span>
-                                  <span className="display-6 lh-1 fw-bold text-body">
-                                    {day}
-                                  </span>
-                                  <span className="text-muted small">
-                                    {year}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="fw-medium text-muted">-</span>
-                              )}
-                            </div>
+                            <span className="small text-muted d-flex align-items-center gap-1">
+                              <i
+                                className="isax isax-sms"
+                                style={{ fontSize: "0.75rem" }}
+                              ></i>
+                              {user.user_email}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="fw-medium text-body">
+                              {formattedDate}
+                            </span>
                           </td>
                           <td>
                             <span
@@ -517,7 +492,7 @@ export default function UserList() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="4" className="text-center py-5">
+                      <td colSpan="5" className="text-center py-5">
                         <div className="text-muted">
                           No {isArchivedView ? "archived " : ""}users found
                         </div>

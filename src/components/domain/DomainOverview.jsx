@@ -86,12 +86,12 @@ const ExcludedIpDrawer = ({ isOpen, onClose, domain }) => {
 };
 
 function formatApiDate(dateStr) {
-  if (!dateStr) return { month: "N/A", day: "--", year: "----" };
+  if (!dateStr) return { formattedDate: "N/A" };
   const date = new Date(dateStr);
-  const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
-  const day = date.getDate();
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return { month, day, year };
+  return { formattedDate: `${day}-${month}-${year}` };
 }
 
 const DomainOverview = () => {
@@ -288,14 +288,16 @@ const DomainOverview = () => {
               <thead>
                 <tr>
                   <th className="text-muted fw-medium">Last Scan</th>
-                  <th className="text-muted fw-medium">Domain</th>
+                  <th className="text-muted fw-medium">Title</th>
+                  <th className="text-muted fw-medium">Domain URL</th>
+                  <th className="text-muted fw-medium">Status</th>
                   <th className="text-muted fw-medium text-end">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan="3" className="text-center py-5">
+                    <td colSpan="5" className="text-center py-5">
                       <div
                         className="spinner-border text-primary"
                         role="status"
@@ -306,7 +308,7 @@ const DomainOverview = () => {
                   </tr>
                 ) : domains.length > 0 ? (
                   domains.map((domain) => {
-                    const { month, day, year } = formatApiDate(
+                    const { formattedDate } = formatApiDate(
                       domain.dm_created_at,
                     );
                     const domainId = domain._id;
@@ -326,105 +328,48 @@ const DomainOverview = () => {
                       >
                         {/* Last Scan */}
                         <td>
-                          <div className="domain-overview-date d-flex flex-column">
-                            <span className="fw-medium">{month}</span>
-                            <span className="display-6 lh-1 fw-bold text-body">
-                              {day}
-                            </span>
-                            <span className="text-muted small">{year}</span>
-                          </div>
+                          <span className="fw-medium text-body">
+                            {formattedDate}
+                          </span>
                         </td>
 
-                        {/* Domain Info */}
+                        {/* Title */}
                         <td>
-                          <div className="d-flex flex-column gap-1">
-                            <span className="fw-medium text-body">
-                              {domain.dm_title}
-                            </span>
-                            <a
-                              href={
-                                domain.dm_url.startsWith("http")
-                                  ? domain.dm_url
-                                  : `https://${domain.dm_url}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary small text-decoration-none d-inline-flex align-items-center gap-1"
-                            >
-                              <ExternalLinkIcon
-                                size={12}
-                                className="flex-shrink-0 text-primary"
-                              />
-                              {domain.dm_url}
-                            </a>
-                          </div>
+                          <span className="fw-medium text-body">
+                            {domain.dm_title}
+                          </span>
+                        </td>
 
-                          {isScanning ? (
-                            <div className="mt-2">
-                              <div className="text-muted small mb-1">
-                                Scan in progress
-                              </div>
-                              <div
-                                className="progress rounded-pill"
-                                style={{ height: 8 }}
-                              >
-                                <div
-                                  className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                                  role="progressbar"
-                                  style={{ width: "100%" }}
-                                  aria-valuenow="100"
-                                  aria-valuemin="0"
-                                  aria-valuemax="100"
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="domain-overview-metrics d-flex flex-wrap align-items-center gap-3 mt-2">
-                              {/* Dummy metrics as they are not in the provided API response */}
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-success"
-                                title="Issues"
-                              >
-                                <i className="isax isax-hammer" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-primary"
-                                title="Passed"
-                              >
-                                <i className="isax isax-tick-circle" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-primary"
-                                title="Pages"
-                              >
-                                <i className="isax isax-chart-2" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-success"
-                                title="Secure"
-                              >
-                                <i className="isax isax-lock-1" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-primary"
-                                title="Accessibility"
-                              >
-                                <i className="isax isax-profile-2user" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-success"
-                                title="Documents"
-                              >
-                                <i className="isax isax-document-text" /> 0
-                              </span>
-                              <span
-                                className="d-inline-flex align-items-center gap-1 small text-primary"
-                                title="Scanned"
-                              >
-                                <i className="isax isax-folder" /> 0
-                              </span>
-                            </div>
-                          )}
+                        {/* Domain URL */}
+                        <td>
+                          <a
+                            href={
+                              domain.dm_url.startsWith("http")
+                                ? domain.dm_url
+                                : `https://${domain.dm_url}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary small text-decoration-none d-inline-flex align-items-center gap-1"
+                          >
+                            <ExternalLinkIcon
+                              size={12}
+                              className="flex-shrink-0 text-primary"
+                            />
+                            {domain.dm_url}
+                          </a>
+                          {/* Removed metrics and scanning progress as requested */}
+                        </td>
+
+                        {/* Status */}
+                        <td>
+                          <span className={`badge rounded-pill fw-medium ${
+                            domain.dm_status === 'inactive' ? 'bg-secondary' :
+                            domain.dm_status === 'suspended' ? 'bg-danger' :
+                            'bg-success'
+                          }`}>
+                            <span className="text-capitalize">{domain.dm_status || 'Active'}</span>
+                          </span>
                         </td>
 
                         {/* Action Dropdown */}
@@ -541,7 +486,7 @@ const DomainOverview = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="3" className="text-center py-5 text-muted">
+                    <td colSpan="5" className="text-center py-5 text-muted">
                       No {isArchivedView ? "archived " : ""}domains found.
                     </td>
                   </tr>

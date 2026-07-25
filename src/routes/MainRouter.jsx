@@ -31,6 +31,7 @@ import HeartbeatView from "../components/heartbeat/HeartbeatView";
 import PerformanceView from "../components/performance/PerformanceView";
 import InventoryPage from "../components/inventory/Inventory";
 import DarkPattern from "../components/dark-pattern/DarkPattern";
+import CompetitorMatrix from "../pages/competitor/CompetitorMatrix";
 
 const MainRouter = () => {
   const tenantId = getTenantId();
@@ -118,6 +119,20 @@ const MainRouter = () => {
               breadcrumbParentHref="/domain"
             >
               <QualityAssurance />
+            </DashboardLayout>
+          </ProtectedRouter>
+        }
+      />
+      <Route
+        path="/domain/competitors"
+        element={
+          <ProtectedRouter>
+            <DashboardLayout
+              breadcrumbTitle="Market Competitors"
+              breadcrumbParent="Dashboard"
+              breadcrumbParentHref="/domain"
+            >
+              <CompetitorMatrix />
             </DashboardLayout>
           </ProtectedRouter>
         }
